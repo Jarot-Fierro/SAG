@@ -62,11 +62,11 @@
         const getPreferredTheme = () => {
             const stored = getStoredTheme();
             if (stored) return stored;
-            return prefersDark() ? 'dark' : 'light';
+            return 'light';
         };
 
         const setTheme = (theme) => {
-            const resolved = theme === 'auto' ? (prefersDark() ? 'dark' : 'light') : theme;
+            const resolved = theme === 'auto' ? 'light' : theme;
             document.documentElement.setAttribute('data-bs-theme', resolved);
         };
 
