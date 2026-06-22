@@ -1,0 +1,228 @@
+/* ================================
+   🌿 BODY / FONDO PRINCIPAL
+================================ */
+.bg-body-green {
+    background: linear-gradient(
+            180deg,
+            #004b89 0%,
+            #003d69 40%,
+            #003052 100%
+    );
+}
+
+
+/* ================================
+   🟦 BADGES / TEXT BG
+================================ */
+
+/* ================================
+   🟢 PRIMARY
+================================ */
+.text-bg-primary {
+    background-color: #006FB3 !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   ⚪ SECONDARY
+================================ */
+.text-bg-secondary {
+    background-color: #7F8F99 !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   🟢 SUCCESS
+================================ */
+.text-bg-success {
+    background-color: #3fa1ad !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   🔵 INFO
+================================ */
+.text-bg-info {
+    background-color: #876bbe !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   🟡 WARNING
+================================ */
+.text-bg-warning {
+    background-color: #FFA11B !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   🔴 DANGER
+================================ */
+.text-bg-danger {
+    background-color: #FE6565 !important;
+    color: #fff !important;
+}
+
+
+/* ================================
+   🔘 BOTONES SOLIDOS
+================================ */
+
+.btn-primary {
+    background-color: #006FB3;
+    border-color: #006FB3;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #005c93;
+    border-color: #006FB3;
+    color: #fff;
+}
+
+.btn-secondary {
+    background-color: #7F8F99;
+    border-color: #7F8F99;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #6E7E88;
+    border-color: #6E7E88;
+    color: #fff;
+}
+
+.btn-success {
+    background-color: #3fa1ad;
+    border-color: #3fa1ad;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background-color: #1b7970;
+    border-color: #3fa1ad;
+    color: #fff;
+}
+
+.btn-info {
+    background-color: #876bbe;
+    border-color: #876bbe;
+    color: #fff;
+}
+
+.btn-info:hover {
+    background-color: #6c4a9b;
+    border-color: #876bbe;
+    color: #fff;
+}
+
+.btn-warning {
+    background-color: #FFA11B;
+    border-color: #FFA11B;
+    color: #fff;
+}
+
+.btn-warning:hover {
+    background-color: #D9942F;
+    border-color: #D9942F;
+    color: #fff;
+}
+
+.btn-danger {
+    background-color: #FE6565;
+    border-color: #FE6565;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #D24D4D;
+    border-color: #D24D4D;
+    color: #fff;
+}
+
+
+/* ================================
+   🔳 BOTONES OUTLINE
+================================ */
+
+.btn-outline-primary {
+    background-color: transparent;
+    border: 1px solid #006FB3;
+    color: #006FB3;
+}
+
+.btn-outline-primary:hover {
+    background-color: #006FB3;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    border: 1px solid #7F8F99;
+    color: #7F8F99;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #7F8F99;
+    color: #fff;
+}
+
+.btn-outline-success {
+    border: 1px solid #3fa1ad;
+    color: #3fa1ad;
+}
+
+.btn-outline-success:hover {
+    background-color: #3fa1ad;
+    color: #fff;
+}
+
+.btn-outline-info {
+    border: 1px solid #876bbe;
+    color: #876bbe;
+}
+
+.btn-outline-info:hover {
+    background-color: #876bbe;
+    color: #fff;
+}
+
+.btn-outline-warning {
+    border: 1px solid #FFA11B;
+    color: #FFA11B;
+}
+
+.btn-outline-warning:hover {
+    background-color: #FFA11B;
+    color: #fff;
+}
+
+.btn-outline-danger {
+    border: 1px solid #FE6565;
+    color: #FE6565;
+}
+
+.btn-outline-danger:hover {
+    background-color: #FE6565;
+    color: #fff;
+}
+
+
+/* ================================
+   ✨ ESTILO GLOBAL BOTONES
+================================ */
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all .2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .15);
+}
