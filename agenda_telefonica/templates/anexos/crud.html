@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Editor de Agenda Telefónica {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'anexos/components/menu_sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <div class="btn-group" role="group" aria-label="Basic example">
+
+        {% if anexo_edit %}
+            <a href="
+
+
+
+
+                    {% url 'agenda:editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
+               class="btn btn-secondary btn-sm">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        {% else %}
+            <button type="reset" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-clockwise"></i> Limpiar
+            </button>
+        {% endif %}
+        <button type="submit" form="form_anexo" class="btn btn-primary btn-sm">
+            <i class="bi bi-save"></i> Guardar
+        </button>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+        <div class="container-fluid">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- FORMULARIO -->
+            <div class="card card-primary card-outline shadow-sm">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        {% if anexo_edit %}Editar Anexo: {{ anexo_edit.nombre }}{% else %}Nuevo Anexo{% endif %}
+                    </h3>
+                </div>
+                <form id="form_anexo" method="post" action="
+
+
+
+
+                        {% if anexo_edit %}{% url 'agenda:editar_anexo' anexo_edit.pk %}{% else %}{% url 'agenda:guardar_anexo' %}{% endif %}">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ form_anexo.anexo.label }}</label>
+                                {{ form_anexo.anexo }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ form_anexo.anexo_publico.label }}</label>
+                                {{ form_anexo.anexo_publico }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form_anexo.nombre.label }}</label>
+                                {{ form_anexo.nombre }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form_anexo.email.label }}</label>
+                                {{ form_anexo.email }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form_anexo.servicio.label }}</label>
+                                {{ form_anexo.servicio }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form_anexo.is_active.label }}</label>
+                                {{ form_anexo.is_active }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">{{ form_anexo.direccion.label }}</label>
+                                {{ form_anexo.direccion }}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FILTROS Y TABLA -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Listado de Anexos
+                    </h3>
+                    <div class="card-tools">
+                        <form id="filter-form" class="row g-2 align-items-center"
+                              hx-get="{% url 'agenda:buscar_anexo_editor' %}"
+                              hx-target="#table-results"
+                              hx-trigger="change"
+                              onsubmit="return false;">
+                            {% if establecimiento_id %}
+                                <input type="hidden" name="establecimiento" value="{{ establecimiento_id }}">
+                            {% endif %}
+                            <div class="col-auto">
+                                {{ form.q }}
+                            </div>
+                            <div class="col-auto">
+                                {{ form.servicio }}
+                            </div>
+                            <div class="col-auto">
+                                {{ form.per_page }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div id="table-results"
+                     hx-get="
+
+
+
+
+
+
+
+
+
+
+                             {% url 'agenda:buscar_anexo_editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
+                     hx-trigger="load"
+                     hx-include="#filter-form">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}

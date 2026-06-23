@@ -1,0 +1,71 @@
+{% load custom_filters %}
+<div class="table-responsive p-0">
+    <table class="table table-hover table-striped align-middle">
+        <thead class="table-light">
+        <tr>
+            {% for col in table_columns %}
+                <th>{{ col.label }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for object in object_list %}
+            <tr>
+                {% for col in table_columns %}
+                    <td>
+                        {{ object|attribute_filter:col.name }}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="{{ table_columns|length|add:1 }}" class="text-center">No se encontraron registros</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if object_list.has_other_pages %}
+    <div class="card-footer clearfix">
+        <ul class="pagination pagination-sm m-0 float-end">
+            {% if object_list.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="#"
+                       hx-get="{% url 'agenda:buscar_anexo' %}?page=
+                               {{ object_list.previous_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
+                       hx-include="#filter-form"
+                       hx-target="#table-results">«</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">«</span></li>
+            {% endif %}
+
+            {% for i in object_list.paginator.page_range %}
+                {% if object_list.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% elif i > object_list.number|add:'-3' and i < object_list.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="#"
+                           hx-get="{% url 'agenda:buscar_anexo' %}?page=
+                                   {{ i }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
+                           hx-include="#filter-form"
+                           hx-target="#table-results">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if object_list.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="#"
+                       hx-get="{% url 'agenda:buscar_anexo' %}?page=
+                               {{ object_list.next_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
+                       hx-include="#filter-form"
+                       hx-target="#table-results">»</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">»</span></li>
+            {% endif %}
+        </ul>
+    </div>
+{% endif %}

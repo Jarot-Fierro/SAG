@@ -33,7 +33,9 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1,http://localhost').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in
+                        os.getenv('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1,http://localhost').split(',') if
+                        origin.strip()]
 
 FORCE_SCRIPT_NAME = os.getenv('FORCE_SCRIPT_NAME', '')
 if FORCE_SCRIPT_NAME == '':
@@ -76,8 +78,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'colorfield',
-    # 'simple_history',
-    # 'import_export',
+    'simple_history',
+    'import_export',
     'core.apps.CoreConfig',
     'agenda_telefonica.apps.AgendaTelefonicaConfig',
 ]
@@ -90,6 +92,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -106,6 +109,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'agenda_telefonica.context_processors.menu_sidebar',
             ],
         },
     },

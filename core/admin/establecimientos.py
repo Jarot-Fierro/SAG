@@ -6,6 +6,9 @@ from core.standard.admin import StandardAdmin
 
 @admin.register(Establecimiento)
 class EstablecimientoAdmin(StandardAdmin):
-    list_display = ('nombre', 'region', 'telefono')
+    list_display = ('id', 'nombre', 'region', 'telefono')
     search_fields = ('nombre', 'region')
     list_filter = ('is_active', 'region')
+    list_display_links = (
+        'nombre',
+    )

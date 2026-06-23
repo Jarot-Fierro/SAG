@@ -1,7 +1,9 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
+from simple_history.admin import SimpleHistoryAdmin
 
 
-class StandardAdmin(admin.ModelAdmin):
+class StandardAdmin(ImportExportModelAdmin, SimpleHistoryAdmin):
     readonly_fields = ('created_by', 'updated_by', 'created_at', 'updated_at')
 
     def save_model(self, request, obj, form, change):

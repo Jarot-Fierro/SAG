@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from config import settings
 
@@ -23,6 +24,8 @@ class User(AbstractUser):
                                    related_name="%(class)s_created", verbose_name='Creado Por')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name="%(class)s_updated", verbose_name='Actualizado Por')
+
+    history = HistoricalRecords()
 
     USERNAME_FIELD = 'username'
 

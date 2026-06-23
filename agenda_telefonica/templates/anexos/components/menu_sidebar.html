@@ -1,0 +1,8 @@
+{% for item in sidebar_menu_items %}
+    <li class="nav-item">
+        <a href="{% url 'agenda:index' %}?establecimiento={{ item.establecimiento.id }}" class="nav-link">
+            <i class="nav-icon bi bi-building"></i>
+            <p>{{ item.establecimiento.nombre }}</p>
+        </a>
+    </li>
+{% endfor %}

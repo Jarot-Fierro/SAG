@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Agenda Telefónica {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'anexos/components/menu_sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'agenda:editor' %}" class="btn btn-primary btn-sm">Ingreso</a>
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+        <div class="container-fluid px-5">
+            <!-- FILTROS -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header p-1">
+                    <h3 class="card-title">
+                        <i class="bi bi-filter me-2"></i>
+                        Filtros
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form" class="row g-3"
+                          hx-get="{% url 'agenda:buscar_anexo' %}"
+                          hx-target="#table-results"
+                          hx-trigger="change"
+                          onsubmit="return false;">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.q.label }}</label>
+                            {{ form.q }}
+                            {% if establecimiento_id %}
+                                <input type="hidden" name="establecimiento" value="{{ establecimiento_id }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.servicio.label }}</label>
+                            {{ form.servicio }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Mostrar</label>
+                            {{ form.per_page }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <a href="
+
+
+
+
+                                    {% url 'agenda:index' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
+                               class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-eraser me-1"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div class="card shadow-sm">
+                <div class="card-header p-1">
+                    <h3 class="card-title">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Listado de Anexos
+                    </h3>
+                </div>
+                <div id="table-results"
+                     hx-get="
+
+
+                             {% url 'agenda:buscar_anexo' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
+                     hx-trigger="load"
+                     hx-include="#filter-form">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts adicionales para HTMX si no están en base.html -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}

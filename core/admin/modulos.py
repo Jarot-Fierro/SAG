@@ -7,9 +7,12 @@ from core.standard.admin import StandardAdmin
 
 @admin.register(Modulo)
 class ModuloAdmin(StandardAdmin):
-    list_display = ('nombre', 'codigo', 'url', 'icono_corto', 'color')
+    list_display = ('id', 'nombre', 'codigo', 'url', 'icono_corto', 'color')
     search_fields = ('nombre', 'codigo')
     list_filter = ('is_active',)
+    list_display_links = (
+        'nombre',
+    )
 
     def icono_corto(self, obj):
         return format_html(
