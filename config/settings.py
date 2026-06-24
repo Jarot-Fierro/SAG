@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'colorfield',
     'simple_history',
     'import_export',
+    'django_select2',
     'core.apps.CoreConfig',
     'agenda_telefonica.apps.AgendaTelefonicaConfig',
 ]

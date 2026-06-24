@@ -1,6 +1,6 @@
 from django import forms
 
-from agenda_telefonica.models import Anexo, Servicio
+from agenda_telefonica.models import Anexo, Servicio, Direccion, Ubicacion
 
 
 class FormAnexo(forms.ModelForm):
@@ -81,19 +81,6 @@ class FormAnexo(forms.ModelForm):
         )
     )
 
-    direccion = forms.CharField(
-        label='Dirección',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'direccion',
-                'class': 'form-control form-control-sm',
-                'placeholder': 'Ubicación física u oficina',
-                'maxlength': '255'
-            }
-        ),
-        required=False
-    )
-
     def __init__(self, *args, **kwargs):
         servicios_disponibles = kwargs.pop('servicios_disponibles', None)
         super().__init__(*args, **kwargs)
@@ -110,7 +97,6 @@ class FormAnexo(forms.ModelForm):
             'email',
             'servicio',
             'is_active',
-            'direccion',
         ]
 
 
@@ -131,7 +117,7 @@ class AnexoFilterForm(forms.Form):
         required=False,
         empty_label="Todos los servicios",
         widget=forms.Select(attrs={
-            'class': 'form-select form-select-sm',
+            'class': 'form-select form-select-sm select2',
             'hx-get': '/agenda/editor/buscar/',
             'hx-target': '#table-results',
             'hx-trigger': 'change',
@@ -159,3 +145,68 @@ class AnexoFilterForm(forms.Form):
             self.fields['servicio'].initial = ""
         else:
             self.fields['servicio'].queryset = Servicio.objects.filter(is_active=True)
+
+
+class FormDireccion(forms.ModelForm):
+    class Meta:
+        model = Direccion
+        fields = ['nombre', 'is_active']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
+            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
+                                      attrs={'class': 'form-select form-select-sm'}),
+        }
+
+
+class FormUbicacion(forms.ModelForm):
+    class Meta:
+        model = Ubicacion
+        fields = ['nombre', 'is_active']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
+            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
+                                      attrs={'class': 'form-select form-select-sm'}),
+        }
+
+
+class FormServicio(forms.ModelForm):
+    class Meta:
+        model = Servicio
+        fields = ['nombre', 'ubicacion', 'direccion', 'is_active']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
+            'ubicacion': forms.Select(attrs={'class': 'form-select form-select-sm select2'}),
+            'direccion': forms.Select(attrs={'class': 'form-select form-select-sm select2'}),
+            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
+                                      attrs={'class': 'form-select form-select-sm'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['ubicacion'].queryset = Ubicacion.objects.filter(is_active=True)
+        self.fields['direccion'].queryset = Direccion.objects.filter(is_active=True)
+
+
+class MantenedorFilterForm(forms.Form):
+    q = forms.CharField(
+        required=False,
+        label='Búsqueda',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-sm',
+            'placeholder': 'Buscar...',
+            'hx-get': './buscar/',  # Dinámico relativo a la URL actual
+            'hx-trigger': 'keyup changed delay:500ms, search',
+            'hx-target': '#table-results-mantenedor',
+        })
+    )
+    per_page = forms.ChoiceField(
+        choices=[(10, '10'), (20, '20'), (50, '50'), (100, '100')],
+        initial=10,
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-sm',
+            'hx-get': './buscar/',  # Dinámico relativo a la URL actual
+            'hx-trigger': 'change',
+            'hx-target': '#table-results-mantenedor',
+        })
+    )

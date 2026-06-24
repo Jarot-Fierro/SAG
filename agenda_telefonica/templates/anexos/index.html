@@ -27,7 +27,7 @@
                 <div class="card-body">
                     <form id="filter-form" class="row g-3"
                           hx-get="{% url 'agenda:buscar_anexo' %}"
-                          hx-target="#table-results"
+                          hx-target="#table-results-public"
                           hx-trigger="change"
                           onsubmit="return false;">
                         <div class="col-md-4">
@@ -51,6 +51,10 @@
 
 
 
+
+
+
+
                                     {% url 'agenda:index' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
                                class="btn btn-outline-secondary w-100">
                                 <i class="bi bi-eraser me-1"></i> Limpiar
@@ -68,8 +72,12 @@
                         Listado de Anexos
                     </h3>
                 </div>
-                <div id="table-results"
+                <div id="table-results-public"
                      hx-get="
+
+
+
+
 
 
                              {% url 'agenda:buscar_anexo' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"

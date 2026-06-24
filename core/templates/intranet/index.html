@@ -1,29 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Intranet{% endblock %}
-
-{% block buttons %}
-
-    {#    <div class="card-body">#}
-    {##}
-    {#        <div class="btn-group">#}
-    {#            <a href="" class="btn btn-primary">#}
-    {#                Nuevo#}
-    {#            </a>#}
-    {##}
-    {#            <a href="" class="btn btn-warning">#}
-    {#                Historial#}
-    {#            </a>#}
-    {##}
-    {#            <a href="" class="btn btn-success">#}
-    {#                Reporte#}
-    {#            </a>#}
-    {#            <a href="" class="btn btn-danger">#}
-    {#                Inactivos#}
-    {#            </a>#}
-    {#        </div>#}
-    {#    </div>#}
-{% endblock %}
+{% block title %}SAG{% endblock %}
 
 {% block content %}
     <div class="app-content">
@@ -53,7 +30,8 @@
                                 </svg>
                             {% endif %}
                             <a
-                                    href="{% url modulo.url %}"
+                                    href="
+                                            {% if modulo.url %}{% url modulo.url %}{{ modulo.consulta }}{% else %}#{% endif %}"
                                     class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
                             >
                                 Entrar <i class="bi bi-link-45deg"></i>

@@ -20,6 +20,7 @@ class Modulo(StandardModel):
         unique=True
     )
     url = models.CharField(max_length=200, blank=True)
+    consulta = models.CharField(max_length=200, blank=True)
     color = ColorField(default='#006FB3', samples=COLOR_CHOICES)
 
     def __str__(self):

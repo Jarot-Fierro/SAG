@@ -5,8 +5,10 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
-from agenda_telefonica.forms import AnexoFilterForm, FormAnexo
-from agenda_telefonica.models import Anexo
+from agenda_telefonica.decorators import user_editor_module
+from agenda_telefonica.forms import AnexoFilterForm, FormAnexo, FormDireccion, FormUbicacion, FormServicio, \
+    MantenedorFilterForm
+from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio
 from core.models import Establecimiento
 
 
@@ -25,6 +27,7 @@ def index(request):
 
 
 @login_required
+@user_editor_module
 def editor(request):
     perfil = getattr(request.user, 'perfilagenda', None)
     if not perfil or not perfil.editor:
@@ -103,6 +106,7 @@ def buscar_anexo_editor(request):
 
 
 @login_required
+@user_editor_module
 def guardar_anexo(request, pk=None):
     perfil = getattr(request.user, 'perfilagenda', None)
     if not perfil or not perfil.editor:
@@ -137,6 +141,7 @@ def guardar_anexo(request, pk=None):
 
 
 @login_required
+@user_editor_module
 def editar_anexo_form(request, pk):
     perfil = getattr(request.user, 'perfilagenda', None)
     if not perfil or not perfil.editor:
@@ -169,6 +174,7 @@ def editar_anexo_form(request, pk):
 
 
 @login_required
+@user_editor_module
 def eliminar_anexo(request, pk):
     perfil = getattr(request.user, 'perfilagenda', None)
     if not perfil or not perfil.editor:
@@ -225,3 +231,120 @@ def buscar_anexo(request):
             "establecimiento_id": establecimiento_id,
         },
     )
+
+
+@login_required
+@user_editor_module
+def mantenedores(request, tipo):
+    perfil = getattr(request.user, 'perfilagenda', None)
+    if not perfil or not perfil.editor:
+        return redirect('agenda:index')
+
+    config = {
+        'direccion': {'model': Direccion, 'form': FormDireccion, 'title': 'Mantenedor de Direcciones'},
+        'ubicacion': {'model': Ubicacion, 'form': FormUbicacion, 'title': 'Mantenedor de Ubicaciones'},
+        'servicio': {'model': Servicio, 'form': FormServicio, 'title': 'Mantenedor de Servicios'},
+    }
+
+    if tipo not in config:
+        return HttpResponse("Tipo de mantenedor no válido", status=404)
+
+    conf = config[tipo]
+    model = conf['model']
+    form_class = conf['form']
+
+    pk = request.GET.get('edit')
+    instance = None
+    if pk:
+        instance = get_object_or_404(model, pk=pk)
+
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=instance)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            if not instance:
+                obj.created_by = request.user
+            obj.updated_by = request.user
+
+            # Asignación de establecimiento para modelos que lo requieran
+            if hasattr(obj, 'establecimiento') and not obj.establecimiento:
+                # Intentar obtener el establecimiento del perfil de usuario
+                perfil_user = getattr(request.user, 'perfil',
+                                      None)  # Asumiendo un perfil general si perfilagenda no lo tiene
+                est = getattr(perfil_user, 'establecimiento', None)
+
+                if not est:
+                    # Si no, buscar el primer establecimiento del sistema
+                    from core.models import Establecimiento
+                    est = Establecimiento.objects.first()
+
+                obj.establecimiento = est
+
+            obj.save()
+            messages.success(request, f"{tipo.capitalize()} guardado correctamente")
+            return redirect(request.path)
+        else:
+            messages.error(request, "Error al guardar. Revise los datos.")
+
+    form_mantenedor = form_class(instance=instance)
+    filter_form = MantenedorFilterForm(request.GET or None)
+
+    return render(request, 'anexos/mantenedores.html', {
+        'tipo': tipo,
+        'title': conf['title'],
+        'form_mantenedor': form_mantenedor,
+        'filter_form': filter_form,
+        'instance': instance,
+    })
+
+
+@login_required
+def buscar_mantenedor(request, tipo):
+    config = {
+        'direccion': {'model': Direccion, 'cols': [{'name': 'nombre', 'label': 'Nombre'},
+                                                   {'name': 'is_active', 'label': 'Estado', 'is_boolean': True}]},
+        'ubicacion': {'model': Ubicacion, 'cols': [{'name': 'nombre', 'label': 'Nombre'},
+                                                   {'name': 'is_active', 'label': 'Estado', 'is_boolean': True}]},
+        'servicio': {'model': Servicio,
+                     'cols': [{'name': 'nombre', 'label': 'Nombre'}, {'name': 'ubicacion', 'label': 'Ubicación'},
+                              {'name': 'direccion', 'label': 'Dirección'},
+                              {'name': 'is_active', 'label': 'Estado', 'is_boolean': True}]},
+    }
+
+    if tipo not in config:
+        return HttpResponse(status=404)
+
+    conf = config[tipo]
+    q = request.GET.get("q", "").strip()
+    per_page = request.GET.get("per_page", 10)
+    page_number = request.GET.get("page", 1)
+
+    queryset = conf['model'].objects.all()
+    if q:
+        queryset = queryset.filter(nombre__icontains=q)
+
+    paginator = Paginator(queryset, per_page)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        'anexos/components/_table_result_mantenedores.html',
+        {
+            "object_list": page_obj,
+            "table_columns": conf['cols'],
+            "tipo": tipo,
+        },
+    )
+
+
+@login_required
+@user_editor_module
+def eliminar_mantenedor(request, tipo, pk):
+    models = {'direccion': Direccion, 'ubicacion': Ubicacion, 'servicio': Servicio}
+    if tipo not in models:
+        return HttpResponse(status=404)
+
+    obj = get_object_or_404(models[tipo], pk=pk)
+    obj.delete()
+    messages.success(request, f"{tipo.capitalize()} eliminado correctamente")
+    return redirect('agenda:mantenedores', tipo=tipo)

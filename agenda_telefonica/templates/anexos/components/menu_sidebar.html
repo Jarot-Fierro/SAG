@@ -6,3 +6,28 @@
         </a>
     </li>
 {% endfor %}
+
+{% if request.user.is_authenticated and request.user.perfilagenda.editor %}
+    <li class="nav-header">MANTENEDORES</li>
+
+    <li class="nav-item">
+        <a href="{% url 'agenda:mantenedores' tipo='direccion' %}" class="nav-link">
+            <i class="nav-icon bi bi-diagram-3"></i>
+            <p>Direcciones</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'agenda:mantenedores' tipo='servicio' %}" class="nav-link">
+            <i class="nav-icon bi bi-building"></i>
+            <p>Servicios</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'agenda:mantenedores' tipo='ubicacion' %}" class="nav-link">
+            <i class="nav-icon bi bi-geo-alt"></i>
+            <p>Ubicaciones</p>
+        </a>
+    </li>
+{% endif %}

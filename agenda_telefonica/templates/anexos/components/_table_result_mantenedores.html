@@ -3,39 +3,38 @@
     <table class="table table-hover table-striped align-middle">
         <thead class="table-light">
         <tr>
-            {% for col in table_columns %}
-                <th>{{ col.label }}</th>
+            {% for column in table_columns %}
+                <th>{{ column.label }}</th>
             {% endfor %}
-            <th>Acceso</th>
+            <th>Acciones</th>
         </tr>
         </thead>
         <tbody>
         {% for object in object_list %}
             <tr>
-                {% for col in table_columns %}
+                {% for column in table_columns %}
                     <td>
-                        {% if col.is_boolean %}
-                            {% if object|attribute_filter:col.name %}
+                        {% if column.is_boolean %}
+                            {% if object|attribute_filter:column.name %}
                                 <span class="badge text-bg-success">Activo</span>
                             {% else %}
                                 <span class="badge text-bg-secondary">Inactivo</span>
                             {% endif %}
                         {% else %}
-                            {{ object|attribute_filter:col.name }}
+                            {{ object|attribute_filter:column.name|default:"-" }}
                         {% endif %}
                     </td>
                 {% endfor %}
                 <td>
-                    <a href="
-
-
-                            {% url 'agenda:editar_anexo_form' object.pk %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
-                       class="btn btn-sm btn-warning">
+                    <a href="?edit={{ object.pk }}"
+                       class="btn btn-sm btn-warning"
+                       title="Editar">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="{% url 'agenda:eliminar_anexo' object.pk %}"
+                    <a href="#"
                        class="btn btn-sm btn-danger"
-                       onclick="return confirm('¿Está seguro de eliminar este registro?')">
+                       title="Eliminar"
+                       onclick="if(confirm('¿Está seguro de eliminar este registro?')) { window.location.href='{% url 'agenda:eliminar_mantenedor' tipo=tipo pk=object.pk %}'; }">
                         <i class="bi bi-trash"></i>
                     </a>
                 </td>
@@ -55,12 +54,9 @@
             {% if object_list.has_previous %}
                 <li class="page-item">
                     <a class="page-link" href="#"
-                       hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
-
-
-                               {{ object_list.previous_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
-                       hx-include="#filter-form"
-                       hx-target="#table-results-editor">«</a>
+                       hx-get="{% url 'agenda:buscar_mantenedor' tipo=tipo %}?page={{ object_list.previous_page_number }}"
+                       hx-target="#table-results-mantenedor"
+                       hx-include="#filter-form">«</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link">«</span></li>
@@ -72,12 +68,9 @@
                 {% elif i > object_list.number|add:'-3' and i < object_list.number|add:'3' %}
                     <li class="page-item">
                         <a class="page-link" href="#"
-                           hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
-
-
-                                   {{ i }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
-                           hx-include="#filter-form"
-                           hx-target="#table-results-editor">{{ i }}</a>
+                           hx-get="{% url 'agenda:buscar_mantenedor' tipo=tipo %}?page={{ i }}"
+                           hx-target="#table-results-mantenedor"
+                           hx-include="#filter-form">{{ i }}</a>
                     </li>
                 {% endif %}
             {% endfor %}
@@ -85,12 +78,9 @@
             {% if object_list.has_next %}
                 <li class="page-item">
                     <a class="page-link" href="#"
-                       hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
-
-
-                               {{ object_list.next_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
-                       hx-include="#filter-form"
-                       hx-target="#table-results-editor">»</a>
+                       hx-get="{% url 'agenda:buscar_mantenedor' tipo=tipo %}?page={{ object_list.next_page_number }}"
+                       hx-target="#table-results-mantenedor"
+                       hx-include="#filter-form">»</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link">»</span></li>

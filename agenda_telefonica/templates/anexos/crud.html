@@ -17,14 +17,21 @@
 
 
 
+
+
+
+
+
+
+
                     {% url 'agenda:editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
                class="btn btn-secondary btn-sm">
                 <i class="bi bi-x-circle"></i> Cancelar
             </a>
         {% else %}
-            <button type="reset" class="btn btn-secondary btn-sm">
+            <a href="{% url 'agenda:editor' %}" class="btn btn-secondary btn-sm">
                 <i class="bi bi-arrow-clockwise"></i> Limpiar
-            </button>
+            </a>
         {% endif %}
         <button type="submit" form="form_anexo" class="btn btn-primary btn-sm">
             <i class="bi bi-save"></i> Guardar
@@ -53,6 +60,13 @@
                     </h3>
                 </div>
                 <form id="form_anexo" method="post" action="
+
+
+
+
+
+
+
 
 
 
@@ -88,12 +102,6 @@
                                 {{ form_anexo.is_active }}
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">{{ form_anexo.direccion.label }}</label>
-                                {{ form_anexo.direccion }}
-                            </div>
-                        </div>
                     </div>
                 </form>
             </div>
@@ -108,7 +116,7 @@
                     <div class="card-tools">
                         <form id="filter-form" class="row g-2 align-items-center"
                               hx-get="{% url 'agenda:buscar_anexo_editor' %}"
-                              hx-target="#table-results"
+                              hx-target="#table-results-editor"
                               hx-trigger="change"
                               onsubmit="return false;">
                             {% if establecimiento_id %}
@@ -126,12 +134,8 @@
                         </form>
                     </div>
                 </div>
-                <div id="table-results"
+                <div id="table-results-editor"
                      hx-get="
-
-
-
-
 
 
 
