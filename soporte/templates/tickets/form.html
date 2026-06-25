@@ -5,72 +5,165 @@
 
 {% block content %}
 
-    <div class="row justify-content-center">
-        <div class="col-md-6"> <!-- ancho del formulario -->
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">{{ title }}</h3>
-                </div>
-
-                <div class="card-body">
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
 
                     <form method="post" novalidate>
-                        {% csrf_token %}
-                        {{ form.non_field_errors }}
-                        <input type="hidden" name="action" value="{{ action|default:'add' }}">
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
 
-                        {% for field in form %}
-                            <div class="form-group mb-3">
-                                <label for="id_{{ field.name }}">{{ field.label }}</label>
+                            <div class="row g-3">
+                                {# Primera fila: Título y Área de Soporte #}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.titulo.name }}">{{ form.titulo.label }}</label>
+                                    {{ form.titulo }}
+                                    {% if form.titulo.errors %}
+                                        {% for error in form.titulo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
 
-                                {{ field }}
+                                {# Segunda fila: Funcionario (Buscador Select2) #}
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
+                                    {{ form.funcionario }}
+                                    {% if form.funcionario.errors %}
+                                        {% for error in form.funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
 
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">
-                                        {{ field.help_text }}
-                                    </small>
-                                {% endif %}
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
+                                    {{ form.area_soporte }}
+                                    {% if form.area_soporte.errors %}
+                                        {% for error in form.area_soporte.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
 
-                                {% for error in field.errors %}
-                                    <div class="invalid-feedback d-block text-danger">
-                                        {{ error }}
+                                {# Tercera fila: Nombre y Correo (datos informativos) #}
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.nombre_funcionario.name }}">{{ form.nombre_funcionario.label }}</label>
+                                    {{ form.nombre_funcionario }}
+                                    {% if form.nombre_funcionario.errors %}
+                                        {% for error in form.nombre_funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
+                                        aqui.
                                     </div>
-                                {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.correo_funcionario.name }}">{{ form.correo_funcionario.label }}</label>
+                                    {{ form.correo_funcionario }}
+                                    {% if form.correo_funcionario.errors %}
+                                        {% for error in form.correo_funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
+                                        aqui.
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.nombre_servicio.name }}">{{ form.nombre_servicio.label }}</label>
+                                    {{ form.nombre_servicio }}
+                                    {% if form.nombre_servicio.errors %}
+                                        {% for error in form.correo_funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
+                                        aqui.
+                                    </div>
+                                </div>
+
+                                {# Cuarta fila: Descripción #}
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.descripcion.name }}">{{ form.descripcion.label }}</label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                        {% for error in form.descripcion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                             </div>
-                        {% endfor %}
+                        </div>
 
-                        <div class="text-right mt-4">
-                            {% if action == 'edit' %}
-                                <a href="{% url 'ticket_asignar_equipo' object.pk %}" class="btn btn-info float-left">
-                                    <i class="fas fa-laptop"></i> Asignar Equipamiento
-                                </a>
-                            {% endif %}
-                            <a href="" class="btn btn-secondary">
-                                Cancelar
-                            </a>
-
+                        <div class="card-footer text-end">
                             <button type="submit" class="btn btn-primary">
-                                Guardar
+                                <i class="fas fa-save"></i> Guardar
                             </button>
                         </div>
 
                     </form>
-
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 
 {% endblock %}
 
 
-{% block javascript %}
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
     <script>
-        $('.select2').select2({
-            theme: 'bootstrap4',
-            width: '100%'
+        $(document).ready(function () {
+            // Inicializar Select2 estándar
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+
+            // Inicializar Select2 AJAX para funcionarios
+            $('.select2-ajax').each(function () {
+                var $this = $(this);
+                $this.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Buscar funcionario por nombre o RUT...',
+                    minimumInputLength: 2,
+                    ajax: {
+                        url: $this.data('ajax-url'),
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                term: params.term
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data.results
+                            };
+                        },
+                        cache: true
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

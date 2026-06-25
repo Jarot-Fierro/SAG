@@ -4,7 +4,6 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 
 from core.utils import IncludeUserFormUpdate, IncludeUserFormCreate
-from soporte.forms.forms_tickets import FormTicket
 from soporte.models import Ticket
 
 MODULE_NAME = 'Tickets'
@@ -13,7 +12,7 @@ MODULE_NAME = 'Tickets'
 class TicketCreateView(LoginRequiredMixin, CreateView, IncludeUserFormCreate):
     template_name = 'tickets/form.html'
     model = Ticket
-    form_class = FormTicket
+    form_class = None
     success_url = reverse_lazy('ticket_list')
 
     def get_form_kwargs(self):
@@ -45,7 +44,7 @@ class TicketCreateView(LoginRequiredMixin, CreateView, IncludeUserFormCreate):
 class TicketsUpdateView(LoginRequiredMixin, IncludeUserFormUpdate, UpdateView):
     template_name = 'tickets/form.html'
     model = Ticket
-    form_class = FormTicket
+    form_class = None
     success_url = reverse_lazy('ticket_list')
 
     def get_form_kwargs(self):

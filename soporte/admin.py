@@ -49,9 +49,6 @@ class TicketAdmin(StandardAdmin):
         'titulo',
         'descripcion',
         'solucion',
-        'funcionario__nombres',
-        'funcionario__apellido_paterno',
-        'funcionario__apellido_materno',
         'establecimiento__nombre',
         'departamento__nombre',
     )
@@ -77,6 +74,5 @@ class TicketAdmin(StandardAdmin):
         'establecimiento',
         'departamento',
         'asignado_a',
-        'funcionario',
         'tipo_soporte',
     )

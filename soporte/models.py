@@ -4,6 +4,10 @@ from django.utils import timezone
 from core.standard.models import StandardModel
 
 
+class PerfilSoporte(models.Model):
+    usuario = models.OneToOneField('core.User', on_delete=models.CASCADE)
+
+
 class TipoSoporte(StandardModel):
     nombre = models.CharField(max_length=100)
 
@@ -27,6 +31,11 @@ class Ticket(StandardModel):
     )
 
     numero_ticket = models.CharField(max_length=20, unique=True, blank=True)
+    nombre_funcionario = models.CharField(max_length=200, blank=True, null=True)
+    correo_funcionario = models.EmailField(blank=True, null=True)
+
+    nombre_servicio = models.CharField(max_length=200, blank=True, null=True)
+
     departamento = models.ForeignKey('core.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
                                      related_name='tickets')
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.SET_NULL, null=True, blank=True,
@@ -43,8 +52,8 @@ class Ticket(StandardModel):
                                      related_name='tipo_soporte')
     solucion = models.TextField(null=True, blank=True)
     fecha_cierre = models.DateTimeField(null=True, blank=True)
-    funcionario = models.ForeignKey('core.Funcionario', on_delete=models.SET_NULL, null=True, blank=True,
-                                    related_name='funcionario')
+    # funcionario = models.ForeignKey('core.Funcionario', on_delete=models.SET_NULL, null=True, blank=True,
+    #                                 related_name='funcionario')
 
     UPPERCASE_FIELDS = ['numero_ticket', 'titulo']
     LOWERCASE_FIELDS = ['solucion', ]

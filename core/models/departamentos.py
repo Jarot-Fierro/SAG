@@ -9,7 +9,7 @@ class Departamento(StandardModelEstablishment):
     UPPERCASE_FIELDS = ['nombre', ]
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} - {self.establecimiento}"
 
     class Meta:
         verbose_name = 'Departamento'

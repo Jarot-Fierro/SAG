@@ -165,3 +165,5 @@ USE_TZ = False
 
 STATIC_URL = os.getenv('STATIC_URL', '/static/')
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000

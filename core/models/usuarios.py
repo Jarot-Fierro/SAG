@@ -13,6 +13,10 @@ class User(AbstractUser):
                                         blank=True,
                                         verbose_name='Establecimiento'
                                         )
+    departamento = models.ForeignKey('core.Departamento', on_delete=models.PROTECT, null=True,
+                                     blank=True,
+                                     verbose_name='Departamento'
+                                     )
     modulos = models.ManyToManyField(
         'core.Modulo',
         blank=True
