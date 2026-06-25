@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.standard.admin import StandardAdmin
-from soporte.models import TipoSoporte, Ticket
+from soporte.models import TipoSoporte, Ticket, PerfilSoporte
 
 
 @admin.register(TipoSoporte)
@@ -75,4 +75,38 @@ class TicketAdmin(StandardAdmin):
         'departamento',
         'asignado_a',
         'tipo_soporte',
+    )
+
+
+@admin.register(PerfilSoporte)
+class PerfilSoporteAdmin(StandardAdmin):
+    list_display = (
+        'id',
+        'usuario',
+        'usuario_soporte',
+        'is_active',
+    )
+
+    search_fields = (
+        'usuario__username',
+        'usuario__first_name',
+        'usuario__last_name',
+        'usuario__email',
+    )
+
+    list_filter = (
+        'usuario_soporte',
+        'is_active',
+    )
+
+    list_display_links = (
+        'usuario',
+    )
+
+    ordering = (
+        'usuario__username',
+    )
+
+    autocomplete_fields = (
+        'usuario',
     )

@@ -4,8 +4,16 @@ from django.utils import timezone
 from core.standard.models import StandardModel
 
 
-class PerfilSoporte(models.Model):
+class PerfilSoporte(StandardModel):
     usuario = models.OneToOneField('core.User', on_delete=models.CASCADE)
+    usuario_soporte = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Perfil de Soporte'
+        verbose_name_plural = 'Perfiles de Soporte'
+
+    def __str__(self):
+        return self.usuario.username
 
 
 class TipoSoporte(StandardModel):
