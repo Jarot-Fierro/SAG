@@ -6,4 +6,5 @@ urlpatterns = [
     path("select2/", include("django_select2.urls")),
     path('', include('core.urls')),
     path('agenda/', include('agenda_telefonica.urls')),
+    path('soporte/', include('soporte.urls')),
 ]

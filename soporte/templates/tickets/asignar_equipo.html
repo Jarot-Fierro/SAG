@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tickets - {{ title }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Asignar Nuevo Equipo</h3>
+                </div>
+                <form method="post" id="form-asignar">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Ticket</label>
+                            <input type="text" class="form-control"
+                                   value="{{ ticket.numero_ticket }} - {{ ticket.titulo }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Funcionario</label>
+                            <input type="text" class="form-control" value="{{ ticket.funcionario }}" readonly>
+                        </div>
+
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-right">
+                        <a href="{% url 'ticket_panel_update' ticket.pk %}" class="btn btn-secondary">Volver al
+                            Ticket</a>
+                        <button type="submit" class="btn btn-success">Guardar y Asignar Otro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Equipos Asignados a este Ticket</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>IP</th>
+                            <th>Tipo</th>
+                            <th>Serie</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Observación</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for activo in activos_asignados %}
+                            <tr>
+                                <td>{% if activo.equipo.ip %}{{ activo.equipo.ip.ip }}{% else %}—{% endif %}</td>
+                                <td>{{ activo.equipo.get_tipo_equipo_display }}</td>
+                                <td>{{ activo.equipo.serie }}</td>
+                                <td>{{ activo.equipo.marca }}</td>
+                                <td>{% if activo.equipo.modelo %}{{ activo.equipo.modelo }}{% else %}—{% endif %}</td>
+                                <td>{% if activo.observacion %}{{ activo.observacion }}{% else %}—{% endif %}</td>
+                                <td class="text-center">
+                                    <form action="{% url 'ticket_eliminar_equipo' activo.pk %}" method="post"
+                                          onsubmit="return confirm('¿Está seguro de eliminar esta asignación?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No hay equipos asignados aún.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+        });
+    </script>
+{% endblock %}

@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'django_select2',
     'core.apps.CoreConfig',
     'agenda_telefonica.apps.AgendaTelefonicaConfig',
+    'soporte.apps.SoporteConfig',
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Establecimientos - {{ title|default:'Formulario' }}{% endblock %}
+
+{% block content %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-6"> <!-- ancho del formulario -->
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">{{ title }}</h3>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                        {% for field in form %}
+                            <div class="form-group mb-3">
+                                <label for="id_{{ field.name }}">{{ field.label }}</label>
+
+                                {{ field }}
+
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">
+                                        {{ field.help_text }}
+                                    </small>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block text-danger">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="text-right mt-4">
+                            {% if action == 'edit' %}
+                                <a href="{% url 'ticket_asignar_equipo' object.pk %}" class="btn btn-info float-left">
+                                    <i class="fas fa-laptop"></i> Asignar Equipamiento
+                                </a>
+                            {% endif %}
+                            <a href="" class="btn btn-secondary">
+                                Cancelar
+                            </a>
+
+                            <button type="submit" class="btn btn-primary">
+                                Guardar
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block javascript %}
+    <script>
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+    </script>
+{% endblock %}

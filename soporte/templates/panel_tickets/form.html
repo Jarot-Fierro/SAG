@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Establecimientos - {{ title|default:'Formulario' }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h3 class="card-title mb-0">{{ title }}</h3>
+                    </div>
+                    {% if action == 'edit' %}
+                        <div class="col-auto">
+                            <a href="{% url 'ticket_asignar_equipo' object.pk %}" class="btn btn-info">
+                                <i class="fas fa-laptop"></i> Asignar Equipamiento
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+
+                    <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                    <!-- FILA 1 -->
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ form.numero_ticket.label }}</label>
+                                {{ form.numero_ticket }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.numero_ticket.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ form.departamento.label }}</label>
+                                {{ form.departamento }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.departamento.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ form.funcionario.label }}</label>
+                                {{ form.funcionario }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.funcionario.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- FILA 2 -->
+                    <div class="row">
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>{{ form.titulo.label }}</label>
+                                {{ form.titulo }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.titulo.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- FILA 3 -->
+                    <div class="row">
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ form.asignado_a.label }}</label>
+                                {{ form.asignado_a }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.asignado_a.errors }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ form.tipo_soporte.label }}</label>
+                                {{ form.tipo_soporte }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.tipo_soporte.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ form.estado.label }}</label>
+                                {{ form.estado }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.estado.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ form.fecha_cierre.label }}</label>
+                                {{ form.fecha_cierre }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.fecha_cierre.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- FILA 4 -->
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ form.descripcion.label }}</label>
+                                {{ form.descripcion }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.descripcion.errors }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ form.solucion.label }}</label>
+                                {{ form.solucion }}
+                                <div class="invalid-feedback d-block text-danger">
+                                    {{ form.solucion.errors }}
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="text-right mt-4">
+                        <a href="{% url 'ticket_panel_list' %}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+                            Guardar
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%'
+    });
+</script>
+{% endblock %}

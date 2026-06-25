@@ -1,6 +1,6 @@
+from django.db import models
 from django.utils import timezone
 
-from core import models
 from core.standard.models import StandardModel
 
 
