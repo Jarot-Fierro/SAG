@@ -144,3 +144,4 @@ class PerfilAgendaAdmin(StandardAdmin):
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name')
     list_filter = ('editor', 'is_active')
     filter_horizontal = ('servicio',)
+    autocomplete_fields = ('usuario',)

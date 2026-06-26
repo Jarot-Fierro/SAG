@@ -51,6 +51,9 @@ class User(AbstractUser):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
     class Meta:
         db_table = 'usuarios_usuarios'
         verbose_name = 'Usuario'

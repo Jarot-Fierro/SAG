@@ -55,48 +55,6 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-
-                                {# Tercera fila: Nombre y Correo (datos informativos) #}
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.nombre_funcionario.name }}">{{ form.nombre_funcionario.label }}</label>
-                                    {{ form.nombre_funcionario }}
-                                    {% if form.nombre_funcionario.errors %}
-                                        {% for error in form.nombre_funcionario.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
-                                        aqui.
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.correo_funcionario.name }}">{{ form.correo_funcionario.label }}</label>
-                                    {{ form.correo_funcionario }}
-                                    {% if form.correo_funcionario.errors %}
-                                        {% for error in form.correo_funcionario.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
-                                        aqui.
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.nombre_servicio.name }}">{{ form.nombre_servicio.label }}</label>
-                                    {{ form.nombre_servicio }}
-                                    {% if form.nombre_servicio.errors %}
-                                        {% for error in form.correo_funcionario.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                    <div class="form-text text-muted small">Si tu usuario no se encuentra, escribelo
-                                        aqui.
-                                    </div>
-                                </div>
-
                                 {# Cuarta fila: Descripción #}
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold"

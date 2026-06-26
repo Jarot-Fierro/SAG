@@ -50,7 +50,6 @@ class TicketAdmin(StandardAdmin):
         'descripcion',
         'solucion',
         'establecimiento__nombre',
-        'departamento__nombre',
     )
 
     list_filter = (
@@ -58,7 +57,6 @@ class TicketAdmin(StandardAdmin):
         'area_soporte',
         'tipo_soporte',
         'establecimiento',
-        'departamento',
         'is_active',
     )
 
@@ -72,9 +70,9 @@ class TicketAdmin(StandardAdmin):
 
     autocomplete_fields = (
         'establecimiento',
-        'departamento',
         'asignado_a',
         'tipo_soporte',
+        'funcionario',
     )
 
 

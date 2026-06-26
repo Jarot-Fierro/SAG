@@ -17,7 +17,8 @@ class UserResource(resources.ModelResource):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, StandardAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'departamento', 'establecimiento', 'is_staff')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'establecimiento')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'establecimiento',)
+    search_fields = ('username', 'email', 'first_name', 'last_name', 'departamento__nombre', 'establecimiento__nombre')
 
     resource_class = UserResource
 
