@@ -38,10 +38,10 @@ class TicketAdmin(StandardAdmin):
         'estado',
         'area_soporte',
         'tipo_soporte',
+        'departamento_corto',
         'establecimiento',
         'asignado_a',
         'fecha_cierre',
-        'is_active',
     )
 
     search_fields = (
@@ -73,38 +73,66 @@ class TicketAdmin(StandardAdmin):
         'asignado_a',
         'tipo_soporte',
         'funcionario',
+        'departamento',
     )
+
+    @admin.display(description='Departamento', ordering='departamento')
+    def departamento_corto(self, obj):
+        if obj.departamento:
+            return obj.departamento.nombre[:15] + '...' if len(
+                obj.departamento.nombre) > 15 else obj.departamento.nombre
+        return '-'
 
 
 @admin.register(PerfilSoporte)
 class PerfilSoporteAdmin(StandardAdmin):
     list_display = (
         'id',
-        'usuario',
+        'nombre',
+        'get_usuarios',
+        'get_grupos',
         'usuario_soporte',
         'is_active',
+    )
+    list_filter = (
+        'nombre',
+        'usuario_soporte',
+        'is_active',
+        'usuario__groups',
     )
 
     search_fields = (
+        'nombre',
         'usuario__username',
         'usuario__first_name',
         'usuario__last_name',
-        'usuario__email',
-    )
-
-    list_filter = (
-        'usuario_soporte',
-        'is_active',
     )
 
     list_display_links = (
-        'usuario',
+        'nombre',
     )
 
     ordering = (
-        'usuario__username',
+        'nombre',
     )
 
-    autocomplete_fields = (
-        'usuario',
+    filter_horizontal = ('usuario',)
+
+    fieldsets = (
+        (None, {'fields': ('nombre', 'usuario', 'usuario_soporte', 'is_active')}),
     )
+
+    def get_usuarios(self, obj):
+        return ", ".join([f"{u.first_name} {u.last_name} ({u.username})" for u in obj.usuario.all()])
+
+    get_usuarios.short_description = 'Usuarios'
+
+    def get_grupos(self, obj):
+        # Obtener todos los grupos de todos los usuarios asociados al perfil
+        grupos = set()
+        for usuario in obj.usuario.all():
+            for grupo in usuario.groups.all():
+                grupos.add(grupo.name)
+        return ", ".join(list(grupos))
+
+    get_grupos.short_description = 'Grupos de Usuarios'

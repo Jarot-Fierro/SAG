@@ -41,7 +41,7 @@
         </div>
         <div class="card-body register-card-body">
             <p class="register-box-msg">Registrar nuevo usuario</p>
-            <form action="{% url 'registro' %}" method="post">
+            <form action="{% url 'usuarios:registro' %}" method="post" id="registroForm">
                 {% csrf_token %}
 
                 {% if form.errors %}
@@ -94,11 +94,55 @@
                 </div>
             </form>
             <p class="mb-0 mt-3 text-center">
-                <a href="{% url 'login' %}" class="text-center">Ya tengo una cuenta</a>
+                <a href="{% url 'usuarios:login' %}" class="text-center">Ya tengo una cuenta</a>
             </p>
         </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameInput = document.getElementById('id_username');
+        const registroForm = document.getElementById('registroForm');
+
+        function formatRut(value) {
+            let rut = value.replace(/[^\dkK]/g, '').toUpperCase();
+            if (rut.length <= 1) return rut;
+
+            let dv = rut.slice(-1);
+            let numbers = rut.slice(0, -1);
+
+            let formatted = '';
+            for (let i = numbers.length - 1, j = 1; i >= 0; i--, j++) {
+                formatted = numbers.charAt(i) + formatted;
+                if (j % 3 === 0 && i !== 0) {
+                    formatted = '.' + formatted;
+                }
+            }
+
+            return formatted + '-' + dv;
+        }
+
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function (e) {
+                let cursorPosition = e.target.selectionStart;
+                let oldLength = e.target.value.length;
+
+                let formatted = formatRut(e.target.value);
+                e.target.value = formatted;
+
+                let newLength = formatted.length;
+                cursorPosition = cursorPosition + (newLength - oldLength);
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+        }
+
+        if (registroForm && usernameInput) {
+            registroForm.addEventListener('submit', function () {
+                usernameInput.value = formatRut(usernameInput.value);
+            });
+        }
+    });
+</script>
 </body>
 </html>

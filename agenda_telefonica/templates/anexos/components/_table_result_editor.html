@@ -29,8 +29,12 @@
                     <a href="
 
 
+
+
+
+
                             {% url 'agenda:editar_anexo_form' object.pk %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
-                       class="btn btn-sm btn-warning">
+                       class="btn btn-sm btn-primary">
                         <i class="bi bi-pencil"></i>
                     </a>
                     <a href="{% url 'agenda:eliminar_anexo' object.pk %}"
@@ -58,6 +62,10 @@
                        hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
 
 
+
+
+
+
                                {{ object_list.previous_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
                        hx-include="#filter-form"
                        hx-target="#table-results-editor">«</a>
@@ -75,6 +83,10 @@
                            hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
 
 
+
+
+
+
                                    {{ i }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
                            hx-include="#filter-form"
                            hx-target="#table-results-editor">{{ i }}</a>
@@ -86,6 +98,10 @@
                 <li class="page-item">
                     <a class="page-link" href="#"
                        hx-get="{% url 'agenda:buscar_anexo_editor' %}?page=
+
+
+
+
 
 
                                {{ object_list.next_page_number }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"

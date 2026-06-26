@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Establecimientos - {{ title|default:'Formulario' }}{% endblock %}
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{% if request.user.perfil_soporte_usuario.exists %}
+    {{ request.user.perfil_soporte_usuario.first.nombre }}{% else %}Sin Perfil{% endif %} -
+    {{ title|default:'Formulario' }}{% endblock %}
 
 {% block content %}
 
@@ -110,7 +116,7 @@
                         delay: 250,
                         data: function (params) {
                             return {
-                                term: params.term
+                                q: params.term
                             };
                         },
                         processResults: function (data) {

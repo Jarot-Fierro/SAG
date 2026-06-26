@@ -12,11 +12,16 @@ class FormTicket(forms.ModelForm):
 
         if not self.instance.pk:
             self.fields['area_soporte'].initial = 'INFORMATICA'
-        #
-        # if self.instance and self.instance.funcionario_id:
-        #     self.fields['funcionario'].queryset = Funcionario.objects.filter(id=self.instance.funcionario_id)
-        # else:
-        #     self.fields['funcionario'].queryset = Funcionario.objects.none()
+
+        # Para que ModelChoiceField acepte el valor enviado por Select2 (AJAX)
+        if 'funcionario' in self.data:
+            try:
+                funcionario_id = self.data.get('funcionario')
+                self.fields['funcionario'].queryset = User.objects.filter(id=funcionario_id)
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.funcionario:
+            self.fields['funcionario'].queryset = User.objects.filter(id=self.instance.funcionario.id)
 
     titulo = forms.CharField(
         label='Título del problema',

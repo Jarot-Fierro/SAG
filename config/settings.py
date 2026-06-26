@@ -42,9 +42,9 @@ if FORCE_SCRIPT_NAME == '':
     FORCE_SCRIPT_NAME = None
 
 AUTH_USER_MODEL = 'core.User'
-LOGIN_URL = reverse_lazy('login')
+LOGIN_URL = reverse_lazy('usuarios:login')
 LOGIN_REDIRECT_URL = reverse_lazy('intranet:index')
-LOGOUT_REDIRECT_URL = reverse_lazy('login')
+LOGOUT_REDIRECT_URL = reverse_lazy('usuarios:login')
 
 SIMPLE_HISTORY_HISTORY_ID_USE_UUID = False
 

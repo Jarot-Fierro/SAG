@@ -5,7 +5,9 @@ from core.standard.models import StandardModel
 
 
 class PerfilSoporte(StandardModel):
-    usuario = models.OneToOneField('core.User', on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100)
+    usuario = models.ManyToManyField('core.User', blank=True, verbose_name="Usuarios",
+                                     related_name='perfil_soporte_usuario')
     usuario_soporte = models.BooleanField(default=True, verbose_name='¿Solicita Soporte?')
 
     class Meta:
@@ -13,7 +15,7 @@ class PerfilSoporte(StandardModel):
         verbose_name_plural = 'Perfiles de Soporte'
 
     def __str__(self):
-        return self.usuario.username
+        return self.nombre
 
 
 class TipoSoporte(StandardModel):
@@ -38,9 +40,11 @@ class Ticket(StandardModel):
         ('RECHAZADO', 'Rechazado'),
     )
 
-    numero_ticket = models.CharField(max_length=20, unique=True, blank=True)
+    numero_ticket = models.CharField(max_length=20, unique=True, null=True, blank=True)
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='tickets')
+    departamento = models.ForeignKey('core.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='tickets')
     asignado_a = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='tickets_asignados')
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')
@@ -67,11 +71,11 @@ class Ticket(StandardModel):
 
     def create_number_ticket(self):
         alias_ticket = 'TCK'
-        alias = 'TCK'
+        alias = 'SP'
         year = timezone.now().year
 
-        if self.establecimiento and self.establecimiento.alias:
-            alias = self.establecimiento.alias.upper().strip()
+        if self.establecimiento and self.establecimiento.nombre:
+            alias = self.establecimiento.nombre.upper().strip()
 
         return f"{alias_ticket}-{year}-{alias}-{str(self.id).zfill(5)}"
 

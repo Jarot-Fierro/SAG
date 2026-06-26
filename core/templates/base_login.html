@@ -83,10 +83,10 @@
 
             <p class="login-box-msg">Inicia sesión con tus credenciales</p>
 
-            <form action="{% url 'login' %}" method="post">
+            <form action="{% url 'usuarios:login' %}" method="post" id="loginForm">
                 {% csrf_token %}
                 <div class="input-group mb-3">
-                    <input type="text" name="username" class="form-control" placeholder="Usuario"
+                    <input type="text" name="username" id="id_username" class="form-control" placeholder="Usuario"
                            aria-label="Username"
                            required>
                     <div class="input-group-text">
@@ -125,7 +125,7 @@
                 <a href="forgot-password.html">Olvidé mi contraseña?</a>
             </p>
             <p class="mb-0">
-                <a class="text-center" href="{% url 'registro' %}">Registrate</a>
+                <a class="text-center" href="{% url 'usuarios:registro' %}">Registrate</a>
             </p>
         </div>
         <!-- /.login-card-body -->
@@ -183,6 +183,51 @@
     })();
 </script>
 <!--end::Color Mode Toggle-->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameInput = document.getElementById('id_username');
+        const loginForm = document.getElementById('loginForm');
+
+        function formatRut(value) {
+            // Quitar all lo que no sea número o k/K
+            let rut = value.replace(/[^\dkK]/g, '').toUpperCase();
+            if (rut.length <= 1) return rut;
+
+            let dv = rut.slice(-1);
+            let numbers = rut.slice(0, -1);
+
+            // Formatear con puntos
+            let formatted = '';
+            for (let i = numbers.length - 1, j = 1; i >= 0; i--, j++) {
+                formatted = numbers.charAt(i) + formatted;
+                if (j % 3 === 0 && i !== 0) {
+                    formatted = '.' + formatted;
+                }
+            }
+
+            return formatted + '-' + dv;
+        }
+
+        usernameInput.addEventListener('input', function (e) {
+            let cursorPosition = e.target.selectionStart;
+            let oldLength = e.target.value.length;
+
+            let formatted = formatRut(e.target.value);
+            e.target.value = formatted;
+
+            // Ajustar posición del cursor si es necesario
+            let newLength = formatted.length;
+            cursorPosition = cursorPosition + (newLength - oldLength);
+            e.target.setSelectionRange(cursorPosition, cursorPosition);
+        });
+
+        loginForm.addEventListener('submit', function () {
+            // Asegurar el formato final al enviar
+            usernameInput.value = formatRut(usernameInput.value);
+        });
+    });
+</script>
 <!--end::Script-->
 
 

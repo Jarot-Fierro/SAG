@@ -41,7 +41,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('usuarios:login')
 
 
 @login_required
@@ -73,7 +73,7 @@ def cambiar_password_view(request):
             # El usuario pidió: "al cambiarla se desloguea de la sessión"
             logout(request)
             messages.success(request, 'Contraseña cambiada correctamente. Por favor, inicia sesión de nuevo.')
-            return redirect('login')
+            return redirect('usuarios:login')
     else:
         form = PasswordChangeForm(request.user)
 
@@ -90,9 +90,11 @@ def registro_view(request):
             form.save()
             messages.info(request,
                           'Su cuenta quedará inactiva hasta que un administrador apruebe su registro. Mientras tanto no puede iniciar sesión.')
-            return redirect('login')
+            return redirect('usuarios:login')
     else:
         form = RegistroForm()
+
+    return render(request, 'usuarios/registro.html', {'form': form})
 
 
 @login_required
