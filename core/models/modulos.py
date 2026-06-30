@@ -1,5 +1,6 @@
 from colorfield.fields import ColorField
 from django.db import models
+from django.utils.safestring import mark_safe
 
 from core.standard.models import StandardModel
 
@@ -14,7 +15,29 @@ class Modulo(StandardModel):
     ]
 
     nombre = models.CharField(max_length=100)
-    icono = models.TextField(blank=True)
+    icono = models.TextField(
+        blank=True,
+        help_text=mark_safe("""
+        <p><strong>Formato esperado:</strong></p>
+
+        <pre style="background:#f5f5f5;padding:10px;border-radius:4px;overflow:auto;">
+    &lt;svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"&gt;
+        &lt;path d="PEGAR_AQUI_EL_PATH"/&gt;
+    &lt;/svg&gt;
+        </pre>
+
+        <p>
+            Solo debe reemplazar el valor del atributo <code>d</code> del elemento
+            <code>&lt;path&gt;</code>.
+        </p>
+
+        <p>
+            Puede obtener el <strong>path</strong> desde
+            <a href="https://heroicons.com/" target="_blank">Heroicons</a>
+            (copiando únicamente el contenido del atributo <code>d</code>).
+        </p>
+        """)
+    )
     codigo = models.CharField(
         max_length=50,
         unique=True
