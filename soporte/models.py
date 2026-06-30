@@ -1,7 +1,20 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from core.standard.models import StandardModel
+
+
+class TicketConfig(StandardModel):
+    establecimiento = models.OneToOneField('core.Establecimiento', on_delete=models.CASCADE,
+                                           related_name='ticket_config')
+    ultimo_correlativo = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Configuración de Ticket'
+        verbose_name_plural = 'Configuraciones de Tickets'
+
+    def __str__(self):
+        return f"Configuración para {self.establecimiento.nombre}"
 
 
 class PerfilSoporte(StandardModel):
@@ -69,28 +82,26 @@ class Ticket(StandardModel):
     def __str__(self):
         return self.numero_ticket or f"Ticket #{self.id}"
 
-    def create_number_ticket(self):
-        alias_ticket = 'TCK'
-        alias = 'SP'
-        year = timezone.now().year
-
-        if self.establecimiento and self.establecimiento.nombre:
-            alias = self.establecimiento.nombre.upper().strip()
-
-        return f"{alias_ticket}-{year}-{alias}-{str(self.id).zfill(5)}"
-
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
+        if not self.pk and not self.numero_ticket:
+            with transaction.atomic():
+                # Obtenemos o creamos la configuración para el establecimiento
+                # Bloqueamos la fila con select_for_update para manejar la concurrencia
+                config, created = TicketConfig.objects.select_for_update().get_or_create(
+                    establecimiento=self.establecimiento
+                )
 
-        if is_new and not self.numero_ticket:
-            # Primer save para obtener ID
-            super().save(*args, **kwargs)
+                # Incrementamos el correlativo
+                config.ultimo_correlativo += 1
+                config.save()
 
-            # Generar número usando alias + ID global
-            self.numero_ticket = self.create_number_ticket()
+                # Generamos el número de ticket
+                alias_ticket = 'TCK'
+                year = timezone.now().year
+                alias = 'SP'
+                if self.establecimiento:
+                    alias = self.establecimiento.alias or self.establecimiento.nombre.upper().strip()
 
-            # Segundo save solo para actualizar el número
-            super().save(update_fields=['numero_ticket'])
-            return
+                self.numero_ticket = f"{alias_ticket}-{year}-{alias}-{str(config.ultimo_correlativo).zfill(5)}"
 
         super().save(*args, **kwargs)

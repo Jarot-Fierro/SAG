@@ -5,6 +5,7 @@ from simple_history.admin import SimpleHistoryAdmin
 
 class StandardAdmin(ImportExportModelAdmin, SimpleHistoryAdmin):
     readonly_fields = ('created_by', 'updated_by', 'created_at', 'updated_at')
+    actions = ['activate_records', 'deactivate_records']
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -25,3 +26,13 @@ class StandardAdmin(ImportExportModelAdmin, SimpleHistoryAdmin):
                 list_display = list(list_display)
                 list_display.append('active_status')
         return list_display
+
+    @admin.action(description='Activar registros seleccionados')
+    def activate_records(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'Se activaron {updated} registros correctamente.')
+
+    @admin.action(description='Desactivar registros seleccionados')
+    def deactivate_records(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'Se desactivaron {updated} registros correctamente.')

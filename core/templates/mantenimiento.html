@@ -1,0 +1,40 @@
+{% extends 'base_v2.html' %}
+
+{% block content %}
+    <main class="d-flex align-items-center min-vh-100 py-5" id="main" tabindex="-1">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6 text-center">
+                    <i class="bi bi-tools text-warning" style="font-size: 4rem" aria-hidden="true"></i>
+                    <h1 class="h3 mt-3 mb-2">Módulo en Mantenimiento</h1>
+                    <p class="text-secondary mb-4">
+                        Lo sentimos, este módulo se encuentra actualmente en mantenimiento programado.
+                        Estamos trabajando para mejorar nuestro servicio y volveremos pronto.
+                    </p>
+                    <div class="card mx-auto" style="max-width: 24rem">
+                        <div class="card-body text-start">
+                            <p class="text-secondary small mb-2">Finalización estimada</p>
+                            <p class="fw-semibold mb-0">
+                                <i class="bi bi-clock me-1" aria-hidden="true"></i>
+                                {% if mantenimiento_hasta %}
+                                    {{ mantenimiento_hasta|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    No se definió fecha de término.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'intranet:index' %}" class="btn btn-primary">
+                            <i class="bi bi-house-door me-1"></i> Volver a la Intranet
+                        </a>
+                    </div>
+                    <p class="text-secondary small mt-4 mb-0">
+                        Si tienes alguna urgencia, contáctanos en
+                        <a href="mailto:soporte@ejemplo.com">soporte@ejemplo.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

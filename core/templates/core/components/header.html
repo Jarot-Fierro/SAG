@@ -23,6 +23,19 @@
 
         </ul>
         <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+                <li class="nav-item d-flex align-items-center me-2">
+                    <select class="form-select form-select-sm"
+                            onchange="window.location.href='/usuarios/cambiar-establecimiento/' + this.value + '/'">
+                        <option value="" disabled>Seleccione Establecimiento</option>
+                        {% for est in global_establecimientos %}
+                            <option value="{{ est.id }}" {% if user.establecimiento_id == est.id %}selected{% endif %}>
+                                {{ est.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </li>
+            {% endif %}
             <li class="nav-item dropdown">
                 <a
                         class="nav-link"

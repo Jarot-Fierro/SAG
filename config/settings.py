@@ -97,6 +97,7 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.MantenimientoMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -112,6 +113,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'agenda_telefonica.context_processors.menu_sidebar',
+                'core.context_processors.establecimientos_processor',
             ],
         },
     },

@@ -37,7 +37,37 @@
                             <input type="hidden" name="action" value="{{ action|default:'add' }}">
 
                             <div class="row g-3">
-                                {# Primera fila: Título y Área de Soporte #}
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_ticket.name }}">{{ form.numero_ticket.label }}</label>
+                                    {{ form.numero_ticket }}
+                                    {% if form.numero_ticket.errors %}
+                                        {% for error in form.numero_ticket.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.establecimiento.name }}">{{ form.establecimiento.label }}</label>
+                                    {{ form.establecimiento }}
+                                    {% if form.establecimiento.errors %}
+                                        {% for error in form.establecimiento.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.departamento.name }}">{{ form.departamento.label }}</label>
+                                    {{ form.departamento }}
+                                    {% if form.departamento.errors %}
+                                        {% for error in form.departamento.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.titulo.name }}">{{ form.titulo.label }}</label>
@@ -48,8 +78,6 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-
-                                {# Segunda fila: Funcionario (Buscador Select2) #}
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
@@ -60,7 +88,6 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-
                                 <div class="col-md-2">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
@@ -71,13 +98,72 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
+                                <hr>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.estado.name }}">{{ form.estado.label }}</label>
+                                    {{ form.estado }}
+                                    {% if form.estado.errors %}
+                                        {% for error in form.estado.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.asignado_a.name }}">{{ form.asignado_a.label }}</label>
+                                    {{ form.asignado_a }}
+                                    {% if form.asignado_a.errors %}
+                                        {% for error in form.asignado_a.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_soporte.name }}">{{ form.tipo_soporte.label }}</label>
+                                    {{ form.tipo_soporte }}
+                                    {% if form.tipo_soporte.errors %}
+                                        {% for error in form.tipo_soporte.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_cierre.name }}">{{ form.fecha_cierre.label }}</label>
+                                    {{ form.fecha_cierre }}
+                                    {% if form.fecha_cierre.errors %}
+                                        {% for error in form.fecha_cierre.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
                                 {# Cuarta fila: Descripción #}
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.descripcion.name }}">{{ form.descripcion.label }}</label>
                                     {{ form.descripcion }}
                                     {% if form.descripcion.errors %}
                                         {% for error in form.descripcion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solucion.name }}">{{ form.solucion.label }}</label>
+                                    {{ form.solucion }}
+                                    {% if form.solucion.errors %}
+                                        {% for error in form.solucion.errors %}
                                             <div class="invalid-feedback d-block text-danger">{{ error }}</div>
                                         {% endfor %}
                                     {% endif %}

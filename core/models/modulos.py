@@ -22,6 +22,8 @@ class Modulo(StandardModel):
     url = models.CharField(max_length=200, blank=True)
     consulta = models.CharField(max_length=200, blank=True)
     color = ColorField(default='#006FB3', samples=COLOR_CHOICES)
+    en_mantenimiento = models.BooleanField(default=False)
+    mantenimiento_hasta = models.DateTimeField(default=None, null=True, blank=True)
 
     def __str__(self):
         return self.nombre

@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect
 
 from core.forms.usuarios import RegistroForm
 from core.models import User
+from core.models.establecimientos import Establecimiento
 
 
 def login_view(request):
@@ -147,3 +148,16 @@ def buscar_funcionario_ajax(request):
         })
 
     return JsonResponse({'results': results})
+
+
+@login_required
+def cambiar_establecimiento_view(request, establecimiento_id):
+    establecimiento = Establecimiento.objects.filter(id=establecimiento_id).first()
+    if establecimiento:
+        request.user.establecimiento = establecimiento
+        request.user.save()
+        messages.success(request, f'Se ha cambiado al establecimiento: {establecimiento.nombre}')
+    else:
+        messages.error(request, 'Establecimiento no encontrado.')
+
+    return redirect(request.META.get('HTTP_REFERER', 'intranet:index'))
