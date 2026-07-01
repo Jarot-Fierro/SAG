@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8"/>
+    <title>Acta de Entrega</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{% static 'media/favicon.ico' %}">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+    >
+    <style>
+        @page {
+            size: A4;
+            margin: 30px;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        .note {
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+
+        .signature-block {
+            margin-top: 40px;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 220px;
+            text-align: center;
+            margin: 30px auto 0 auto;
+            padding-top: 5px;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 40px;
+            color: #555;
+        }
+
+        .text-normal {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Logo_del_MINSAL_Chile.png"
+         alt="Logo Gobierno" style="height: 80px;">
+    <div class="d-flex flex-column text-end">
+        <div class="text-normal"><strong>FECHA:</strong> {{ fecha }}</div>
+        <div class="text-normal"><strong>HORA:</strong> {{ hora }}</div>
+    </div>
+</div>
+
+<h1>ACTA DE ENTREGA</h1>
+<hr>
+
+<div class="section-title">1.- IDENTIFICACIÓN DEL PRODUCTO - CELULAR</div>
+
+<table class="mt-2">
+    <tbody>
+    <tr>
+        <th>TIPO DE EQUIPO</th>
+        <td>{% if equipo.tipo %}{{ equipo.tipo }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>MARCA - MODELO</th>
+        <td>{% if equipo.marca %}{{ equipo.marca }}{% endif %} {% if equipo.modelo %}{{ equipo.modelo }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>NUMERO DE CELULAR</th>
+        <td>{% if equipo.numero_telefono %}{{ equipo.numero_telefono }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>IMEI</th>
+        <td>{% if equipo.imei %}{{ equipo.imei }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>CÓDIGO PIN</th>
+        <td>{% if equipo.pin %}{{ equipo.pin }}{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>CÓDIGO PUK</th>
+        <td>{% if equipo.puk %}{{ equipo.puk }}{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>TARJETA SIM</th>
+        <td>{% if equipo.numero_chip %}{{ equipo.numero_chip }}{% endif %}</td>
+    </tr>
+    <tr>
+        <th>MINUTOS ASOCIADOS</th>
+        <td>{% if equipo.minutos %}{{ equipo.minutos }}{% endif %}</td>
+    </tr>
+
+    </tbody>
+</table>
+
+<div class="note">
+    <strong>NOTA:</strong><br>
+    EL USUARIO QUE ESTA A CARGO DEL EQUIPO (CELULAR, BAM, ETC) SERÁ RESPONSABLE DE SU REPARACIÓN, EXTRAVÍO O MAL USO DE
+    ESTE, O EN SU DEFECTO ENTREGAR EN BUENAS CONDICIONES Y TODOS SUS ACCESORIOS
+</div>
+
+<div class="signature-block text-center ">
+    <p>ENTREGUE CONFORME A:</p>
+
+    <div class="row" style="margin-top: 120px">
+        <div class="col-6 text-center">
+            <div class="signature-line">
+                {% if equipo.responsable.puesto_trabajo %}
+                    {{ equipo.responsable.puesto_trabajo }}{% endif %}<br>{% if equipo.responsable %}
+                {{ equipo.responsable }}{% endif %}.
+            </div>
+        </div>
+        <div class="col-6 text-center">
+            <div class="signature-line">
+                {% if equipo.jefe_entrega.posicion %}
+                    {{ equipo.jefe_entrega.posicion }}{% endif %}.<br>{% if equipo.jefe_entrega %}
+                {{ equipo.jefe_entrega }}{% endif %}.
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <div>{{ request.user.establecimiento.nombre }}</div>
+        {#        <div>SERVICIO DE SALUD ARAUCO</div>#}
+    </div>
+</div>
+
+<footer>
+    Página 1/1<br>
+    <a href="http://www.ssarauco.cl">http://www.ssarauco.cl</a>
+</footer>
+
+</body>
+</html>

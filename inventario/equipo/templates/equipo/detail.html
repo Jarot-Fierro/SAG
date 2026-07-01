@@ -1,0 +1,61 @@
+<div class="row">
+    <div class="col-md-6">
+        <p><strong>Tipo de Equipo:</strong> {{ object.get_tipo_equipo_display }}</p>
+        <p><strong>Serie:</strong> {{ object.serie }}</p>
+        <p><strong>Marca:</strong> {{ object.marca.nombre|upper }}</p>
+        <p><strong>Modelo:</strong> {{ object.modelo.nombre|upper|default:"-" }}</p>
+        <p><strong>Propietario:</strong> {{ object.propietario.nombre|upper|default:"-" }}</p>
+    </div>
+    <div class="col-md-6">
+        <p><strong>Establecimiento:</strong> {{ object.establecimiento.nombre|upper|default:"-" }}</p>
+        <p><strong>Departamento:</strong> {{ object.departamento.nombre|upper|default:"-" }}</p>
+        <p><strong>Responsable:</strong> {{ object.responsable.nombres|upper|default:"SIN RESPONSABLE" }}</p>
+        <p><strong>IP:</strong> 
+            {% with asignacion=object.asignacion_ip %}
+                {% if asignacion and asignacion.activa %}
+                    <span class="badge bg-success">{{ asignacion.ip.ip }}</span>
+                {% else %}
+                    -
+                {% endif %}
+            {% endwith %}
+        </p>
+    </div>
+</div>
+
+{% if object.tipo_equipo == 'PC' or object.tipo_equipo == 'NB' %}
+    <hr>
+    <h5>Especificaciones Técnicas</h5>
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Tipo Computador:</strong> {{ object.tipo_pc.nombre|default:"-" }}</p>
+            <p><strong>MAC:</strong> {{ object.mac|default:"-" }}</p>
+            <p><strong>Sistema Operativo:</strong> {{ object.sistema_operativo.nombre|default:"-" }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>RAM:</strong> {{ object.ram_gb|default:"-" }}</p>
+            <p><strong>Procesador:</strong> {{ object.procesador|default:"-" }}</p>
+            <p><strong>Disco:</strong> {{ object.capacidad_disco_gb|default:"-" }} GB ({{ object.tipo_disco|default:"-" }})</p>
+        </div>
+    </div>
+{% elif object.tipo_equipo == 'IMP' %}
+    <hr>
+    <h5>Especificaciones Técnicas</h5>
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong>Tipo Impresora:</strong> {{ object.tipo_impresora.nombre|default:"-" }}</p>
+            <p><strong>HH:</strong> {{ object.hh|default:"-" }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Toner/Tinta:</strong> {{ object.toner.nombre|default:"-" }}</p>
+        </div>
+    </div>
+{% endif %}
+
+<hr>
+<p><strong>Observaciones:</strong> {{ object.observaciones|default:"Sin observaciones" }}</p>
+{% if object.de_baja %}
+    <div class="alert alert-warning">
+        <strong>EQUIPO DE BAJA</strong><br>
+        {{ object.motivo_baja }}
+    </div>
+{% endif %}

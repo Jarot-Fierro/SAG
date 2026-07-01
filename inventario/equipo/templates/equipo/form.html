@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Equipos - {{ title }}{% endblock %}
+
+{% block content %}
+    <div class="card card-outline card-primary">
+        <div class="card-header">
+            <h3 class="card-title font-weight-bold"><i class="fas fa-desktop mr-2"></i>{{ title }}</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <input type="hidden" name="action" value="{{ action }}">
+
+                <!-- SECCIÓN: IDENTIFICACIÓN GENERAL -->
+                <div class="card bg-light mb-4">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fas fa-info-circle mr-1"></i> Identificación General
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="id_tipo_equipo">{{ form.tipo_equipo.label }}</label>
+                                {{ form.tipo_equipo }}
+                                {% for error in form.tipo_equipo.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_serie">{{ form.serie.label }}</label>
+                                {{ form.serie }}
+                                {% for error in form.serie.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_ip">{{ form.ip.label }}</label>
+                                {{ form.ip }}
+                                {% for error in form.ip.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_marca">{{ form.marca.label }}</label>
+                                {{ form.marca }}
+                                {% for error in form.marca.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_modelo">{{ form.modelo.label }}</label>
+                                {{ form.modelo }}
+                                {% for error in form.modelo.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_contrato">{{ form.contrato.label }}</label>
+                                {{ form.contrato }}
+                                {% for error in form.contrato.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: UBICACIÓN / RESPONSABLE -->
+                <div class="card bg-light mb-4">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fas fa-users mr-1"></i> Ubicación y Responsable
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="id_propietario">{{ form.propietario.label }}</label>
+                                {{ form.propietario }}
+                                {% for error in form.propietario.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_departamento">{{ form.departamento.label }}</label>
+                                {{ form.departamento }}
+                                {% for error in form.departamento.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_responsable">{{ form.responsable.label }}</label>
+                                {{ form.responsable }}
+                                {% for error in form.responsable.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_jefe_entrega">{{ form.jefe_entrega.label }}</label>
+                                {{ form.jefe_entrega }}
+                                {% for error in form.jefe_entrega.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESPECÍFICO PC / NOTEBOOK -->
+                <div class="card bg-light mb-4 section-pc" style="display: none;">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fas fa-laptop mr-1"></i> Especificaciones PC / Notebook
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="id_tipo_pc">{{ form.tipo_pc.label }}</label>
+                                {{ form.tipo_pc }}
+                                {% for error in form.tipo_pc.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_mac">{{ form.mac.label }}</label>
+                                {{ form.mac }}
+                                {% for error in form.mac.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_sistema_operativo">{{ form.sistema_operativo.label }}</label>
+                                {{ form.sistema_operativo }}
+                                {% for error in form.sistema_operativo.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_microsoft_office">{{ form.microsoft_office.label }}</label>
+                                {{ form.microsoft_office }}
+                                {% for error in form.microsoft_office.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-check mb-3">
+                                    {{ form.es_armado }}
+                                    <label class="form-check-label"
+                                           for="id_es_armado">{{ form.es_armado.label }}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_ram_gb">{{ form.ram_gb.label }}</label>
+                                {{ form.ram_gb }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_procesador">{{ form.procesador.label }}</label>
+                                {{ form.procesador }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_tipo_disco">{{ form.tipo_disco.label }}</label>
+                                {{ form.tipo_disco }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="id_capacidad_disco_gb">{{ form.capacidad_disco_gb.label }}</label>
+                                {{ form.capacidad_disco_gb }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESPECÍFICO IMPRESORA -->
+                <div class="card bg-light mb-4 section-imp" style="display: none;">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fas fa-print mr-1"></i> Especificaciones Impresora
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="id_tipo_impresora">{{ form.tipo_impresora.label }}</label>
+                                {{ form.tipo_impresora }}
+                                {% for error in form.tipo_impresora.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_hh">{{ form.hh.label }}</label>
+                                {{ form.hh }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_toner">{{ form.toner.label }}</label>
+                                {{ form.toner }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESTADO Y OBSERVACIONES -->
+                <div class="card bg-light">
+                    <div class="card-header py-2">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fas fa-clipboard-list mr-1"></i> Estado y Observaciones
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check">
+                                    {{ form.de_baja }}
+                                    <label class="form-check-label" for="id_de_baja">{{ form.de_baja.label }}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 div_motivo_baja" style="display: none;">
+                                <label for="id_motivo_baja">{{ form.motivo_baja.label }}</label>
+                                {{ form.motivo_baja }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_observaciones">{{ form.observaciones.label }}</label>
+                                {{ form.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent d-flex justify-content-end border-top-0 px-0 mt-3">
+                    <a href="{% url 'list_equipo' %}" class="btn btn-secondary px-4 mr-2">
+                        <i class="fas fa-times mr-1"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save mr-1"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+
+            function toggleSections() {
+                var tipo = $('#id_tipo_equipo').val();
+                if (tipo === 'PC' || tipo === 'NB') {
+                    $('.section-pc').show();
+                    $('.section-imp').hide();
+                } else if (tipo === 'IMP') {
+                    $('.section-pc').hide();
+                    $('.section-imp').show();
+                } else {
+                    $('.section-pc').hide();
+                    $('.section-imp').hide();
+                }
+            }
+
+            function toggleMotivoBaja() {
+                if ($('#id_de_baja').is(':checked')) {
+                    $('.div_motivo_baja').show();
+                } else {
+                    $('.div_motivo_baja').hide();
+                }
+            }
+
+            $('#id_tipo_equipo').change(toggleSections);
+            $('#id_de_baja').change(toggleMotivoBaja);
+
+            toggleSections();
+            toggleMotivoBaja();
+        });
+    </script>
+{% endblock %}

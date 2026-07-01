@@ -1,0 +1,33 @@
+{% load static %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mb-3">Detalle de IP</h5>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">ID</dt>
+                <dd class="col-sm-8">{{ object.id|default:"-" }}</dd>
+
+                <dt class="col-sm-4">IP</dt>
+                <dd class="col-sm-8">{{ object.ip|default:"-" }}</dd>
+
+                <dt class="col-sm-4">Asignado</dt>
+                <dd class="col-sm-8">
+                    {% if object.asignado %}
+                        <span class="badge badge-success">SÍ</span>
+                    {% else %}
+                        <span class="badge badge-danger">NO</span>
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Establecimiento</dt>
+                <dd class="col-sm-8">{{ object.establecimiento|default:"-" }}</dd>
+
+                <dt class="col-sm-4">Departamento</dt>
+                <dd class="col-sm-8">{{ object.departamento|default:"-" }}</dd>
+
+                <dt class="col-sm-4">Observación</dt>
+                <dd class="col-sm-8">{{ object.observacion|default:"-" }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>

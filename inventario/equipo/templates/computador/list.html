@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center w-100">
+                <div class="col">
+                    <h5 class="mb-0">Listado de Computadores</h5>
+                </div>
+                <div class="col-auto text-end">
+                    <a href="{% url 'historical_computador' %}" class="btn btn-warning me-2">
+                        <i class="bi bi-file-earmark-excel"></i> Historial
+                    </a>
+                    <a href="" class="btn btn-success me-2">
+                        <i class="bi bi-file-earmark-excel"></i> Reporte
+                    </a>
+                    {% if request.user.rol.equipos == 2 %}
+                        <a href="{% url 'create_computador' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Nuevo Computador
+                        </a>
+                        <a href="{% url 'create_computador_armado' %}" class="btn btn-dark">
+                            <i class="fas fa-tools"></i> Agregar Computador Armado
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table id="Table" class="table table-bordered table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Acciones</th>
+                    {% for col in columns %}
+                        {% if col != 'ID' %}
+                            <th>{{ col }}</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

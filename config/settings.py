@@ -81,9 +81,15 @@ INSTALLED_APPS = [
     'simple_history',
     'import_export',
     'django_select2',
+    # STANDARD
     'core.apps.CoreConfig',
+    # AGENDA TELEFONICA
     'agenda_telefonica.apps.AgendaTelefonicaConfig',
+    # SOPORTE
     'soporte.apps.SoporteConfig',
+    # INVENTARIO
+    'inventario.catalogo.apps.CatalogoConfig',
+    'inventario.equipo.apps.EquipoConfig',
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')
