@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0010_funcionario_establecimiento_and_more'),
     ]
@@ -13,11 +12,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='funcionario',
             name='sexo',
-            field=models.CharField(choices=[('M', 'Masculino'), ('F', 'Femenino')], default='NO INFORMADO', max_length=1, verbose_name='Sexo'),
+            field=models.CharField(choices=[('M', 'Masculino'), ('F', 'Femenino')], default='NO INFORMADO',
+                                   max_length=15, verbose_name='Sexo'),
         ),
         migrations.AddField(
             model_name='historicalfuncionario',
             name='sexo',
-            field=models.CharField(choices=[('M', 'Masculino'), ('F', 'Femenino')], default='NO INFORMADO', max_length=1, verbose_name='Sexo'),
+            field=models.CharField(choices=[('M', 'Masculino'), ('F', 'Femenino')], default='NO INFORMADO',
+                                   max_length=15, verbose_name='Sexo'),
         ),
     ]
