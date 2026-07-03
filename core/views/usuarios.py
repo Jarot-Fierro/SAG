@@ -34,6 +34,8 @@ def login_view(request):
                 request.session.set_expiry(0)
 
             return redirect('intranet:index')
+        else:
+            messages.error(request, 'Credenciales invalidas')
     else:
         form = AuthenticationForm()
 
