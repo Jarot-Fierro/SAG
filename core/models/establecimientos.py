@@ -7,7 +7,7 @@ class Establecimiento(StandardModel):
     nombre = models.CharField(max_length=200)
     alias = models.CharField(max_length=20, unique=True, null=True, blank=True)
     region = models.CharField(max_length=100, blank=True, null=True)
-    direccion = models.TextField(blank=True)
+    direccion = models.TextField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
