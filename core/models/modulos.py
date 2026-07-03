@@ -47,6 +47,7 @@ class Modulo(StandardModel):
     color = ColorField(default='#006FB3', samples=COLOR_CHOICES)
     en_mantenimiento = models.BooleanField(default=False)
     mantenimiento_hasta = models.DateTimeField(default=None, null=True, blank=True)
+    es_clinico = models.BooleanField(default=False, verbose_name="Es clínico")
 
     def __str__(self):
         return self.nombre

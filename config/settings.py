@@ -90,6 +90,8 @@ INSTALLED_APPS = [
     # INVENTARIO
     'inventario.catalogo.apps.CatalogoConfig',
     'inventario.equipo.apps.EquipoConfig',
+    # HOROS
+    'horos.apps.HorosConfig',
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

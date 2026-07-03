@@ -1,49 +1,111 @@
 {% extends 'base.html' %}
 
-{% block title %}SAG{% endblock %}
+{% block title %}SISTEMA DE GESTIÓN GENERAL{% endblock %}
 
 {% block content %}
     <div class="app-content">
         <div class="container-fluid">
+            <!-- Módulos Administrativos -->
             <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3"><i class="bi bi-gear-fill me-2"></i>Módulos Administrativos</h5>
+                </div>
                 {% for modulo in modulos %}
-                    <div class="col-lg-3 col-6">
-                        <div class="small-box"
-                             style="background-color: {{ modulo.color }} !important; color: #fff !important;">
-                            <div class="inner">
-                                <h4>{{ modulo.nombre }}</h4>
-                                <p>{{ modulo.codigo }}</p>
-                            </div>
-                            {% if modulo.icono %}
-                                {{ modulo.icono|safe }}
-                            {% else %}
-                                <svg
-                                        class="small-box-icon"
-                                        fill="currentColor"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        aria-hidden="true"
+                    {% if not modulo.es_clinico %}
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box"
+                                 style="background-color: {{ modulo.color }}; color: white;">
+                                <div class="inner">
+                                    <h4>{{ modulo.nombre }}</h4>
+                                    <p>{{ modulo.codigo }}</p>
+                                </div>
+                                {% if modulo.icono %}
+                                    {{ modulo.icono|safe }}
+                                {% else %}
+                                    <svg
+                                            class="small-box-icon"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                    >
+                                        <path
+                                                d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                                        ></path>
+                                    </svg>
+                                {% endif %}
+                                <a
+                                        href="
+
+
+
+
+
+
+                                                {% if modulo.url %}{% url modulo.url %}{{ modulo.consulta }}{% else %}#{% endif %}"
+                                        class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
                                 >
-                                    <path
-                                            d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
-                                    ></path>
-                                </svg>
-                            {% endif %}
-                            <a
-                                    href="
-                                            {% if modulo.url %}{% url modulo.url %}{{ modulo.consulta }}{% else %}#{% endif %}"
-                                    class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
-                            >
-                                Entrar <i class="bi bi-link-45deg"></i>
-                            </a>
+                                    Entrar <i class="bi bi-link-45deg"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                 {% empty %}
                     <div class="col-12">
                         <div class="alert alert-warning">
                             No tiene ningún sistema cargado.
                         </div>
                     </div>
+                {% endfor %}
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Módulos Clínicos -->
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3"><i class="bi bi-heart-pulse-fill me-2"></i>Módulos Clínicos</h5>
+                </div>
+                {% for modulo in modulos %}
+                    {% if modulo.es_clinico %}
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box"
+                                 style="background-color: {{ modulo.color }}; color: white;">
+                                <div class="inner">
+                                    <h4>{{ modulo.nombre }}</h4>
+                                    <p>{{ modulo.codigo }}</p>
+                                </div>
+                                {% if modulo.icono %}
+                                    {{ modulo.icono|safe }}
+                                {% else %}
+                                    <svg
+                                            class="small-box-icon"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            aria-hidden="true"
+                                    >
+                                        <path
+                                                d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                                        ></path>
+                                    </svg>
+                                {% endif %}
+                                <a
+                                        href="
+
+
+
+
+
+
+                                                {% if modulo.url %}{% url modulo.url %}{{ modulo.consulta }}{% else %}#{% endif %}"
+                                        class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover"
+                                >
+                                    Entrar <i class="bi bi-link-45deg"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
