@@ -81,6 +81,7 @@
                 <div class="input-group mb-3">
                     <input type="text" name="username" id="id_username" class="form-control" placeholder="Usuario"
                            aria-label="Username"
+                           value="{{ form.username.value|default:'' }}"
                            required>
                     <div class="input-group-text">
                         <span class="bi bi-person"></span>
