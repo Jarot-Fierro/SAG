@@ -14,6 +14,11 @@ class Modulo(StandardModel):
         ("#FFA11B", "Warning (Naranja)"),
     ]
 
+    TEXT_COLOR_CHOICES = [
+        ("#ffffff", "Blanco"),
+        ("#000000", "Negro"),
+    ]
+
     nombre = models.CharField(max_length=100)
     icono = models.TextField(
         blank=True,
@@ -45,6 +50,7 @@ class Modulo(StandardModel):
     url = models.CharField(max_length=200, blank=True)
     consulta = models.CharField(max_length=200, blank=True)
     color = ColorField(default='#006FB3', samples=COLOR_CHOICES)
+    texto_color = ColorField(default='#ffffff', samples=TEXT_COLOR_CHOICES, verbose_name="Color de texto")
     en_mantenimiento = models.BooleanField(default=False)
     mantenimiento_hasta = models.DateTimeField(default=None, null=True, blank=True)
     es_clinico = models.BooleanField(default=False, verbose_name="Es clínico")

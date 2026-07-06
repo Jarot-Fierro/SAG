@@ -57,3 +57,73 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet"/>
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"/>
+
+<style>
+    :root {
+        /* Si hay un módulo actual, usamos su color; si no, el azul por defecto */
+        --modulo-color: {% if modulo_actual %}{{ modulo_actual.color }}{% else %}#006FB3{% endif %};
+        --modulo-texto-color: {% if modulo_actual %}{{ modulo_actual.texto_color }}{% else %}#ffffff{% endif %};
+    }
+
+    /* Aplicar a elementos específicos del Header */
+    .app-header.navbar {
+        background-color: var(--modulo-color) !important;
+        color: var(--modulo-texto-color) !important;
+    }
+
+    .app-header.navbar .nav-link,
+    .app-header.navbar .navbar-nav .nav-item,
+    .app-header.navbar .bi {
+        color: var(--modulo-texto-color) !important;
+    }
+
+    /* Estilos para el Sidebar (Brand logo y active items) */
+    .app-sidebar.bg-body-green {
+        background: var(--modulo-color) !important;
+    }
+
+    .app-sidebar .sidebar-brand {
+        background-color: var(--modulo-color) !important;
+        color: var(--modulo-texto-color) !important;
+    }
+
+    .app-sidebar .sidebar-brand .brand-text,
+    .app-sidebar .sidebar-wrapper .nav-item,
+    .app-sidebar .sidebar-wrapper .nav-link,
+    .app-sidebar .sidebar-wrapper .nav-header,
+    .app-sidebar .sidebar-wrapper .bi {
+        color: var(--modulo-texto-color) !important;
+    }
+
+    /* Ajuste para el hover en el sidebar si es necesario */
+    .app-sidebar .sidebar-wrapper .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Estilos para el Dropdown del Perfil en el Header */
+    .user-menu .dropdown-menu {
+        border: 1px solid var(--modulo-color) !important;
+    }
+
+    .user-header.text-bg-primary {
+        background-color: var(--modulo-color) !important;
+        color: var(--modulo-texto-color) !important;
+    }
+
+    /* Si quieres cambiar también el color del borde de las tarjetas */
+    .card-primary.card-outline {
+        border-top-color: var(--modulo-color) !important;
+    }
+
+    /* Botones primarios dinámicos */
+    .btn-primary {
+        background-color: var(--modulo-color) !important;
+        border-color: var(--modulo-color) !important;
+        color: var(--modulo-texto-color) !important;
+    }
+
+    .text-bg-primary {
+        background-color: var(--modulo-color) !important;
+        color: var(--modulo-texto-color) !important;
+    }
+</style>

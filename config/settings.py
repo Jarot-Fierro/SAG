@@ -122,6 +122,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'agenda_telefonica.context_processors.menu_sidebar',
                 'core.context_processors.establecimientos_processor',
+                'core.context_processors.modulo_actual_processor',
             ],
         },
     },
