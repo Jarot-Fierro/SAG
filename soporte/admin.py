@@ -88,21 +88,17 @@ class TicketAdmin(StandardAdmin):
 class PerfilSoporteAdmin(StandardAdmin):
     list_display = (
         'id',
-        'nombre',
-        'get_usuarios',
-        'get_grupos',
+        'usuario',
         'usuario_soporte',
         'is_active',
     )
     list_filter = (
-        'nombre',
         'usuario_soporte',
         'is_active',
         'usuario__groups',
     )
 
     search_fields = (
-        'nombre',
         'usuario__username',
         'usuario__first_name',
         'usuario__last_name',
@@ -111,28 +107,17 @@ class PerfilSoporteAdmin(StandardAdmin):
     list_display_links = (
         'nombre',
     )
+    autocomplete_fields = ('usuario',)
 
     ordering = (
-        'nombre',
+        '-id',
     )
 
-    filter_horizontal = ('usuario',)
-
     fieldsets = (
-        (None, {'fields': ('nombre', 'usuario', 'usuario_soporte', 'is_active')}),
+        (None, {'fields': ('usuario', 'usuario_soporte', 'is_active')}),
     )
 
     def get_usuarios(self, obj):
         return ", ".join([f"{u.first_name} {u.last_name} ({u.username})" for u in obj.usuario.all()])
 
     get_usuarios.short_description = 'Usuarios'
-
-    def get_grupos(self, obj):
-        # Obtener todos los grupos de todos los usuarios asociados al perfil
-        grupos = set()
-        for usuario in obj.usuario.all():
-            for grupo in usuario.groups.all():
-                grupos.add(grupo.name)
-        return ", ".join(list(grupos))
-
-    get_grupos.short_description = 'Grupos de Usuarios'

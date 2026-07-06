@@ -18,9 +18,8 @@ class TicketConfig(StandardModel):
 
 
 class PerfilSoporte(StandardModel):
-    nombre = models.CharField(max_length=100)
-    usuario = models.ManyToManyField('core.User', blank=True, verbose_name="Usuarios",
-                                     related_name='perfil_soporte_usuario')
+    usuario = models.OneToOneField('core.User', on_delete=models.CASCADE, related_name='perfil_soporte', null=True,
+                                   blank=True)
     usuario_soporte = models.BooleanField(default=True, verbose_name='¿Solicita Soporte?')
 
     class Meta:
@@ -28,7 +27,7 @@ class PerfilSoporte(StandardModel):
         verbose_name_plural = 'Perfiles de Soporte'
 
     def __str__(self):
-        return self.nombre
+        return str(self.usuario)
 
 
 class TipoSoporte(StandardModel):

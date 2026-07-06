@@ -114,7 +114,7 @@ def buscar_funcionario_ajax(request):
     departamento_id = request.GET.get('departamento_id') or request.user.departamento_id
 
     # Base queryset: Usuarios activos
-    queryset = User.objects.filter(is_active=True)
+    queryset = User.objects.all()
 
     # El usuario logueado debe pertenecer a un establecimiento para filtrar, 
     # de lo contrario podría ser un superusuario o alguien sin establecimiento asignado.

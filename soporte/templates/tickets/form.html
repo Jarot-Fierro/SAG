@@ -9,13 +9,7 @@
 {% endblock %}
 
 {% block title %}
-    {{ title|default:'Formulario' }} -
-    {% if request.user.perfil_soporte_usuario.exists %}
-        {{ request.user.perfil_soporte_usuario.first.nombre }}
-    {% else %}
-        Sin Perfil
-    {% endif %}
-
+    {{ title|default:'Formulario' }} - {{ request.user.departamento.nombre }}
 {% endblock %}
 
 

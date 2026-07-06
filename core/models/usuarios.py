@@ -11,11 +11,13 @@ class User(AbstractUser):
     password = models.CharField(max_length=128)
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.PROTECT, null=True,
                                         blank=True,
-                                        verbose_name='Establecimiento'
+                                        verbose_name='Establecimiento',
+                                        help_text="El establecimiento debe ser consistente con el departamento seleccionado."
                                         )
     departamento = models.ForeignKey('core.Departamento', on_delete=models.PROTECT, null=True,
                                      blank=True,
-                                     verbose_name='Departamento'
+                                     verbose_name='Departamento',
+                                     help_text="El departamento debe pertenecer al establecimiento seleccionado."
                                      )
     modulos = models.ManyToManyField(
         'core.Modulo',

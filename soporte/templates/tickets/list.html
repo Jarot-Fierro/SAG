@@ -1,11 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}
-    Lista de Tickets -
-    {% if request.user.perfil_soporte_usuario.exists %}
-        {{ request.user.perfil_soporte_usuario.first.nombre }}
-    {% else %}
-        Sin Perfil
-    {% endif %}
+    Lista de Tickets - {{ request.user.departamento.nombre }}
 {% endblock %}
 
 {% block sidebar %}
