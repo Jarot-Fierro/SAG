@@ -87,9 +87,8 @@ INSTALLED_APPS = [
     'agenda_telefonica.apps.AgendaTelefonicaConfig',
     # SOPORTE
     'soporte.apps.SoporteConfig',
-    # INVENTARIO
-    'inventario.catalogo.apps.CatalogoConfig',
-    'inventario.equipo.apps.EquipoConfig',
+    # GESTION TIC
+    'gestion_tic.apps.GestionTicConfig',
     # HOROS
     'horos.apps.HorosConfig',
 ]
