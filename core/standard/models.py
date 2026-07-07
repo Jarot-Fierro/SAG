@@ -20,6 +20,24 @@ class StandardModel(models.Model):
 
     history = HistoricalRecords(inherit=True)
 
+    UPPERCASE_FIELDS = []
+    LOWERCASE_FIELDS = []
+
+    def save(self, *args, **kwargs):
+        # Campos a MAYÚSCULAS
+        for field_name in self.UPPERCASE_FIELDS:
+            value = getattr(self, field_name, None)
+            if value:
+                setattr(self, field_name, value.upper())
+
+        # Campos a minúsculas (ej: email)
+        for field_name in self.LOWERCASE_FIELDS:
+            value = getattr(self, field_name, None)
+            if value:
+                setattr(self, field_name, value.lower())
+
+        super().save(*args, **kwargs)
+
     class Meta:
         abstract = True
         ordering = ['-updated_at']
@@ -44,6 +62,24 @@ class StandardModelEstablishment(models.Model):
                                    related_name="%(class)s_updated", verbose_name='Actualizado Por')
 
     history = HistoricalRecords(inherit=True)
+
+    UPPERCASE_FIELDS = []
+    LOWERCASE_FIELDS = []
+
+    def save(self, *args, **kwargs):
+        # Campos a MAYÚSCULAS
+        for field_name in self.UPPERCASE_FIELDS:
+            value = getattr(self, field_name, None)
+            if value:
+                setattr(self, field_name, value.upper())
+
+        # Campos a minúsculas (ej: email)
+        for field_name in self.LOWERCASE_FIELDS:
+            value = getattr(self, field_name, None)
+            if value:
+                setattr(self, field_name, value.lower())
+
+        super().save(*args, **kwargs)
 
     class Meta:
         abstract = True

@@ -92,7 +92,7 @@ class FormIps(forms.ModelForm):
         widget=forms.Select(
             attrs={
                 'id': 'ip_establecimiento',
-                'class': 'form-control'
+                'class': 'form-control select2'
             }
         )
     )
@@ -105,7 +105,7 @@ class FormIps(forms.ModelForm):
         widget=forms.Select(
             attrs={
                 'id': 'ip_departamento',
-                'class': 'form-control'
+                'class': 'form-control select2'
             }
         )
     )
@@ -420,7 +420,7 @@ class FormSubCategoria(forms.ModelForm):
         required=True,
         empty_label='Selecciona una Categoría',
         label='Categoría',
-        queryset=Categoria.objects.filter(status=True),
+        queryset=Categoria.objects.filter(is_active=True),
         widget=forms.Select(
             attrs={
                 'id': 'categoria_subcategoria',

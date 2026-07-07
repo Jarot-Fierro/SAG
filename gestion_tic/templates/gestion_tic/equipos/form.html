@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="row g-3">
+                                <!-- Información Básica -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.serie.label }}</label>
+                                    {{ form.serie }}
+                                    {% if form.serie.errors %}
+                                        <div class="text-danger small">{{ form.serie.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.marca.label }}</label>
+                                    {{ form.marca }}
+                                    {% if form.marca.errors %}
+                                        <div class="text-danger small">{{ form.marca.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.modelo.label }}</label>
+                                    {{ form.modelo }}
+                                    {% if form.modelo.errors %}
+                                        <div class="text-danger small">{{ form.modelo.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.tipo_pc.label }}</label>
+                                    {{ form.tipo_pc }}
+                                    {% if form.tipo_pc.errors %}
+                                        <div class="text-danger small">{{ form.tipo_pc.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.contrato.label }}</label>
+                                    {{ form.contrato }}
+                                    {% if form.contrato.errors %}
+                                        <div class="text-danger small">{{ form.contrato.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <!-- Red e Identificación -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.ip.label }}</label>
+                                    {{ form.ip }}
+                                    {% if form.ip.errors %}
+                                        <div class="text-danger small">{{ form.ip.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.mac.label }}</label>
+                                    {{ form.mac }}
+                                    {% if form.mac.errors %}
+                                        <div class="text-danger small">{{ form.mac.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.sistema_operativo.label }}</label>
+                                    {{ form.sistema_operativo }}
+                                    {% if form.sistema_operativo.errors %}
+                                        <div class="text-danger small">{{ form.sistema_operativo.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.microsoft_office.label }}</label>
+                                    {{ form.microsoft_office }}
+                                    {% if form.microsoft_office.errors %}
+                                        <div class="text-danger small">{{ form.microsoft_office.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="col-12 mt-2">
+                                    <h5 class="text-primary border-bottom">Hardware</h5>
+                                </div>
+
+                                <!-- Hardware 1 -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.procesador.label }}</label>
+                                    {{ form.procesador }}
+                                    {% if form.procesador.errors %}
+                                        <div class="text-danger small">{{ form.procesador.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.ram_gb.label }}</label>
+                                    {{ form.ram_gb }}
+                                    {% if form.ram_gb.errors %}
+                                        <div class="text-danger small">{{ form.ram_gb.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.tipo_disco.label }}</label>
+                                    {{ form.tipo_disco }}
+                                    {% if form.tipo_disco.errors %}
+                                        <div class="text-danger small">{{ form.tipo_disco.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.capacidad_disco_gb.label }}</label>
+                                    {{ form.capacidad_disco_gb }}
+                                    {% if form.capacidad_disco_gb.errors %}
+                                        <div class="text-danger small">{{ form.capacidad_disco_gb.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.wifi.label }}</label>
+                                    {{ form.wifi }}
+                                    {% if form.wifi.errors %}
+                                        <div class="text-danger small">{{ form.wifi.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ form.red_lan.label }}</label>
+                                    {{ form.red_lan }}
+                                    {% if form.red_lan.errors %}
+                                        <div class="text-danger small">{{ form.red_lan.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ form.tarjeta_video.label }}</label>
+                                    {{ form.tarjeta_video }}
+                                    {% if form.tarjeta_video.errors %}
+                                        <div class="text-danger small">{{ form.tarjeta_video.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="col-12 mt-4">
+                                    <h5 class="text-primary border-bottom pb-2">Asignación y Ubicación</h5>
+                                </div>
+
+                                <!-- Asignación -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.responsable.label }}</label>
+                                    {{ form.responsable }}
+                                    {% if form.responsable.errors %}
+                                        <div class="text-danger small">{{ form.responsable.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.departamento.label }}</label>
+                                    {{ form.departamento }}
+                                    {% if form.departamento.errors %}
+                                        <div class="text-danger small">{{ form.departamento.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.propietario.label }}</label>
+                                    {{ form.propietario }}
+                                    {% if form.propietario.errors %}
+                                        <div class="text-danger small">{{ form.propietario.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.jefe_entrega.label }}</label>
+                                    {{ form.jefe_entrega }}
+                                    {% if form.jefe_entrega.errors %}
+                                        <div class="text-danger small">{{ form.jefe_entrega.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.de_baja.label }}</label>
+                                    <div class="form-check pt-2">
+                                        {{ form.de_baja }}
+                                        <label class="form-check-label" for="{{ form.de_baja.id_for_label }}">Marcar si
+                                            el equipo ya no está en uso</label>
+                                    </div>
+                                    {% if form.de_baja.errors %}
+                                        <div class="text-danger small">{{ form.de_baja.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <!-- Notas y Bajas -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ form.observaciones.label }}</label>
+                                    {{ form.observaciones }}
+                                    {% if form.observaciones.errors %}
+                                        <div class="text-danger small">{{ form.observaciones.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ form.motivo_baja.label }}</label>
+                                    {{ form.motivo_baja }}
+                                    {% if form.motivo_baja.errors %}
+                                        <div class="text-danger small">{{ form.motivo_baja.errors.0 }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <a href="{{ list_url }}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Seleccione una opción',
+                allowClear: true
+            });
+        });
+    </script>
+{% endblock %}

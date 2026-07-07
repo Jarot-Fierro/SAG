@@ -1,15 +1,15 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
-from catalogo import (
+from core.models import Departamento
+from core.models import User
+from gestion_tic.models.catalogo import (
     Marca,
     Modelo,
     TipoComputador,
     SistemaOperativo,
     MicrosoftOffice, Propietario, JefeTic, Contrato, Ips
 )
-from core.models import Departamento
 from gestion_tic.models.equipos import AsignacionIP, Equipo
 
 
@@ -28,7 +28,7 @@ class FormComputador(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 'id': 'serie',
-                'class': 'form-control',
+                'class': 'form-control form-control-sm',
                 'placeholder': 'Ingrese número de serie',
             }
         ),
@@ -39,7 +39,7 @@ class FormComputador(forms.ModelForm):
         label='Dirección MAC',
         widget=forms.TextInput(
             attrs={
-                'class': 'form-control mac-address',
+                'class': 'form-control form-control-sm mac-address',
                 'placeholder': 'Ej: 00:1A:2B:3C:4D:5E',
             }
         ),
@@ -52,7 +52,7 @@ class FormComputador(forms.ModelForm):
         required=False,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2',
+                'class': 'form-control form-control-sm select2',
                 'placeholder': 'Ej: 192.168.1.10',
             }
         )
@@ -64,7 +64,7 @@ class FormComputador(forms.ModelForm):
         required=True,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2'
+                'class': 'form-control form-control-sm select2'
             }
         )
     )
@@ -75,7 +75,7 @@ class FormComputador(forms.ModelForm):
         required=False,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2'
+                'class': 'form-control form-control-sm select2'
             }
         )
     )
@@ -86,7 +86,7 @@ class FormComputador(forms.ModelForm):
         required=True,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2'
+                'class': 'form-control form-control-sm select2'
             }
         )
     )
@@ -97,7 +97,7 @@ class FormComputador(forms.ModelForm):
         required=False,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2'
+                'class': 'form-control form-control-sm select2'
             }
         )
     )
@@ -108,7 +108,7 @@ class FormComputador(forms.ModelForm):
         required=False,
         widget=forms.Select(
             attrs={
-                'class': 'form-control select2'
+                'class': 'form-control form-control-sm select2'
             }
         )
     )
@@ -118,7 +118,7 @@ class FormComputador(forms.ModelForm):
         queryset=Propietario.objects.all(),
         required=False,
         widget=forms.Select(attrs={
-            'class': 'form-control select2'
+            'class': 'form-control form-control-sm select2'
         })
     )
 
@@ -127,7 +127,7 @@ class FormComputador(forms.ModelForm):
         queryset=Departamento.objects.all(),
         required=False,
         widget=forms.Select(attrs={
-            'class': 'form-control select2'
+            'class': 'form-control form-control-sm select2'
         })
     )
 
@@ -136,7 +136,7 @@ class FormComputador(forms.ModelForm):
         queryset=JefeTic.objects.all(),
         required=False,
         widget=forms.Select(attrs={
-            'class': 'form-control select2'
+            'class': 'form-control form-control-sm'
         })
     )
 
@@ -145,7 +145,7 @@ class FormComputador(forms.ModelForm):
         queryset=User.objects.all(),
         required=False,
         widget=forms.Select(attrs={
-            'class': 'form-control select2'
+            'class': 'form-control form-control-sm select2'
         })
     )
 
@@ -154,7 +154,7 @@ class FormComputador(forms.ModelForm):
         queryset=Contrato.objects.all(),
         required=False,
         widget=forms.Select(attrs={
-            'class': 'form-control select2'
+            'class': 'form-control form-control-sm select2'
         })
     )
 
@@ -169,7 +169,7 @@ class FormComputador(forms.ModelForm):
     observaciones = forms.CharField(
         label='Observaciones',
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-sm',
             'rows': 3
         }),
         required=False
@@ -178,7 +178,7 @@ class FormComputador(forms.ModelForm):
     motivo_baja = forms.CharField(
         label='Motivo de Baja',
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-control-sm',
             'rows': 3
         }),
         required=False
@@ -198,18 +198,21 @@ class FormComputador(forms.ModelForm):
 
         return ip
 
-    ram_gb = forms.CharField(label='RAM (GB)', required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ram_gb = forms.CharField(label='RAM (GB)', required=False,
+                             widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'}))
     procesador = forms.CharField(label='Procesador', required=False,
-                                 widget=forms.TextInput(attrs={'class': 'form-control'}))
+                                 widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'}))
     tarjeta_video = forms.CharField(label='Tarjeta de Video', required=False,
-                                    widget=forms.TextInput(attrs={'class': 'form-control'}))
-    wifi = forms.CharField(label='WiFi', required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    red_lan = forms.CharField(label='Red LAN', required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+                                    widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'}))
+    wifi = forms.CharField(label='WiFi', required=False,
+                           widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'}))
+    red_lan = forms.CharField(label='Red LAN', required=False,
+                              widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'}))
     tipo_disco = forms.ChoiceField(label='Tipo de Disco',
                                    choices=[('', '---------'), ('SSD', 'SSD'), ('HDD', 'Mecánico'), ('NVME', 'NVMe')],
-                                   required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+                                   required=False, widget=forms.Select(attrs={'class': 'form-control form-control-sm'}))
     capacidad_disco_gb = forms.IntegerField(label='Capacidad Disco (GB)', required=False,
-                                            widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                                            widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'}))
 
     class Meta:
         model = Equipo
