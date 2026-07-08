@@ -24,6 +24,7 @@
 
 
 
+
                     {% url 'agenda:editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
                class="btn btn-secondary btn-sm">
                 <i class="bi bi-x-circle"></i> Cancelar
@@ -42,15 +43,6 @@
 {% block content %}
     <section class="content">
         <div class="container-fluid">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
             <!-- FORMULARIO -->
             <div class="card card-primary card-outline shadow-sm">
                 <div class="card-header">
@@ -60,6 +52,7 @@
                     </h3>
                 </div>
                 <form id="form_anexo" method="post" action="
+
 
 
 
@@ -136,6 +129,7 @@
                 </div>
                 <div id="table-results-editor"
                      hx-get="
+
 
 
 
