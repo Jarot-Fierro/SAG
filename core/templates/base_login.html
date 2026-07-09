@@ -78,6 +78,9 @@
 
             <form action="{% url 'usuarios:login' %}" method="post" id="loginForm">
                 {% csrf_token %}
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
                 <div class="input-group mb-3">
                     <input type="text" name="username" id="id_username" class="form-control" placeholder="Usuario"
                            aria-label="Username"

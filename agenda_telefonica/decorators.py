@@ -1,13 +1,15 @@
 from functools import wraps
 
-from django.http import Http404
+from django.contrib import messages
+from django.shortcuts import redirect
 
 
 def user_editor_module(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            raise Http404()
+            messages.error(request, "Debe iniciar sesión para acceder a este módulo.")
+            return redirect(f'/usuarios/login/?next={request.path}')
 
         try:
             if request.user.perfilagenda.editor:
@@ -15,6 +17,10 @@ def user_editor_module(view_func):
         except Exception:
             pass
 
-        raise Http404()
+        messages.error(request, "No tiene permisos para acceder a esta sección.")
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
+        return redirect('intranet:index')
 
     return _wrapped_view

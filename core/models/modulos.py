@@ -12,6 +12,21 @@ class Modulo(StandardModel):
         ("#3fa1ad", "Success (Verde)"),
         ("#876bbe", "Info (Morado)"),
         ("#FFA11B", "Warning (Naranja)"),
+        ("#1976D2", "Azul Corporativo"),
+        ("#1565C0", "Azul Oscuro"),
+        ("#0097A7", "Turquesa"),
+        ("#2E7D32", "Verde"),
+        ("#43A047", "Verde Claro"),
+        ("#7CB342", "Lima"),
+        ("#F57C00", "Naranjo"),
+        ("#FFB300", "Ámbar"),
+        ("#D32F2F", "Rojo"),
+        ("#C62828", "Burdeo"),
+        ("#8E24AA", "Morado"),
+        ("#5E35B1", "Violeta"),
+        ("#3949AB", "Índigo"),
+        ("#455A64", "Gris Oscuro"),
+        ("#607D8B", "Gris"),
     ]
 
     TEXT_COLOR_CHOICES = [

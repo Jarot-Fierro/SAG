@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserChangeForm, AdminUserCreationForm
 from django.core.exceptions import ValidationError
 from import_export import resources
 
@@ -25,8 +25,8 @@ class UserChangeFormCustom(UserChangeForm):
         return cleaned_data
 
 
-class UserCreationFormCustom(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
+class UserCreationFormCustom(AdminUserCreationForm):
+    class Meta(AdminUserCreationForm.Meta):
         model = User
 
     def clean(self):

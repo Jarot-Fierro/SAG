@@ -16,4 +16,5 @@ urlpatterns = [
     path('mantenedores/<str:tipo>/', mantenedores, name='mantenedores'),
     path('mantenedores/<str:tipo>/buscar/', buscar_mantenedor, name='buscar_mantenedor'),
     path('mantenedores/<str:tipo>/eliminar/<int:pk>/', eliminar_mantenedor, name='eliminar_mantenedor'),
+    path('organigrama/', organigrama, name='organigrama'),
 ]

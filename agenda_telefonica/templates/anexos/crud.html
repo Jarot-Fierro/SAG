@@ -9,23 +9,11 @@
 {% endblock %}
 
 {% block buttons %}
+
     <div class="btn-group" role="group" aria-label="Basic example">
 
         {% if anexo_edit %}
-            <a href="
-
-
-
-
-
-
-
-
-
-
-
-
-                    {% url 'agenda:editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
+            <a href="{% url 'agenda:editor' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
                class="btn btn-secondary btn-sm">
                 <i class="bi bi-x-circle"></i> Cancelar
             </a>
@@ -52,6 +40,9 @@
                     </h3>
                 </div>
                 <form id="form_anexo" method="post" action="
+
+
+
 
 
 
@@ -129,6 +120,9 @@
                 </div>
                 <div id="table-results-editor"
                      hx-get="
+
+
+
 
 
 

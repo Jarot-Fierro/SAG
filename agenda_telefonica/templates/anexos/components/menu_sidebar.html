@@ -7,7 +7,7 @@
     </li>
 {% endfor %}
 
-{% if request.user.is_authenticated and request.user.perfilagenda.editor %}
+{% if request.user.is_authenticated and request.user.perfilagenda.editor and request.user.perfilagenda.mantenedores %}
     <li class="nav-header">MANTENEDORES</li>
 
     <li class="nav-item">
@@ -28,6 +28,13 @@
         <a href="{% url 'agenda:mantenedores' tipo='ubicacion' %}" class="nav-link">
             <i class="nav-icon bi bi-geo-alt"></i>
             <p>Ubicaciones</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a href="{% url 'agenda:organigrama' %}" class="nav-link">
+            <i class="nav-icon bi bi-diagram-3"></i>
+            <p>Organigrama</p>
         </a>
     </li>
 {% endif %}

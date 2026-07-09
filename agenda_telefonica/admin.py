@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio, PerfilAgenda
+from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio, PerfilAgenda, NivelOrganizacional, Cargo
 from agenda_telefonica.models import MenuSidebar
 from core.standard.admin import StandardAdmin
 
@@ -145,3 +145,45 @@ class PerfilAgendaAdmin(StandardAdmin):
     list_filter = ('editor', 'is_active')
     filter_horizontal = ('servicio',)
     autocomplete_fields = ('usuario',)
+
+
+@admin.register(NivelOrganizacional)
+class NivelOrganizacionalAdmin(StandardAdmin):
+    list_display = (
+        'id',
+        'tipo',
+        'nombre',
+        'padre',
+        'orden',
+        'is_active',
+    )
+    search_fields = (
+        'nombre',
+        'descripcion',
+    )
+    list_filter = (
+        'tipo',
+        'is_active',
+    )
+    ordering = ('tipo', 'orden', 'nombre')
+
+
+@admin.register(Cargo)
+class CargoAdmin(StandardAdmin):
+    list_display = (
+        'id',
+        'nombre',
+        'codigo',
+        'nivel',
+        'is_active',
+    )
+    search_fields = (
+        'nombre',
+        'codigo',
+        'nivel__nombre',
+    )
+    list_filter = (
+        'nivel',
+        'is_active',
+    )
+    ordering = ('nombre',)

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Organigrama Institucional{% endblock %}
+
+{% block styles %}
+<style>
+    #diagram-container {
+        width: 100%;
+        height: calc(100vh - 180px); /* Ajuste dinámico para ocupar el resto de la página */
+        min-height: 500px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+        position: relative;
+        cursor: grab;
+    }
+    #diagram-container:active {
+        cursor: grabbing;
+    }
+    .mermaid {
+        visibility: hidden;
+    }
+    .controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Organigrama Institucional</h3>
+                    <div class="card-tools">
+                        <small class="text-muted">Usa el mouse para mover y la rueda para zoom</small>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="diagram-container">
+                        <div class="controls">
+                            <button class="btn btn-sm btn-light border" id="zoom-in"><i class="bi bi-zoom-in"></i></button>
+                            <button class="btn btn-sm btn-light border" id="zoom-out"><i class="bi bi-zoom-out"></i></button>
+                            <button class="btn btn-sm btn-light border" id="reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                        <div id="mermaid-holder" class="mermaid">
+flowchart TD
+    %% Configuración de estilo de líneas
+    %% Usamos flowchart para mejores opciones de ruteo
+    
+    {% for nivel in niveles %}
+        {% if nivel.padre %}
+            N{{ nivel.padre.id }}["{{ nivel.padre.nombre }}
+            <br/>
+            <small>
+            {% for f in nivel.padre.funcionarios.all %}
+                {{ f.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                (Sin asignar)
+            {% endfor %}
+            </small>"] --- N{{ nivel.id }}["{{ nivel.nombre }}
+            <br/>
+            <small>
+            {% for f in nivel.funcionarios.all %}
+                {{ f.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                (Sin asignar)
+            {% endfor %}
+            </small>"]
+        {% else %}
+            N{{ nivel.id }}["{{ nivel.nombre }}
+            <br/>
+            <small>
+            {% for f in nivel.funcionarios.all %}
+                {{ f.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                (Sin asignar)
+            {% endfor %}
+            </small>"]
+        {% endif %}
+    {% empty %}
+        No hay niveles organizacionales definidos.
+    {% endfor %}
+
+    %% Estilos de nodos
+    classDef default fill:#fff,stroke:#333,stroke-width:1px,color:#333,font-size:12px;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    const container = document.getElementById('diagram-container');
+    const holder = document.getElementById('mermaid-holder');
+
+    mermaid.initialize({ 
+        startOnLoad: false, 
+        securityLevel: 'loose',
+        theme: 'default',
+        flowchart: {
+            curve: 'stepBefore', // Esto hace las líneas rectas/ortogonales
+            htmlLabels: true,
+            useMaxWidth: false,
+        }
+    });
+
+    async function renderDiagram() {
+        const { svg } = await mermaid.render('mermaid-svg', holder.textContent);
+        holder.innerHTML = svg;
+        holder.style.visibility = 'visible';
+        
+        const svgElement = document.querySelector('#mermaid-svg');
+        svgElement.style.width = '100%';
+        svgElement.style.height = '100vh';
+
+        const panZoom = svgPanZoom('#mermaid-svg', {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.1,
+            maxZoom: 10,
+        });
+
+        window.addEventListener('resize', () => {
+            panZoom.resize();
+            panZoom.fit();
+            panZoom.center();
+        });
+
+        document.getElementById('zoom-in').addEventListener('click', () => panZoom.zoomIn());
+        document.getElementById('zoom-out').addEventListener('click', () => panZoom.zoomOut());
+        document.getElementById('reset').addEventListener('click', () => {
+            panZoom.resetZoom();
+            panZoom.center();
+        });
+    }
+
+    renderDiagram();
+</script>
+{% endblock %}

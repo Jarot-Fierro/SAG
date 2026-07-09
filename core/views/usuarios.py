@@ -17,6 +17,8 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('intranet:index')
 
+    next_url = request.GET.get('next') or request.POST.get('next') or 'intranet:index'
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -33,13 +35,13 @@ def login_view(request):
                 # Si no marca recuérdame, la sesión expira al cerrar el navegador
                 request.session.set_expiry(0)
 
-            return redirect('intranet:index')
+            return redirect(next_url)
         else:
             messages.error(request, 'Credenciales invalidas')
     else:
         form = AuthenticationForm()
 
-    return render(request, 'base_login.html', {'form': form})
+    return render(request, 'base_login.html', {'form': form, 'next': next_url})
 
 
 def logout_view(request):

@@ -8,7 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from agenda_telefonica.decorators import user_editor_module
 from agenda_telefonica.forms import AnexoFilterForm, FormAnexo, FormDireccion, FormUbicacion, FormServicio, \
     MantenedorFilterForm
-from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio
+from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio, NivelOrganizacional
 from core.models import Establecimiento
 
 
@@ -348,3 +348,11 @@ def eliminar_mantenedor(request, tipo, pk):
     obj.delete()
     messages.success(request, f"{tipo.capitalize()} eliminado correctamente")
     return redirect('agenda:mantenedores', tipo=tipo)
+
+
+@login_required
+def organigrama(request):
+    niveles = NivelOrganizacional.objects.prefetch_related('funcionarios__usuario').all().order_by('orden', 'nombre')
+    return render(request, 'anexos/organigrama.html', {
+        'niveles': niveles,
+    })
