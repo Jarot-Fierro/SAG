@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
 
-from core.models import Departamento
 from gestion_tic.models.catalogo import Marca, Modelo, TipoCelular, Propietario, JefeTic, Contrato
 from gestion_tic.models.celular import Celular
 
@@ -119,13 +118,6 @@ class FormCelular(forms.ModelForm):
         required=False
     )
 
-    departamento = forms.ModelChoiceField(
-        label='Departamento',
-        queryset=Departamento.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control select2'}),
-        required=False
-    )
-
     jefe_entrega = forms.ModelChoiceField(
         label='Jefe que Entrega',
         queryset=JefeTic.objects.all(),
@@ -160,7 +152,6 @@ class FormCelular(forms.ModelForm):
             'modelo',
             'tipo',
             'propietario',
-            'departamento',
             'jefe_entrega',
             'responsable',
             'contrato',

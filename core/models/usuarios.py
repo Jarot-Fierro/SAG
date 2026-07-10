@@ -14,11 +14,6 @@ class User(AbstractUser):
                                         verbose_name='Establecimiento',
                                         help_text="El establecimiento debe ser consistente con el departamento seleccionado."
                                         )
-    departamento = models.ForeignKey('core.Departamento', on_delete=models.PROTECT, null=True,
-                                     blank=True,
-                                     verbose_name='Departamento',
-                                     help_text="El departamento debe pertenecer al establecimiento seleccionado."
-                                     )
     modulos = models.ManyToManyField(
         'core.Modulo',
         blank=True
@@ -27,9 +22,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Última Actualización', null=True, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name="%(class)s_created", verbose_name='Creado Por')
+                                   related_name="%(app_label)s_%(class)s_created", verbose_name='Creado Por')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name="%(class)s_updated", verbose_name='Actualizado Por')
+                                   related_name="%(app_label)s_%(class)s_updated", verbose_name='Actualizado Por')
 
     history = HistoricalRecords()
 

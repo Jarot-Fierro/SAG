@@ -151,9 +151,9 @@ class PuestoTrabajoAdmin(StandardAdmin):
 
 @admin.register(Ips)
 class IpsAdmin(StandardAdmin):
-    list_display = ('id', 'ip', 'asignado', 'establecimiento', 'departamento', 'is_active')
+    list_display = ('id', 'ip', 'asignado', 'establecimiento', 'is_active')
     search_fields = ('ip', 'observacion')
-    list_filter = ('asignado', 'establecimiento', 'departamento', 'is_active')
+    list_filter = ('asignado', 'establecimiento', 'is_active')
     list_display_links = ('ip',)
     ordering = ('ip',)
 
@@ -166,17 +166,17 @@ class IpsAdmin(StandardAdmin):
 class EquipoAdmin(StandardAdmin):
     list_display = (
         'id', 'serie', 'tipo_equipo', 'marca', 'modelo',
-        'establecimiento', 'departamento', 'responsable', 'de_baja', 'is_active'
+        'establecimiento', 'responsable', 'de_baja', 'is_active'
     )
     search_fields = ('serie', 'mac', 'hh', 'observaciones')
     list_filter = (
-        'tipo_equipo', 'marca', 'establecimiento', 'departamento',
+        'tipo_equipo', 'marca', 'establecimiento',
         'de_baja', 'is_active'
     )
     list_display_links = ('serie',)
     ordering = ('serie',)
     autocomplete_fields = (
-        'ip', 'marca', 'modelo', 'propietario', 'departamento',
+        'ip', 'marca', 'modelo', 'propietario',
         'establecimiento', 'responsable', 'jefe_entrega', 'contrato',
         'tipo_pc', 'sistema_operativo', 'microsoft_office',
         'tipo_impresora', 'toner'
@@ -205,11 +205,11 @@ class CelularAdmin(StandardAdmin):
     search_fields = ('numero_telefono', 'imei', 'numero_chip', 'observaciones')
     list_filter = (
         'marca', 'tipo', 'asignado', 'establecimiento',
-        'departamento', 'de_baja', 'is_active'
+        'de_baja', 'is_active'
     )
     list_display_links = ('numero_telefono',)
     ordering = ('numero_telefono',)
     autocomplete_fields = (
-        'marca', 'modelo', 'tipo', 'propietario', 'departamento',
+        'marca', 'modelo', 'tipo', 'propietario',
         'jefe_entrega', 'responsable', 'contrato', 'establecimiento'
     )

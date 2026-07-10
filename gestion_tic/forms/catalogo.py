@@ -97,19 +97,6 @@ class FormIps(forms.ModelForm):
         )
     )
 
-    departamento = forms.ModelChoiceField(
-        label='Departamento',
-        queryset=None,
-        required=False,
-        empty_label='Seleccione un departamento',
-        widget=forms.Select(
-            attrs={
-                'id': 'ip_departamento',
-                'class': 'form-control select2'
-            }
-        )
-    )
-
     observacion = forms.CharField(
         label='Observación',
         required=False,
@@ -129,7 +116,6 @@ class FormIps(forms.ModelForm):
             'ip',
             'asignado',
             'establecimiento',
-            'departamento',
             'observacion',
         ]
 
@@ -138,8 +124,6 @@ class FormIps(forms.ModelForm):
 
         self.fields['establecimiento'].queryset = self._meta.model._meta.get_field(
             'establecimiento').related_model.objects.all().order_by('nombre')
-        self.fields['departamento'].queryset = self._meta.model._meta.get_field(
-            'departamento').related_model.objects.all().order_by('nombre')
 
     def clean_ip(self):
         ip = self.cleaned_data['ip']

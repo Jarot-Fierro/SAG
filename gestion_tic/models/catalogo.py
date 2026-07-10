@@ -1,6 +1,6 @@
 from django.db import models
 
-from core.models import Establecimiento, Departamento
+from core.models import Establecimiento
 from core.standard.models import StandardModel
 
 
@@ -233,14 +233,6 @@ class Ips(StandardModel):
         blank=True,
         related_name='ips',
         verbose_name='Establecimiento'
-    )
-    departamento = models.ForeignKey(
-        Departamento,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='ips',
-        verbose_name='Departamento'
     )
     observacion = models.TextField(
         null=True,

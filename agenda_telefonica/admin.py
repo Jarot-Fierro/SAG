@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from agenda_telefonica.models import Anexo, Direccion, Ubicacion, Servicio, PerfilAgenda, NivelOrganizacional, Cargo
+from agenda_telefonica.models import Anexo, PerfilAgenda
 from agenda_telefonica.models import MenuSidebar
 from core.standard.admin import StandardAdmin
 
@@ -62,81 +62,6 @@ class MenuSidebarAdmin(StandardAdmin):
     )
 
 
-@admin.register(Direccion)
-class DireccionAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'nombre',
-        'is_active',
-    )
-
-    search_fields = (
-        'nombre',
-    )
-
-    list_filter = (
-        'is_active',
-    )
-    list_display_links = (
-        'nombre',
-    )
-
-    ordering = (
-        'nombre',
-    )
-
-
-@admin.register(Ubicacion)
-class UbicacionAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'nombre',
-        'is_active',
-    )
-
-    search_fields = (
-        'nombre',
-    )
-
-    list_filter = (
-        'is_active',
-    )
-    list_display_links = (
-        'nombre',
-    )
-
-    ordering = (
-        'nombre',
-    )
-
-
-@admin.register(Servicio)
-class ServicioAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'nombre',
-        'ubicacion',
-        'direccion',
-        'establecimiento',
-        'is_active',
-    )
-
-    search_fields = (
-        'nombre',
-    )
-
-    list_filter = (
-        'is_active',
-        'establecimiento',
-    )
-    list_display_links = (
-        'nombre',
-    )
-
-    ordering = (
-        'nombre',
-    )
-
 
 @admin.register(PerfilAgenda)
 class PerfilAgendaAdmin(StandardAdmin):
@@ -147,43 +72,3 @@ class PerfilAgendaAdmin(StandardAdmin):
     autocomplete_fields = ('usuario',)
 
 
-@admin.register(NivelOrganizacional)
-class NivelOrganizacionalAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'tipo',
-        'nombre',
-        'padre',
-        'orden',
-        'is_active',
-    )
-    search_fields = (
-        'nombre',
-        'descripcion',
-    )
-    list_filter = (
-        'tipo',
-        'is_active',
-    )
-    ordering = ('tipo', 'orden', 'nombre')
-
-
-@admin.register(Cargo)
-class CargoAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'nombre',
-        'codigo',
-        'nivel',
-        'is_active',
-    )
-    search_fields = (
-        'nombre',
-        'codigo',
-        'nivel__nombre',
-    )
-    list_filter = (
-        'nivel',
-        'is_active',
-    )
-    ordering = ('nombre',)

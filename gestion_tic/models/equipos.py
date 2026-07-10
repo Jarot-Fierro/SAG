@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from core.models import Departamento, Establecimiento
+from core.models import Establecimiento
 from core.standard.models import StandardModel
 from gestion_tic.models.catalogo import Ips, Marca, Modelo, Propietario, JefeTic, Contrato, TipoComputador, \
     SistemaOperativo, MicrosoftOffice, Toner, TipoImpresora
@@ -32,7 +32,6 @@ class Equipo(StandardModel):
     # UBICACIÓN / RESPONSABLE
     # =========================
     propietario = models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, blank=True)
-    departamento = models.ForeignKey(Departamento, on_delete=models.SET_NULL, null=True, blank=True)
     establecimiento = models.ForeignKey(Establecimiento, on_delete=models.SET_NULL, null=True, blank=True)
     responsable = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     jefe_entrega = models.ForeignKey(JefeTic, on_delete=models.SET_NULL, null=True, blank=True)

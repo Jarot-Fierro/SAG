@@ -5,9 +5,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("select2/", include("django_select2.urls")),
     path('', include('core.urls')),
-    path('agenda/', include('agenda_telefonica.urls')),
-    path('soporte/', include('soporte.urls')),
+    # path('agenda/', include('agenda_telefonica.urls')),
+    # path('soporte/', include('soporte.urls')),s
 
     path('horos/', include('horos.urls')),
-    path('gestion/', include('gestion_tic.urls')),
+    # path('gestion/', include('gestion_tic.urls')),
 ]

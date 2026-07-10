@@ -1,6 +1,6 @@
 from django import forms
 
-from agenda_telefonica.models import Anexo, Servicio, Direccion, Ubicacion
+from agenda_telefonica.models import Anexo
 
 
 class FormAnexo(forms.ModelForm):
@@ -55,19 +55,6 @@ class FormAnexo(forms.ModelForm):
         required=False
     )
 
-    servicio = forms.ModelChoiceField(
-        label='Servicio',
-        empty_label='Seleccione un servicio',
-        queryset=Servicio.objects.filter(is_active=True),
-        widget=forms.Select(
-            attrs={
-                'id': 'servicio',
-                'class': 'form-select form-select-sm select2'
-            }
-        ),
-        required=True
-    )
-
     is_active = forms.BooleanField(
         label='¿Está Activo?',
         required=False,
@@ -112,17 +99,7 @@ class AnexoFilterForm(forms.Form):
             'hx-trigger': 'keyup changed delay:500ms, search',
         })
     )
-    servicio = forms.ModelChoiceField(
-        queryset=Servicio.objects.filter(is_active=True),
-        required=False,
-        empty_label="Todos los servicios",
-        widget=forms.Select(attrs={
-            'class': 'form-select form-select-sm select2',
-            'hx-get': '/agenda/editor/buscar/',
-            'hx-target': '#table-results',
-            'hx-trigger': 'change',
-        })
-    )
+
     per_page = forms.ChoiceField(
         choices=[(10, '10'), (20, '20'), (50, '50'), (100, '100')],
         initial=10,
@@ -135,57 +112,6 @@ class AnexoFilterForm(forms.Form):
             'name': 'per_page',
         })
     )
-
-    def __init__(self, *args, **kwargs):
-        establecimiento = kwargs.pop('establecimiento', None)
-        super().__init__(*args, **kwargs)
-        if establecimiento:
-            self.fields['servicio'].queryset = Servicio.objects.filter(establecimiento=establecimiento,
-                                                                       is_active=True)
-            self.fields['servicio'].initial = ""
-        else:
-            self.fields['servicio'].queryset = Servicio.objects.filter(is_active=True)
-
-
-class FormDireccion(forms.ModelForm):
-    class Meta:
-        model = Direccion
-        fields = ['nombre', 'is_active']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
-            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
-                                      attrs={'class': 'form-select form-select-sm'}),
-        }
-
-
-class FormUbicacion(forms.ModelForm):
-    class Meta:
-        model = Ubicacion
-        fields = ['nombre', 'is_active']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
-            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
-                                      attrs={'class': 'form-select form-select-sm'}),
-        }
-
-
-class FormServicio(forms.ModelForm):
-    class Meta:
-        model = Servicio
-        fields = ['nombre', 'ubicacion', 'direccion', 'is_active']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
-            'ubicacion': forms.Select(attrs={'class': 'form-select form-select-sm select2'}),
-            'direccion': forms.Select(attrs={'class': 'form-select form-select-sm select2'}),
-            'is_active': forms.Select(choices=[(True, 'Activo'), (False, 'Inactivo')],
-                                      attrs={'class': 'form-select form-select-sm'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['ubicacion'].queryset = Ubicacion.objects.filter(is_active=True)
-        self.fields['direccion'].queryset = Direccion.objects.filter(is_active=True)
-
 
 class MantenedorFilterForm(forms.Form):
     q = forms.CharField(

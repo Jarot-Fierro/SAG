@@ -38,7 +38,6 @@ class TicketAdmin(StandardAdmin):
         'estado',
         'area_soporte',
         'tipo_soporte',
-        'departamento_corto',
         'establecimiento',
         'asignado_a',
         'fecha_cierre',
@@ -73,16 +72,7 @@ class TicketAdmin(StandardAdmin):
         'asignado_a',
         'tipo_soporte',
         'funcionario',
-        'departamento',
     )
-
-    @admin.display(description='Departamento', ordering='departamento')
-    def departamento_corto(self, obj):
-        if obj.departamento:
-            return obj.departamento.nombre[:15] + '...' if len(
-                obj.departamento.nombre) > 15 else obj.departamento.nombre
-        return '-'
-
 
 @admin.register(PerfilSoporte)
 class PerfilSoporteAdmin(StandardAdmin):

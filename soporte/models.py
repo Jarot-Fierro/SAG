@@ -55,8 +55,6 @@ class Ticket(StandardModel):
     numero_ticket = models.CharField(max_length=20, unique=True, null=True, blank=True)
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='tickets')
-    departamento = models.ForeignKey('core.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
-                                     related_name='tickets')
     asignado_a = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='tickets_asignados')
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')

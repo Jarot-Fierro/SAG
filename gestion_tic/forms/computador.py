@@ -1,7 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from core.models import Departamento
 from core.models import User
 from gestion_tic.models.catalogo import (
     Marca,
@@ -122,15 +121,6 @@ class FormComputador(forms.ModelForm):
         })
     )
 
-    departamento = forms.ModelChoiceField(
-        label='Departamento',
-        queryset=Departamento.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={
-            'class': 'form-control form-control-sm select2'
-        })
-    )
-
     jefe_entrega = forms.ModelChoiceField(
         label='Jefe que Entrega',
         queryset=JefeTic.objects.all(),
@@ -226,7 +216,6 @@ class FormComputador(forms.ModelForm):
             'sistema_operativo',
             'microsoft_office',
             'propietario',
-            'departamento',
             'jefe_entrega',
             'responsable',
             'contrato',

@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
 from catalogo import TipoImpresora, Marca, Modelo, Contrato, JefeTic, Propietario, Ips, Toner, validate_exists
-from core.models import Departamento
 from gestion_tic.models.equipos import Equipo, AsignacionIP
 
 
@@ -105,15 +104,6 @@ class FormImpresora(forms.ModelForm):
         })
     )
 
-    departamento = forms.ModelChoiceField(
-        label='Departamento',
-        queryset=Departamento.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={
-            'class': 'form-control select2'
-        })
-    )
-
     jefe_entrega = forms.ModelChoiceField(
         label='Jefe que Entrega',
         queryset=JefeTic.objects.all(),
@@ -203,7 +193,6 @@ class FormImpresora(forms.ModelForm):
             'modelo',
             'toner',
             'propietario',
-            'departamento',
             'jefe_entrega',
             'responsable',
             'contrato',

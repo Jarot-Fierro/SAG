@@ -84,11 +84,11 @@ INSTALLED_APPS = [
     # STANDARD
     'core.apps.CoreConfig',
     # AGENDA TELEFONICA
-    'agenda_telefonica.apps.AgendaTelefonicaConfig',
+    # 'agenda_telefonica.apps.AgendaTelefonicaConfig',
     # SOPORTE
     'soporte.apps.SoporteConfig',
     # GESTION TIC
-    'gestion_tic.apps.GestionTicConfig',
+    # 'gestion_tic.apps.GestionTicConfig',
     # HOROS
     'horos.apps.HorosConfig',
 ]
@@ -119,7 +119,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'agenda_telefonica.context_processors.menu_sidebar',
+                # 'agenda_telefonica.context_processors.menu_sidebar',
                 'core.context_processors.establecimientos_processor',
                 'core.context_processors.modulo_actual_processor',
             ],

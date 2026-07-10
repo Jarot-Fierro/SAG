@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from core.models import Departamento, Establecimiento
+from core.models import Establecimiento
 from core.standard.models import StandardModel
 from gestion_tic.models.catalogo import Marca, Modelo, TipoCelular, Propietario, JefeTic, Contrato
 
@@ -25,13 +25,6 @@ class Celular(StandardModel):
         null=True,
         blank=True,
         related_name='celular_propietario'
-    )
-    departamento = models.ForeignKey(
-        Departamento,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='celular_departamento'
     )
     jefe_entrega = models.ForeignKey(
         JefeTic,
