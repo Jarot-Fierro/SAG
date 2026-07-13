@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Anexos{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Formulario Superior -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">{% if is_edit %}Editar Anexo{% else %}Nuevo Anexo{% endif %}</h3>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.rut.id_for_label }}">{{ form.rut.label }}</label>
+                                        {{ form.rut }}
+                                        <div id="rut-status" class="small"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.nombres.id_for_label }}">{{ form.nombres.label }}</label>
+                                        {{ form.nombres }}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.apellidos.id_for_label }}">{{ form.apellidos.label }}</label>
+                                        {{ form.apellidos }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                        {{ form.email }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.establecimiento.id_for_label }}">{{ form.establecimiento.label }}</label>
+                                        {{ form.establecimiento }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
+                                        {{ form.cargo }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.profesion.id_for_label }}">{{ form.profesion.label }}</label>
+                                        {{ form.profesion }}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.anexo.id_for_label }}">{{ form.anexo.label }}</label>
+                                        {{ form.anexo }}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.anexo_publico.id_for_label }}">{{ form.anexo_publico.label }}</label>
+                                        {{ form.anexo_publico }}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.numero_telefonico.id_for_label }}">{{ form.numero_telefonico.label }}</label>
+                                        {{ form.numero_telefonico }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-right">
+                            {% if is_edit %}
+                                <a href="{% url 'agenda:anexos' %}" class="btn btn-secondary">Cancelar</a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                {% if is_edit %}Actualizar Anexo{% else %}Guardar Anexo{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabla Inferior -->
+            <div class="col-12 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Listado de Anexos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="tabla-anexos">
+                                <thead>
+                                <tr>
+                                    <th>Anexo</th>
+                                    <th>Público</th>
+                                    <th>Teléfono</th>
+                                    <th>Funcionario</th>
+                                    <th>Establecimiento</th>
+                                    <th>Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for a in anexos %}
+                                    <tr>
+                                        <td>{{ a.anexo }}</td>
+                                        <td>{{ a.anexo_publico|default:"-" }}</td>
+                                        <td>{{ a.numero_telefonico|default:"-" }}</td>
+                                        <td>{{ a.funcionario.nombre }}</td>
+                                        <td>{{ a.establecimiento.nombre|default:a.establecimiento }}</td>
+                                        <td class="text-center">
+                                            <a href="{% url 'agenda:anexo_editar' a.id %}"
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            <button class="btn btn-sm btn-danger"
+                                                    onclick="confirmarEliminar({{ a.id }})">
+                                                <i class="fas fa-trash"></i> Desactivar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        console.log("Scripts block loaded");
+
+        function confirmarEliminar(id) {
+            if (confirm('¿Está seguro de que desea desactivar este anexo?')) {
+                window.location.href = `/agenda/anexos/eliminar/${id}/`;
+            }
+        }
+
+        /**
+         * Formatea un RUT chileno (ej: 209300559 -> 20.930.055-9)
+         */
+        function formatRut(rut) {
+            console.log("Formatting RUT:", rut);
+            let value = rut.replace(/[^\dkK\d]/g, '').toUpperCase();
+            if (value.length <= 1) return value;
+
+            let body = value.slice(0, -1);
+            let dv = value.slice(-1);
+
+            // Añadir puntos al cuerpo
+            let formattedBody = "";
+            let i = 0;
+            let j = 1;
+            for (i = body.length - 1; i >= 0; i--) {
+                formattedBody = body.charAt(i) + formattedBody;
+                if (j % 3 === 0 && i !== 0) {
+                    formattedBody = "." + formattedBody;
+                }
+                j++;
+            }
+
+            return formattedBody + "-" + dv;
+        }
+
+        $(document).ready(function () {
+            console.log("Document ready - Anexos Form");
+
+            // Formateo dinámico del RUT mientras escribe
+            $('#id_rut').on('input', function () {
+                console.log("Input event triggered on #id_rut");
+                let pos = this.selectionStart;
+                let originalLen = this.value.length;
+                let formatted = formatRut($(this).val());
+                $(this).val(formatted);
+
+                // Intentar mantener la posición del cursor
+                let newLen = formatted.length;
+                this.setSelectionRange(pos + (newLen - originalLen), pos + (newLen - originalLen));
+            });
+
+            // Consumo de API al hacer click afuera (blur)
+            $('#id_rut').on('blur', function () {
+                console.log("Blur event triggered on #id_rut");
+                let formatted = $(this).val();
+                console.log("Blur event - RUT value:", formatted);
+
+                if (formatted.length >= 8) {
+                    let term = formatted;
+                    console.log("Calling API with term:", term);
+
+                    $.ajax({
+                        url: "{% url 'intranet:buscar_funcionario_api' %}",
+                        data: {'term': term},
+                        dataType: 'json',
+                        beforeSend: function () {
+                            $('#rut-status').text('Buscando...').removeClass('text-danger text-success').addClass('text-info');
+                        },
+                        success: function (data) {
+                            console.log("API Response:", data);
+                            if (data.length > 0) {
+                                // Buscamos coincidencia exacta de RUT (normalizado)
+                                let rutLimpio = formatted.replace(/[.-]/g, '');
+                                let f = data.find(item => {
+                                    let dbRutLimpio = item.rut ? item.rut.replace(/[.-]/g, '') : '';
+                                    return dbRutLimpio === rutLimpio;
+                                });
+
+                                if (f) {
+                                    console.log("Funcionario encontrado:", f);
+                                    $('#rut-status').text('Funcionario encontrado').removeClass('text-info').addClass('text-success');
+                                    $('#id_nombres').val(f.nombres);
+                                    $('#id_apellidos').val(f.apellidos);
+                                    $('#id_email').val(f.email);
+                                    if (f.establecimiento_id) $('#id_establecimiento').val(f.establecimiento_id);
+                                    if (f.cargo_id) $('#id_cargo').val(f.cargo_id);
+                                    if (f.profesion_id) $('#id_profesion').val(f.profesion_id);
+                                    toastr.success('Funcionario encontrado.');
+                                } else {
+                                    console.log("No se encontró coincidencia exacta de RUT en los resultados.");
+                                    $('#rut-status').text('No encontrado').removeClass('text-info').addClass('text-danger');
+                                }
+                            } else {
+                                console.log("La API no devolvió resultados.");
+                                $('#rut-status').text('Nuevo funcionario').removeClass('text-info').addClass('text-info');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("API Error:", status, error);
+                            $('#rut-status').text('Error en búsqueda').removeClass('text-info').addClass('text-danger');
+                        }
+                    });
+                }
+            });
+
+            // Convertir a mayúsculas mientras escribe en nombres y apellidos
+            $('#id_nombres, #id_apellidos').on('input', function () {
+                $(this).val($(this).val().toUpperCase());
+            });
+        });
+    </script>
+{% endblock %}

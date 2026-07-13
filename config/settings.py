@@ -84,7 +84,7 @@ INSTALLED_APPS = [
     # STANDARD
     'core.apps.CoreConfig',
     # AGENDA TELEFONICA
-    # 'agenda_telefonica.apps.AgendaTelefonicaConfig',
+    'agenda_telefonica.apps.AgendaTelefonicaConfig',
     # SOPORTE
     'soporte.apps.SoporteConfig',
     # GESTION TIC

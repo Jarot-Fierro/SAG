@@ -1,20 +1,14 @@
-from django.conf import settings
 from django.db import models
 
 from core.standard.models import StandardModel
 
 
 class Funcionario(StandardModel):
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="funcionario_profile",
-        verbose_name="Usuario",
-        null=True,
-        blank=True,
-        help_text="Usuario del sistema asociado al funcionario."
-    )
+    rut = models.CharField(max_length=12, unique=True, null=True, blank=True, verbose_name="Rut")
+    nombres = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nombres")
+    apellidos = models.CharField(max_length=255, blank=True, null=True, verbose_name="Apellidos")
+    email = models.EmailField(blank=True, null=True, verbose_name="Correo")
+    nombre = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nombre")
 
     establecimiento = models.ForeignKey(
         "core.Establecimiento",
@@ -59,9 +53,7 @@ class Funcionario(StandardModel):
     class Meta:
         verbose_name = "Funcionario"
         verbose_name_plural = "Funcionarios"
-        ordering = ["user__first_name", "user__last_name"]
+        ordering = ["-id"]
 
     def __str__(self):
-        if self.user:
-            return self.user.get_full_name()
-        return f"Funcionario #{self.pk}"
+        return self.nombre
