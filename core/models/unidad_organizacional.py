@@ -23,7 +23,31 @@ class UnidadOrganizacional(StandardModel):
     )
 
     def __str__(self):
-        return self.nombre
+        return self.get_jerarquia()
+
+    def get_jerarquia(self):
+        nombres = [self.nombre]
+        actual = self.padre
+        while actual:
+            nombres.append(actual.nombre)
+            actual = actual.padre
+        return " > ".join(reversed(nombres))
+
+    def get_departamento(self):
+        actual = self
+        while actual:
+            if "DEPARTAMENTO" in actual.nombre.upper():
+                return actual.nombre
+            actual = actual.padre
+        return None
+
+    def get_subdepto(self):
+        actual = self
+        while actual:
+            if "SUBDEPTO" in actual.nombre.upper():
+                return actual.nombre
+            actual = actual.padre
+        return None
 
     class Meta:
         verbose_name = "Unidad Organizacional"

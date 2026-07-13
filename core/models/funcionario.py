@@ -17,13 +17,7 @@ class Funcionario(StandardModel):
         verbose_name="Establecimiento"
     )
 
-    cargo = models.ForeignKey(
-        "core.Cargo",
-        on_delete=models.PROTECT,
-        related_name="funcionarios",
-        verbose_name="Cargo",
-        help_text="Encargado De: Cargo que desempeña el funcionario en el establecimiento."
-    )
+    cargo = models.CharField(max_length=255, null=True, blank=True, verbose_name="Cargo")
     profesion = models.ForeignKey(
         "core.Profesion",
         on_delete=models.PROTECT,
@@ -56,4 +50,4 @@ class Funcionario(StandardModel):
         ordering = ["-id"]
 
     def __str__(self):
-        return self.nombre
+        return self.nombre if self.nombre else f"{self.nombres} {self.apellidos}" if self.nombres else self.rut or "Sin nombre"

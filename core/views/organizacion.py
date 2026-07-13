@@ -46,8 +46,9 @@ def buscar_funcionario_api(request):
             'apellidos': f.apellidos,
             'email': f.email,
             'establecimiento_id': f.establecimiento_id,
-            'cargo_id': f.cargo_id,
+            'cargo': f.cargo,
             'profesion_id': f.profesion_id,
+            'rol_organizacional_id': f.rol_organizacional_id,
             'unidad_organizacional_id': f.unidad_organizacional_id,
         })
 

@@ -20,6 +20,9 @@
                                     <div class="form-group">
                                         <label for="{{ form.rut.id_for_label }}">{{ form.rut.label }}</label>
                                         {{ form.rut }}
+                                        {% if form.rut.errors %}
+                                            <div class="text-danger small">{{ form.rut.errors }}</div>
+                                        {% endif %}
                                         <div id="rut-status" class="small"></div>
                                     </div>
                                 </div>
@@ -27,56 +30,104 @@
                                     <div class="form-group">
                                         <label for="{{ form.nombres.id_for_label }}">{{ form.nombres.label }}</label>
                                         {{ form.nombres }}
+                                        {% if form.nombres.errors %}
+                                            <div class="text-danger small">{{ form.nombres.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="{{ form.apellidos.id_for_label }}">{{ form.apellidos.label }}</label>
                                         {{ form.apellidos }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                                        {{ form.email }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{ form.establecimiento.id_for_label }}">{{ form.establecimiento.label }}</label>
-                                        {{ form.establecimiento }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
-                                        {{ form.cargo }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{ form.profesion.id_for_label }}">{{ form.profesion.label }}</label>
-                                        {{ form.profesion }}
+                                        {% if form.apellidos.errors %}
+                                            <div class="text-danger small">{{ form.apellidos.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
+                                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="text-danger small">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.rol_organizacional.id_for_label }}">{{ form.rol_organizacional.label }}</label>
+                                        {{ form.rol_organizacional }}
+                                        {% if form.rol_organizacional.errors %}
+                                            <div class="text-danger small">{{ form.rol_organizacional.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="{{ form.profesion.id_for_label }}">{{ form.profesion.label }}</label>
+                                        {{ form.profesion }}
+                                        {% if form.profesion.errors %}
+                                            <div class="text-danger small">{{ form.profesion.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="form-group">
                                         <label for="{{ form.anexo.id_for_label }}">{{ form.anexo.label }}</label>
                                         {{ form.anexo }}
+                                        {% if form.anexo.errors %}
+                                            <div class="text-danger small">{{ form.anexo.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="{{ form.anexo_publico.id_for_label }}">{{ form.anexo_publico.label }}</label>
                                         {{ form.anexo_publico }}
+                                        {% if form.anexo_publico.errors %}
+                                            <div class="text-danger small">{{ form.anexo_publico.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="{{ form.numero_telefonico.id_for_label }}">{{ form.numero_telefonico.label }}</label>
                                         {{ form.numero_telefonico }}
+                                        {% if form.numero_telefonico.errors %}
+                                            <div class="text-danger small">{{ form.numero_telefonico.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
+                                        {{ form.cargo }}
+                                        {% if form.cargo.errors %}
+                                            <div class="text-danger small">{{ form.cargo.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row mt-2">
+
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="{{ form.unidad_organizacional.id_for_label }}">
+                                            {{ form.unidad_organizacional.label }} para
+                                            {% for unidad in request.user.perfilagenda.unidad_organizacional.all %}
+                                                <strong class="text-primary">{{ unidad.nombre }}</strong>
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% empty %}
+                                                Acceso Total
+                                            {% endfor %}
+                                        </label>
+                                        {{ form.unidad_organizacional }}
+                                        {% if form.unidad_organizacional.errors %}
+                                            <div class="text-danger small">{{ form.unidad_organizacional.errors }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -107,31 +158,15 @@
                                     <th>Anexo</th>
                                     <th>Público</th>
                                     <th>Teléfono</th>
-                                    <th>Funcionario</th>
-                                    <th>Establecimiento</th>
+                                    <th>Nombres</th>
+                                    <th>Email</th>
+                                    <th>Unidad Organizacional</th>
+                                    <th>Puesto</th>
+                                    <th>Cargo</th>
                                     <th>Acciones</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for a in anexos %}
-                                    <tr>
-                                        <td>{{ a.anexo }}</td>
-                                        <td>{{ a.anexo_publico|default:"-" }}</td>
-                                        <td>{{ a.numero_telefonico|default:"-" }}</td>
-                                        <td>{{ a.funcionario.nombre }}</td>
-                                        <td>{{ a.establecimiento.nombre|default:a.establecimiento }}</td>
-                                        <td class="text-center">
-                                            <a href="{% url 'agenda:anexo_editar' a.id %}"
-                                               class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i> Editar
-                                            </a>
-                                            <button class="btn btn-sm btn-danger"
-                                                    onclick="confirmarEliminar({{ a.id }})">
-                                                <i class="fas fa-trash"></i> Desactivar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -143,12 +178,99 @@
 {% endblock %}
 
 {% block scripts %}
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"/>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         console.log("Scripts block loaded");
 
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Seleccione una unidad',
+                allowClear: true
+            });
+
+            // Inicialización de DataTable
+            var table = $('#tabla-anexos').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "url": window.location.pathname,
+                    "type": "GET",
+                    "data": function (d) {
+                        // Podemos añadir parámetros extra si es necesario
+                    }
+                },
+                "columns": [
+                    {"data": "anexo"},
+                    {"data": "publico"},
+                    {"data": "telefono"},
+                    {"data": "nombres"},
+                    {"data": "email"},
+                    {
+                        "data": "unidad",
+                        "render": function (data, type, row) {
+                            if (data && data.includes('<br>')) {
+                                let parts = data.split('<br>');
+                                let last = parts.pop();
+                                return parts.join('<br>') + '<br><strong>' + last + '</strong>';
+                            }
+                            return '<strong>' + data + '</strong>';
+                        }
+                    },
+                    {"data": "rol_organizacional"},
+                    {"data": "cargo"},
+                    {"data": "acciones", "orderable": false, "searchable": false}
+                ],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json"
+                },
+                "dom": '<"d-flex justify-content-between align-items-center mb-3"Bf>rt<"d-flex justify-content-between align-items-center"ip>',
+                "buttons": [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'colvis',
+                        text: '<i class="fas fa-columns"></i> Columnas',
+                        className: 'btn btn-secondary btn-sm'
+                    }
+                ],
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+                "searchDelay": 1500, // El usuario pidió 1.5 segundos (1500ms)
+                "autoWidth": false // Para evitar problemas de ancho con muchas columnas
+            });
+        });
+
         function confirmarEliminar(id) {
-            if (confirm('¿Está seguro de que desea desactivar este anexo?')) {
+            if (confirm('¿Está seguro de que desea eliminar este anexo y desactivar al funcionario?')) {
                 window.location.href = `/agenda/anexos/eliminar/${id}/`;
             }
         }
@@ -229,8 +351,12 @@
                                     $('#id_apellidos').val(f.apellidos);
                                     $('#id_email').val(f.email);
                                     if (f.establecimiento_id) $('#id_establecimiento').val(f.establecimiento_id);
-                                    if (f.cargo_id) $('#id_cargo').val(f.cargo_id);
+                                    if (f.cargo) $('#id_cargo').val(f.cargo);
                                     if (f.profesion_id) $('#id_profesion').val(f.profesion_id);
+                                    if (f.rol_organizacional_id) $('#id_rol_organizacional').val(f.rol_organizacional_id);
+                                    if (f.unidad_organizacional_id) {
+                                        $('#id_unidad_organizacional').val(f.unidad_organizacional_id).trigger('change');
+                                    }
                                     toastr.success('Funcionario encontrado.');
                                 } else {
                                     console.log("No se encontró coincidencia exacta de RUT en los resultados.");

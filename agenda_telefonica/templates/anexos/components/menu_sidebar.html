@@ -7,6 +7,12 @@
     </li>
 {% endfor %}
 
+<li class="nav-item">
+    <a href="" class="nav-link">
+        <i class="nav-icon bi bi-building"></i>
+        <p>Mis Anexos</p>
+    </a>
+</li>
 {% if request.user.is_authenticated and request.user.perfilagenda.editor and request.user.perfilagenda.mantenedores %}
     <li class="nav-header">MANTENEDORES</li>
 
