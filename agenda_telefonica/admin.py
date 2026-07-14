@@ -9,7 +9,20 @@ class AnexoAdmin(StandardAdmin):
     list_display = (
         'id',
         'anexo',
+        'funcionario',
+        'establecimiento',
     )
+    list_display_links = (
+        'id',
+        'anexo',
+        'funcionario',
+    )
+    search_fields = (
+        'anexo',
+        'funcionario',
+        'establecimiento',
+    )
+    autocomplete_fields = ('funcionario',)
 
 
 @admin.register(MenuSidebar)
@@ -19,7 +32,6 @@ class MenuSidebarAdmin(StandardAdmin):
         'establecimiento',
         'orden',
         'mostrar',
-        'is_active',
     )
 
     search_fields = (
@@ -31,6 +43,7 @@ class MenuSidebarAdmin(StandardAdmin):
         'is_active',
     )
     list_display_links = (
+        'id',
         'establecimiento__nombre',
     )
 

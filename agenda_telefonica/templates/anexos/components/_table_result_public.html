@@ -1,0 +1,99 @@
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>Anexo</th>
+            <th>Público</th>
+            <th>Teléfono</th>
+            <th>Nombres</th>
+            <th>Email</th>
+            <th>Unidad Organizacional</th>
+            <th>Dirección</th>
+            <th>Puesto</th>
+            <th>Cargo</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for a in page_obj %}
+            <tr>
+                <td>{{ a.anexo }}</td>
+                <td>{{ a.anexo_publico|default:"-" }}</td>
+                <td>{{ a.numero_telefonico|default:"-" }}</td>
+                <td>{{ a.funcionario.nombres }} {{ a.funcionario.apellidos }}</td>
+                <td>{{ a.funcionario.email|default:"-" }}</td>
+                <td>
+                    {% if a.funcionario.unidad_organizacional %}
+                        {{ a.funcionario.unidad_organizacional.nombre }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if a.funcionario.unidad_organizacional.direccion %}
+                        {% if a.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
+                            <a href="{{ a.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
+                               target="_blank"
+                               class="text-primary text-decoration-none">
+                                <i class="bi bi-geo-alt-fill"></i> {{ a.funcionario.unidad_organizacional.direccion.nombre }}
+                            </a>
+                        {% else %}
+                            {{ a.funcionario.unidad_organizacional.direccion.nombre }}
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ a.funcionario.rol_organizacional.nombre|default:"-" }}</td>
+                <td>{{ a.funcionario.cargo|default:"-" }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No se encontraron anexos.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <button class="page-link"
+                            hx-get="{% url 'agenda:buscar_anexo' %}?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&per_page=
+
+
+
+
+
+
+
+                                    {{ request.GET.per_page }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
+                            hx-target="#table-results-public">Anterior
+                    </button>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled"><span
+                    class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <button class="page-link"
+                            hx-get="{% url 'agenda:buscar_anexo' %}?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&per_page=
+
+
+
+
+
+
+
+                                    {{ request.GET.per_page }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
+                            hx-target="#table-results-public">Siguiente
+                    </button>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

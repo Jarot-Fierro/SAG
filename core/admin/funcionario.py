@@ -6,9 +6,9 @@ from core.standard.admin import StandardAdmin
 
 @admin.register(Funcionario)
 class FuncionarioAdmin(StandardAdmin):
-    list_display = ('id', 'nombres', 'apellidos', 'cargo', 'rol_organizacional',
+    list_display = ('id', 'rut', 'nombres', 'apellidos', 'cargo', 'rol_organizacional',
                     'unidad_organizacional_nombre', 'establecimiento',)
-    search_fields = ('nombres', 'apellidos', 'user__username', 'cargo__nombre', 'profesion__nombre',
+    search_fields = ('nombres', 'apellidos', 'cargo', 'profesion__nombre',
                      'unidad_organizacional__nombre')
     list_filter = ('is_active', 'establecimiento', 'cargo', 'rol_organizacional', 'unidad_organizacional')
     list_display_links = ('id', 'nombres', 'apellidos',)

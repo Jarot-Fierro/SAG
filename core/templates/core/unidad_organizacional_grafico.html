@@ -1,208 +1,101 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}Organigrama de Unidades Organizacionales{% endblock %}
 
 {% block styles %}
-<style>
-    .diagram-container {
-        width: 100%;
-        height: 500px; /* Altura fija para permitir el pan/zoom */
-        background-color: #f8f9fa;
-        border-radius: 0 0 8px 8px;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-        overflow: hidden;
-        position: relative;
-    }
-    .mermaid {
-        text-align: center;
-        width: 100%;
-        height: 100%;
-        color: #333;
-    }
-    .mermaid svg {
-        width: 100% !important;
-        height: 100% !important;
-    }
-    .controls {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon, .mermaid .node path {
-        fill: #ffffff !important;
-        stroke: #333333 !important;
-    }
-    .mermaid .node .label {
-        color: #333333 !important;
-    }
-    .mermaid .node.principal rect, .mermaid .node.principal circle, .mermaid .node.principal polygon, .mermaid .node.principal path {
-        fill: #e1f5fe !important;
-        stroke: #01579b !important;
-    }
-    .mermaid .node.principal .label {
-        color: #01579b !important;
-        font-weight: bold !important;
-    }
-    .mermaid .edgePath path, .mermaid .edgepath, .mermaid path.path, .mermaid .flowchart-link {
-        stroke: #333333 !important;
-        stroke-width: 2px !important;
-        fill: none !important;
-    }
-    .mermaid .edgeLabel {
-        background-color: #ffffff !important;
-        color: #333333 !important;
-    }
-    .mermaid .marker {
-        fill: #333333 !important;
-        stroke: #333333 !important;
-    }
-    .mermaid .node foreignObject, .mermaid .node div, .mermaid .node span, .mermaid .node small {
-        color: #333333 !important;
-    }
-    .mermaid .node.principal foreignObject, .mermaid .node.principal div, .mermaid .node.principal span, .mermaid .node.principal small {
-        color: #01579b !important;
-    }
-</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/orgchart/3.8.0/css/jquery.orgchart.min.css">
+    <style>
+        .diagram-container {
+            width: 100%;
+            min-height: 500px;
+            background-color: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .orgchart {
+            background: transparent;
+        }
+
+        .orgchart .node .title {
+            background-color: #007bff;
+            height: auto;
+            min-height: 20px;
+            line-height: 1.2;
+            padding: 5px;
+            white-space: normal;
+        }
+
+        .orgchart .node .content {
+            border: 1px solid #007bff;
+            min-height: 20px;
+            height: auto;
+        }
+
+        .orgchart .node.principal .title {
+            background-color: #01579b;
+        }
+
+        .orgchart .node.principal .content {
+            border: 1px solid #01579b;
+            font-weight: bold;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">Organigrama Institucional</h2>
-            
-            {% for jerarquia in jerarquias %}
-            <div class="card mb-5">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">{{ jerarquia.raiz.nombre }}</h3>
-                    <small>Usa el mouse para mover y la rueda para zoom</small>
-                </div>
-                <div class="card-body p-0">
-                    <div class="diagram-container">
-                        <div class="controls">
-                            <button class="btn btn-sm btn-light border zoom-in" data-target="{{ forloop.counter }}"><i class="bi bi-zoom-in"></i></button>
-                            <button class="btn btn-sm btn-light border zoom-out" data-target="{{ forloop.counter }}"><i class="bi bi-zoom-out"></i></button>
-                            <button class="btn btn-sm btn-light border reset" data-target="{{ forloop.counter }}"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                {% for jerarquia in jerarquias %}
+                    <div class="card mb-5">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0">{{ jerarquia.raiz.nombre }}</h3>
+                            <small>Usa el mouse para mover y la rueda para zoom</small>
                         </div>
-                        <div id="mermaid-{{ forloop.counter }}" class="mermaid">
-flowchart TD
-    {% for unidad in jerarquia.unidades %}
-        N{{ unidad.id }}["{{ unidad.nombre }}
-        <br/>
-        <small>
-        {% for f in unidad.funcionarios.all %}
-            {{ f.user.get_full_name }}{% if not forloop.last %}, {% endif %}
-        {% empty %}
-            (Sin asignar)
-        {% endfor %}
-        </small>"]
-
-        {% if unidad.padre and unidad.id != jerarquia.raiz.id %}
-            N{{ unidad.padre.id }} --> N{{ unidad.id }}
-        {% endif %}
-    {% endfor %}
-
-    classDef default fill:#ffffff,stroke:#333,stroke-width:1px,color:#333,font-size:12px;
-    classDef principal fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b,font-weight:bold;
-    
-    {% for unidad in jerarquia.unidades %}
-        {% if unidad.id == jerarquia.raiz.id %}
-            class N{{ unidad.id }} principal
-        {% endif %}
-    {% endfor %}
+                        <div class="card-body p-0">
+                            <div class="diagram-container">
+                                <div id="chart-{{ forloop.counter }}" class="org-container"></div>
+                                <script type="text/javascript">
+                                    var datascource_{{ forloop.counter }} = {
+                                        'id': '{{ jerarquia.raiz.id }}',
+                                        'name': '{{ jerarquia.raiz.nombre|escapejs }}',
+                                        'className': 'principal',
+                                        'children': [
+                                            {% include "core/components/subscomponents/_mptt_descendants.html" with node=jerarquia.raiz %}
+                                        ]
+                                    };
+                                </script>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% empty %}
+                    <div class="alert alert-info">
+                        No hay unidades organizacionales definidas.
+                    </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="alert alert-info">
-                No hay unidades organizacionales definidas.
-            </div>
-            {% endfor %}
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-
-    mermaid.initialize({ 
-        startOnLoad: false, 
-        securityLevel: 'loose',
-        theme: 'default',
-        flowchart: {
-            curve: 'stepBefore',
-            htmlLabels: true,
-            useMaxWidth: false,
-        }
-    });
-
-    const panZooms = {};
-
-    async function initDiagrams() {
-        const containers = document.querySelectorAll('.mermaid');
-        
-        for (const container of containers) {
-            const id = container.id;
-            const index = id.split('-')[1];
-            const content = container.textContent.trim();
-            
-            try {
-                const { svg } = await mermaid.render(`svg-${id}`, content);
-                container.innerHTML = svg;
-                
-                const svgElement = container.querySelector('svg');
-                svgElement.setAttribute('id', `actual-svg-${index}`);
-                
-                const pz = svgPanZoom(`#actual-svg-${index}`, {
-                    zoomEnabled: true,
-                    controlIconsEnabled: false,
-                    fit: true,
-                    center: true,
-                    minZoom: 0.1,
-                    maxZoom: 10,
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/orgchart/3.8.0/js/jquery.orgchart.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            {% for jerarquia in jerarquias %}
+                $('#chart-{{ forloop.counter }}').orgchart({
+                    'data': datascource_{{ forloop.counter }},
+                    'nodeContent': 'name',
+                    'pan': true,
+                    'zoom': true,
+                    'direction': 't2b',
+                    'toggleSiblingsResp': true
                 });
-                
-                panZooms[index] = pz;
-            } catch (error) {
-                console.error(`Error rendering mermaid ${id}:`, error);
-            }
-        }
-
-        // Configurar eventos de botones
-        document.querySelectorAll('.zoom-in').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = btn.getAttribute('data-target');
-                if (panZooms[target]) panZooms[target].zoomIn();
-            });
+            {% endfor %}
         });
-
-        document.querySelectorAll('.zoom-out').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = btn.getAttribute('data-target');
-                if (panZooms[target]) panZooms[target].zoomOut();
-            });
-        });
-
-        document.querySelectorAll('.reset').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = btn.getAttribute('data-target');
-                if (panZooms[target]) {
-                    panZooms[target].resetZoom();
-                    panZooms[target].center();
-                }
-            });
-        });
-    }
-
-    initDiagrams();
-</script>
+    </script>
 {% endblock %}

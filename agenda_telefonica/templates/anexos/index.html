@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="{% url 'agenda:editor' %}" class="btn btn-primary btn-sm">Ingreso</a>
+    <a href="{% url 'agenda:anexos' %}" class="btn btn-primary btn-sm">Ingreso</a>
 {% endblock %}
 
 {% block content %}
@@ -38,8 +38,8 @@
                             {% endif %}
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ form.servicio.label }}</label>
-                            {{ form.servicio }}
+                            <label class="form-label">{{ form.unidad_organizacional.label }}</label>
+                            {{ form.unidad_organizacional }}
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Mostrar</label>
@@ -80,6 +80,7 @@
 
 
 
+
                              {% url 'agenda:buscar_anexo' %}{% if establecimiento_id %}?establecimiento={{ establecimiento_id }}{% endif %}"
                      hx-trigger="load"
                      hx-include="#filter-form">
@@ -95,4 +96,18 @@
 
     <!-- Scripts adicionales para HTMX si no están en base.html -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+
+            // Re-inicializar Select2 después de que HTMX actualice el contenido si es necesario
+            // Aunque el formulario de filtros no se reemplaza por HTMX en este caso, 
+            // el target es #table-results-public.
+        });
+    </script>
 {% endblock %}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Anexos</title>
+    <style>
+        @page {
+            size: 13in 8.5in landscape; /* Oficio (Chile) en horizontal */
+            margin: 0.3cm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 7pt;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+        }
+
+        .unidad-container {
+            display: inline-block;
+            vertical-align: top;
+            width: 16%; /* Aproximadamente 6 columnas */
+            margin: 2px;
+            page-break-inside: avoid;
+            border: 0.5px solid #ccc;
+        }
+
+        .unidad-header {
+            padding: 2px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 0.5px solid #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 6.5pt;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 0.5px solid #000;
+            padding: 1px 3px;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.05);
+            font-size: 6pt;
+        }
+
+        .col-anexo {
+            width: 30%;
+            font-weight: bold;
+        }
+
+        .col-funcionario {
+            width: 70%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    {% for unidad in unidades %}
+        <div class="unidad-container" style="background-color: {{ unidad.color }};">
+            <div class="unidad-header">
+                {{ unidad.nombre }}
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th class="col-anexo">Anexo</th>
+                    <th class="col-funcionario">Funcionario</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for anexo in unidad.anexos_list %}
+                    <tr>
+                        <td class="col-anexo">{{ anexo.anexo }}</td>
+                        <td>{{ anexo.funcionario.nombres|default:"" }} {{ anexo.funcionario.apellidos|default:"" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+</div>
+</body>
+</html>

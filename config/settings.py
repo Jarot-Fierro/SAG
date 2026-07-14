@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'simple_history',
     'import_export',
     'django_select2',
+    'mptt',
     # STANDARD
     'core.apps.CoreConfig',
     # AGENDA TELEFONICA
@@ -119,7 +120,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # 'agenda_telefonica.context_processors.menu_sidebar',
+                'agenda_telefonica.context_processors.menu_sidebar',
                 'core.context_processors.establecimientos_processor',
                 'core.context_processors.modulo_actual_processor',
             ],

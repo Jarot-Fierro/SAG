@@ -1,26 +1,42 @@
 from django.db import models
+from mptt.models import MPTTModel, TreeForeignKey
 
 from core.models import Establecimiento
 from core.standard.models import StandardModel
 
 
-class UnidadOrganizacional(StandardModel):
-
+class UnidadOrganizacional(MPTTModel, StandardModel):
     establecimiento = models.ForeignKey(
         Establecimiento,
         on_delete=models.PROTECT,
         related_name="unidades"
     )
     unidad_principal = models.BooleanField(default=False)
-    nombre = models.CharField(max_length=200, default='SIN NOMBRE',null=False, blank=False)
+    nombre = models.CharField(max_length=200, default='SIN NOMBRE', null=False, blank=False)
+    direccion = models.ForeignKey(
+        "core.direccion",
+        on_delete=models.PROTECT,
+        related_name="direcciones",
+        null=True,
+        blank=True
+    )
 
-    padre = models.ForeignKey(
+    padre = TreeForeignKey(
         "self",
         null=True,
         blank=True,
         on_delete=models.PROTECT,
         related_name="hijos"
     )
+
+    lft = models.PositiveIntegerField(default=0)
+    rght = models.PositiveIntegerField(default=0)
+    tree_id = models.PositiveIntegerField(default=0)
+    level = models.PositiveIntegerField(default=0)
+
+    class MPTTMeta:
+        order_insertion_by = ['nombre']
+        parent_attr = 'padre'
 
     def __str__(self):
         return self.get_jerarquia()

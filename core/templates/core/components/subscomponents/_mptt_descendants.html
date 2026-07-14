@@ -1,0 +1,12 @@
+{% for hijo in node.hijos.all %}
+    {
+    'id': '{{ hijo.id }}',
+    'name': '{{ hijo.nombre|escapejs }}',
+    {% if hijo.unidad_principal %}'className': 'principal',{% endif %}
+    'children': [
+    {% if hijo.hijos.exists %}
+        {% include "core/components/subscomponents/_mptt_descendants.html" with node=hijo %}
+    {% endif %}
+    ]
+    }{% if not forloop.last %},{% endif %}
+{% endfor %}

@@ -22,7 +22,9 @@ class Funcionario(StandardModel):
         "core.Profesion",
         on_delete=models.PROTECT,
         related_name="profesiones",
-        verbose_name="Profesion"
+        verbose_name="Profesion",
+        null=True,
+        blank=True,
     )
 
     rol_organizacional = models.ForeignKey(

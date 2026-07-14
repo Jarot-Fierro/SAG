@@ -1,10 +1,16 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from agenda_telefonica.models import Anexo
 from core.models.profesion import Profesion
 from core.models.rol_organizacional import RolOrganizacional
 from core.models.unidad_organizacional import UnidadOrganizacional
+
+
+class UnidadOrganizacionalModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.nombre
 
 
 class AnexoFuncionarioForm(forms.ModelForm):
@@ -20,8 +26,8 @@ class AnexoFuncionarioForm(forms.ModelForm):
     profesion = forms.ModelChoiceField(queryset=Profesion.objects.filter(is_active=True), label="Profesión",
                                        required=True,
                                        empty_label="-- Seleccione una profesión --")
-    unidad_organizacional = forms.ModelChoiceField(queryset=UnidadOrganizacional.objects.all(),
-                                                   label="Unidad Organizacional", )
+    unidad_organizacional = UnidadOrganizacionalModelChoiceField(queryset=UnidadOrganizacional.objects.all(),
+                                                                 label="Unidad Organizacional", )
 
     # Heredamos los campos de Anexo del ModelForm
     class Meta:
@@ -103,3 +109,61 @@ class AnexoFuncionarioForm(forms.ModelForm):
             self.fields['profesion'].initial = f.profesion
             self.fields['unidad_organizacional'].initial = f.unidad_organizacional
             self.fields['rol_organizacional'].initial = f.rol_organizacional
+
+
+class AnexoFilterForm(forms.Form):
+    q = forms.CharField(
+        required=False,
+        label='Búsqueda',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-sm',
+            'placeholder': 'Buscar por nombre, anexo o correo...',
+            'hx-get': '/agenda/buscar/',
+            'hx-target': '#table-results-public',
+            'hx-trigger': 'keyup changed delay:500ms, search',
+        })
+    )
+
+    per_page = forms.ChoiceField(
+        choices=[(10, '10'), (20, '20'), (50, '50'), (100, '100')],
+        initial=10,
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-sm',
+            'hx-get': '/agenda/buscar/',
+            'hx-target': '#table-results-public',
+            'hx-trigger': 'change',
+            'name': 'per_page',
+        })
+    )
+
+    unidad_organizacional = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.none(),
+        required=False,
+        label='Unidad Organizacional',
+        widget=forms.Select(attrs={
+            'class': 'form-select form-select-sm select2',
+            'hx-get': '/agenda/buscar/',
+            'hx-target': '#table-results-public',
+            'hx-trigger': 'change',
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        establecimiento = kwargs.pop('establecimiento', None)
+        super().__init__(*args, **kwargs)
+
+        q_unidades = Q(nombre__icontains='SUBDIRECCION') | \
+                     Q(nombre__icontains='SUBDIRECCIÓN') | \
+                     Q(nombre__icontains='DEPARTAMENTO') | \
+                     Q(nombre__icontains='SUBDEPTO') | \
+                     Q(nombre__icontains='SECRETARIA') | \
+                     Q(nombre__icontains='SECRETARÍA')
+
+        queryset = UnidadOrganizacional.objects.filter(q_unidades, is_active=True)
+
+        if establecimiento:
+            queryset = queryset.filter(establecimiento_id=establecimiento)
+
+        self.fields['unidad_organizacional'].queryset = queryset
+        self.fields['unidad_organizacional'].empty_label = "-- Todas las unidades --"

@@ -57,28 +57,22 @@ def buscar_funcionario_api(request):
 
 @login_required
 def unidad_organizacional_grafico(request):
-    unidades_todas = UnidadOrganizacional.objects.filter(is_active=True).prefetch_related('funcionarios__user').all()
+    unidades_todas = UnidadOrganizacional.objects.filter(is_active=True)
 
     # Identificamos las unidades principales (raíces de cada card)
     # Una unidad es raíz si no tiene padre O si es unidad_principal=True
-    raices = [u for u in unidades_todas if not u.padre or u.unidad_principal]
+    raices = unidades_todas.filter(Q(padre__isnull=True) | Q(unidad_principal=True))
 
-    # Para cada raíz, recolectamos sus descendientes (sin cruzar otras unidades principales)
     jerarquias = []
     for raiz in raices:
-        sub_unidades = []
+        # get_descendants(include_self=True) nos da todas las unidades bajo esta raíz
+        # Filtramos para no incluir descendientes que sean a su vez raíces (unidad_principal)
+        # para que no se dupliquen en diferentes gráficos si así se desea
+        descendientes = raiz.get_descendants(include_self=True).filter(is_active=True)
 
-        def buscar_descendientes(actual):
-            sub_unidades.append(actual)
-            # Buscamos hijos que NO sean marcados como unidad_principal
-            hijos = [u for u in unidades_todas if u.padre_id == actual.id and not u.unidad_principal]
-            for hijo in hijos:
-                buscar_descendientes(hijo)
-
-        buscar_descendientes(raiz)
         jerarquias.append({
             'raiz': raiz,
-            'unidades': sub_unidades
+            'unidades': descendientes
         })
 
     return render(request, 'core/unidad_organizacional_grafico.html', {

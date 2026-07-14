@@ -3,6 +3,15 @@
 
 {% block title %}Gestión de Anexos{% endblock %}
 
+{% block sidebar %}
+    {% include 'anexos/components/menu_sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'agenda:anexos_pdf' %}" target="_blank" class="btn btn-danger btn-sm">PDF</a>
+    <a href="{% url 'agenda:anexos' %}" class="btn btn-primary btn-sm">Ingreso</a>
+{% endblock %}
+
 {% block content %}
     <div class="container-fluid">
         <div class="row">

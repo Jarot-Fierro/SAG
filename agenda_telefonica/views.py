@@ -1,14 +1,84 @@
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse
+from weasyprint import HTML
 
 from agenda_telefonica.decorators import user_editor_module
-from agenda_telefonica.forms import AnexoFuncionarioForm
+from agenda_telefonica.forms import AnexoFuncionarioForm, AnexoFilterForm
 from agenda_telefonica.models import Anexo
+from core.models import Establecimiento
 from core.models.funcionario import Funcionario
+
+
+def index(request):
+    establecimiento_id = request.GET.get('establecimiento')
+    establecimiento = None
+    if establecimiento_id:
+        establecimiento = get_object_or_404(Establecimiento, id=establecimiento_id)
+
+    form = AnexoFilterForm(request.GET or None, establecimiento=establecimiento_id)
+    return render(request, 'anexos/index.html', {
+        'form': form,
+        'establecimiento_id': establecimiento_id,
+        'establecimiento': establecimiento
+    })
+
+
+def buscar_anexo(request):
+    search_value = request.GET.get('q', '')
+    establecimiento_id = request.GET.get('establecimiento')
+    per_page = request.GET.get('per_page', 10)
+    unidad_organizacional_id = request.GET.get('unidad_organizacional')
+
+    queryset = Anexo.objects.select_related(
+        'funcionario',
+        'funcionario__unidad_organizacional',
+        'funcionario__unidad_organizacional__direccion',
+        'funcionario__profesion',
+        'funcionario__rol_organizacional'
+    ).all()
+
+    if establecimiento_id:
+        queryset = queryset.filter(establecimiento_id=establecimiento_id)
+
+    if unidad_organizacional_id:
+        # Filtrar por la unidad seleccionada y todas sus descendientes
+        from core.models.unidad_organizacional import UnidadOrganizacional
+        unidad = get_object_or_404(UnidadOrganizacional, id=unidad_organizacional_id)
+        descendientes = unidad.get_descendants(include_self=True).filter(is_active=True)
+        queryset = queryset.filter(funcionario__unidad_organizacional__in=descendientes)
+
+    if search_value:
+        queryset = queryset.filter(
+            Q(anexo__icontains=search_value) |
+            Q(anexo_publico__icontains=search_value) |
+            Q(numero_telefonico__icontains=search_value) |
+            Q(funcionario__rut__icontains=search_value) |
+            Q(funcionario__nombres__icontains=search_value) |
+            Q(funcionario__apellidos__icontains=search_value) |
+            Q(funcionario__email__icontains=search_value) |
+            Q(funcionario__cargo__icontains=search_value) |
+            Q(funcionario__rol_organizacional__nombre__icontains=search_value) |
+            Q(funcionario__profesion__nombre__icontains=search_value) |
+            Q(funcionario__unidad_organizacional__nombre__icontains=search_value)
+        )
+
+    # Filtrar solo activos por defecto para la vista pública
+    queryset = queryset.filter(is_active=True)
+
+    paginator = Paginator(queryset, per_page)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'anexos/components/_table_result_public.html', {
+        'page_obj': page_obj,
+        'establecimiento_id': establecimiento_id,
+    })
 
 
 @user_editor_module
@@ -28,24 +98,40 @@ def anexos_view(request, pk=None):
             cargo = form.cleaned_data.get('cargo')
             profesion = form.cleaned_data.get('profesion')
             unidad_organizacional = form.cleaned_data.get('unidad_organizacional')
+            rol_organizacional = form.cleaned_data.get('rol_organizacional')
 
             # Buscar o crear/actualizar funcionario
+            funcionario_defaults = {
+                'nombres': nombres,
+                'apellidos': apellidos,
+                'email': email,
+                'nombre': f"{nombres} {apellidos}",
+                'cargo': cargo,
+                'profesion': profesion,
+                'unidad_organizacional': unidad_organizacional,
+                'rol_organizacional': rol_organizacional,
+                'updated_by': request.user,
+            }
+            if request.user.establecimiento:
+                funcionario_defaults['establecimiento'] = request.user.establecimiento
+
             funcionario, created = Funcionario.objects.update_or_create(
                 rut=rut,
-                defaults={
-                    'nombres': nombres,
-                    'apellidos': apellidos,
-                    'email': email,
-                    'nombre': f"{nombres} {apellidos}",
-                    'establecimiento': request.user.establecimiento,
-                    'cargo': cargo,
-                    'profesion': profesion,
-                    'unidad_organizacional': unidad_organizacional
-                }
+                defaults=funcionario_defaults
             )
+            if created:
+                funcionario.created_by = request.user
+                funcionario.save()
 
             anexo = form.save(commit=False)
             anexo.funcionario = funcionario
+            if request.user.establecimiento:
+                anexo.establecimiento = request.user.establecimiento
+
+            if not anexo.pk:
+                anexo.created_by = request.user
+            anexo.updated_by = request.user
+
             anexo.save()
 
             if pk:
@@ -67,6 +153,7 @@ def anexos_view(request, pk=None):
         queryset = Anexo.objects.select_related(
             'funcionario',
             'funcionario__unidad_organizacional',
+            'funcionario__unidad_organizacional__direccion',
             'funcionario__profesion',
             'funcionario__rol_organizacional'
         ).all()
@@ -116,19 +203,9 @@ def anexos_view(request, pk=None):
 
         data = []
         for a in queryset:
-            # Preparar jerarquía de unidad
+            # Preparar nombre de unidad
             uo = a.funcionario.unidad_organizacional
-            uo_html = "-"
-            if uo:
-                depto = uo.get_departamento()
-                subdepto = uo.get_subdepto()
-                unidad = uo.nombre
-
-                parts = []
-                if depto: parts.append(depto)
-                if subdepto and subdepto != depto: parts.append(subdepto)
-                if unidad and unidad != depto and unidad != subdepto: parts.append(unidad)
-                uo_html = "<br>".join(parts) if parts else "-"
+            uo_text = uo.nombre if uo else "-"
 
             data.append({
                 "anexo": a.anexo,
@@ -136,7 +213,7 @@ def anexos_view(request, pk=None):
                 "telefono": a.numero_telefonico or "-",
                 "nombres": f"{a.funcionario.nombres or "-"} {a.funcionario.apellidos or "-"}",
                 "email": a.funcionario.email or "-",
-                "unidad": uo_html,
+                "unidad": uo_text,
                 "rol_organizacional": a.funcionario.rol_organizacional.nombre if a.funcionario.rol_organizacional else "-",
                 "cargo": a.funcionario.cargo if a.funcionario.cargo else "-",
 
@@ -171,3 +248,52 @@ def eliminar_anexo(request, pk):
         anexo.delete()
     messages.info(request, "Anexo eliminado y funcionario desactivado correctamente.")
     return redirect('agenda:anexos')
+
+
+@user_editor_module
+def anexos_pdf_view(request):
+    # Obtener anexos activos y agruparlos por unidad organizacional
+
+    # Optimizamos la consulta
+    anexos = Anexo.objects.filter(is_active=True).select_related(
+        'funcionario', 'funcionario__unidad_organizacional'
+    ).order_by('funcionario__unidad_organizacional__nombre', 'funcionario__nombres')
+
+    # Lista de colores pasteles
+    pastel_colors = [
+        '#FFD1DC', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA',
+        '#F3FFE3', '#E0BBE4', '#CFD8DC', '#FFF9C4', '#F1F8E9', '#E1F5FE'
+    ]
+
+    # Agrupar por unidad
+    unidades_dict = {}
+    color_index = 0
+    for anexo in anexos:
+        uo = anexo.funcionario.unidad_organizacional
+        uo_id = uo.id if uo else 0
+        uo_nombre = uo.nombre if uo else "SIN UNIDAD"
+
+        if uo_id not in unidades_dict:
+            unidades_dict[uo_id] = {
+                'nombre': uo_nombre,
+                'anexos_list': [],
+                'color': pastel_colors[color_index % len(pastel_colors)]
+            }
+            color_index += 1
+        unidades_dict[uo_id]['anexos_list'].append(anexo)
+
+    # Convertir a lista para el template
+    unidades = list(unidades_dict.values())
+
+    # Renderizar el HTML
+    html_string = render_to_string('anexos/anexos_pdf.html', {'unidades': unidades})
+
+    # Crear el PDF
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
+
+    # Devolver el PDF
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="listado_anexos.pdf"'
+
+    return response

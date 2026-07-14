@@ -16,3 +16,10 @@ def attribute_filter(obj, attr_name):
         return attribute
     except (AttributeError, TypeError):
         return ""
+
+
+@register.filter
+def replace_quotes(value):
+    if not isinstance(value, str):
+        return value
+    return value.replace('"', "'")
