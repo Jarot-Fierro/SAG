@@ -13,22 +13,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='historicaldepartamento',
-            name='created_by',
-        ),
-        migrations.RemoveField(
-            model_name='historicaldepartamento',
-            name='establecimiento',
-        ),
-        migrations.RemoveField(
-            model_name='historicaldepartamento',
-            name='history_user',
-        ),
-        migrations.RemoveField(
-            model_name='historicaldepartamento',
-            name='updated_by',
-        ),
+        # migrations.RemoveField(
+        #     model_name='historicaldepartamento',
+        #     name='created_by',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='historicaldepartamento',
+        #     name='establecimiento',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='historicaldepartamento',
+        #     name='history_user',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='historicaldepartamento',
+        #     name='updated_by',
+        # ),
         migrations.AlterField(
             model_name='user',
             name='created_by',
