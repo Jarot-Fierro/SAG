@@ -4,24 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('agenda_telefonica', '0018_alter_anexo_options_remove_anexo_email_and_more'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='historicalperfilagenda',
-            name='jefatura',
-        ),
-        migrations.RemoveField(
-            model_name='historicalperfilagenda',
-            name='posicion_subrrogante',
-        ),
-        migrations.RemoveField(
-            model_name='historicalperfilagenda',
-            name='subrrogante',
-        ),
+        # migrations.RemoveField(
+        #     model_name='historicalperfilagenda',
+        #     name='jefatura',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='historicalperfilagenda',
+        #     name='posicion_subrrogante',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='historicalperfilagenda',
+        #     name='subrrogante',
+        # ),
         migrations.RemoveField(
             model_name='perfilagenda',
             name='jefatura',
