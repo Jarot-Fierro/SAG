@@ -89,7 +89,7 @@ INSTALLED_APPS = [
     # SOPORTE
     'soporte.apps.SoporteConfig',
     # GESTION TIC
-    # 'gestion_tic.apps.GestionTicConfig',
+    'gestion_tic.apps.GestionTicConfig',
     # HOROS
     'horos.apps.HorosConfig',
 ]
