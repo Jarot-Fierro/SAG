@@ -84,7 +84,13 @@
                 {% for anexo in unidad.anexos_list %}
                     <tr>
                         <td class="col-anexo">{{ anexo.anexo }}</td>
-                        <td>{{ anexo.funcionario.nombres|default:"" }} {{ anexo.funcionario.apellidos|default:"" }}</td>
+                        <td>
+                            {% if anexo.funcionario %}
+                                {{ anexo.funcionario.nombres|default:"" }} {{ anexo.funcionario.apellidos|default:"" }}
+                            {% else %}
+                                {{ anexo.nombre_anexo|default:"" }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -9,7 +9,7 @@
 
 {% block buttons %}
     <a href="{% url 'agenda:anexos_pdf' %}" target="_blank" class="btn btn-danger btn-sm">PDF</a>
-    <a href="{% url 'agenda:anexos_sin_funcionario' %}" class="btn btn-info btn-sm">Anexo para Entidad</a>
+    <a href="{% url 'agenda:anexos' %}" class="btn btn-primary btn-sm">Ingreso c/ Funcionario</a>
 {% endblock %}
 
 {% block content %}
@@ -25,35 +25,16 @@
                         {% csrf_token %}
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-2">
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="{{ form.rut.id_for_label }}">{{ form.rut.label }}</label>
-                                        {{ form.rut }}
-                                        {% if form.rut.errors %}
-                                            <div class="text-danger small">{{ form.rut.errors }}</div>
-                                        {% endif %}
-                                        <div id="rut-status" class="small"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{ form.nombres.id_for_label }}">{{ form.nombres.label }}</label>
-                                        {{ form.nombres }}
-                                        {% if form.nombres.errors %}
-                                            <div class="text-danger small">{{ form.nombres.errors }}</div>
+                                        <label for="{{ form.nombre_anexo.id_for_label }}">{{ form.nombre_anexo.label }}</label>
+                                        {{ form.nombre_anexo }}
+                                        {% if form.nombre_anexo.errors %}
+                                            <div class="text-danger small">{{ form.nombre_anexo.errors }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="{{ form.apellidos.id_for_label }}">{{ form.apellidos.label }}</label>
-                                        {{ form.apellidos }}
-                                        {% if form.apellidos.errors %}
-                                            <div class="text-danger small">{{ form.apellidos.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                                         {{ form.email }}
@@ -62,7 +43,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="{{ form.rol_organizacional.id_for_label }}">{{ form.rol_organizacional.label }}</label>
                                         {{ form.rol_organizacional }}
@@ -102,10 +83,10 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="{{ form.cargo.id_for_label }}">{{ form.cargo.label }}</label>
-                                        {{ form.cargo }}
-                                        {% if form.cargo.errors %}
-                                            <div class="text-danger small">{{ form.cargo.errors }}</div>
+                                        <label for="{{ form.encargado_de.id_for_label }}">{{ form.encargado_de.label }}</label>
+                                        {{ form.encargado_de }}
+                                        {% if form.encargado_de.errors %}
+                                            <div class="text-danger small">{{ form.encargado_de.errors }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -134,7 +115,8 @@
                         </div>
                         <div class="card-footer text-right">
                             {% if is_edit %}
-                                <a href="{% url 'agenda:anexos' %}" class="btn btn-secondary">Cancelar</a>
+                                <a href="{% url 'agenda:anexos_sin_funcionario' %}"
+                                   class="btn btn-secondary">Cancelar</a>
                             {% endif %}
                             <button type="submit" class="btn btn-primary">
                                 {% if is_edit %}Actualizar Anexo{% else %}Guardar Anexo{% endif %}

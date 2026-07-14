@@ -3,13 +3,16 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from agenda_telefonica.models import Anexo
-from core.models.profesion import Profesion
 from core.models.rol_organizacional import RolOrganizacional
 from core.models.unidad_organizacional import UnidadOrganizacional
 
 
 class UnidadOrganizacionalModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
+        nombre_lower = obj.nombre.lower()
+        if 'secretaria' in nombre_lower or 'secretaría' in nombre_lower:
+            if obj.padre:
+                return f"{obj.padre.nombre} / {obj.nombre}"
         return obj.nombre
 
 
@@ -23,9 +26,6 @@ class AnexoFuncionarioForm(forms.ModelForm):
     cargo = forms.CharField(max_length=255, label="Encargado/a de:", required=True)
     rol_organizacional = forms.ModelChoiceField(queryset=RolOrganizacional.objects.filter(is_active=True),
                                                 label="Puesto", required=True, empty_label="-- Seleccione un puesto --")
-    profesion = forms.ModelChoiceField(queryset=Profesion.objects.filter(is_active=True), label="Profesión",
-                                       required=True,
-                                       empty_label="-- Seleccione una profesión --")
     unidad_organizacional = UnidadOrganizacionalModelChoiceField(queryset=UnidadOrganizacional.objects.all(),
                                                                  label="Unidad Organizacional", )
 
@@ -106,9 +106,60 @@ class AnexoFuncionarioForm(forms.ModelForm):
             self.fields['apellidos'].initial = f.apellidos
             self.fields['email'].initial = f.email
             self.fields['cargo'].initial = f.cargo
-            self.fields['profesion'].initial = f.profesion
             self.fields['unidad_organizacional'].initial = f.unidad_organizacional
             self.fields['rol_organizacional'].initial = f.rol_organizacional
+
+
+class AnexoSinFuncionarioForm(forms.ModelForm):
+    unidad_organizacional = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.all(),
+        label="Unidad Organizacional",
+    )
+
+    class Meta:
+        model = Anexo
+        fields = [
+            'anexo', 'anexo_publico', 'numero_telefonico',
+            'nombre_anexo', 'email', 'rol_organizacional', 'encargado_de',
+            'unidad_organizacional', 'establecimiento'
+        ]
+
+    def clean_anexo(self):
+        anexo = self.cleaned_data.get('anexo')
+        if anexo:
+            anexo = str(anexo)
+            if not anexo.isdigit():
+                raise ValidationError("El anexo solo puede contener números.")
+            if len(anexo) != 6:
+                raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+        return anexo
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name == 'unidad_organizacional':
+                field.widget.attrs.update({'class': 'form-control form-control-sm select2'})
+            else:
+                field.widget.attrs.update({'class': 'form-control form-control-sm'})
+
+        if user and hasattr(user, 'perfilagenda'):
+            perfil = user.perfilagenda
+            unidades_permitidas = perfil.unidad_organizacional.all()
+            if unidades_permitidas.exists():
+                todas_permitidas_ids = set()
+
+                def obtener_descendientes(unidad):
+                    todas_permitidas_ids.add(unidad.id)
+                    for hijo in unidad.hijos.all():
+                        obtener_descendientes(hijo)
+
+                for unidad in unidades_permitidas:
+                    obtener_descendientes(unidad)
+
+                self.fields['unidad_organizacional'].queryset = UnidadOrganizacional.objects.filter(
+                    id__in=todas_permitidas_ids
+                )
 
 
 class AnexoFilterForm(forms.Form):
@@ -159,7 +210,7 @@ class AnexoFilterForm(forms.Form):
                      Q(nombre__icontains='SUBDEPTO') | \
                      Q(nombre__icontains='SECRETARIA') | \
                      Q(nombre__icontains='SECRETARÍA')
-
+        # Q(nombre__icontains='Secretaría')
         queryset = UnidadOrganizacional.objects.filter(q_unidades, is_active=True)
 
         if establecimiento:

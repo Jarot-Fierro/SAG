@@ -19,32 +19,76 @@
                 <td>{{ a.anexo }}</td>
                 <td>{{ a.anexo_publico|default:"-" }}</td>
                 <td>{{ a.numero_telefonico|default:"-" }}</td>
-                <td>{{ a.funcionario.nombres }} {{ a.funcionario.apellidos }}</td>
-                <td>{{ a.funcionario.email|default:"-" }}</td>
                 <td>
-                    {% if a.funcionario.unidad_organizacional %}
-                        {{ a.funcionario.unidad_organizacional.nombre }}
+                    {% if a.funcionario %}
+                        {{ a.funcionario.nombres }} {{ a.funcionario.apellidos }}
                     {% else %}
-                        -
+                        {{ a.nombre_anexo|default:"-" }}
                     {% endif %}
                 </td>
                 <td>
-                    {% if a.funcionario.unidad_organizacional.direccion %}
-                        {% if a.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
-                            <a href="{{ a.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
-                               target="_blank"
-                               class="text-primary text-decoration-none">
-                                <i class="bi bi-geo-alt-fill"></i> {{ a.funcionario.unidad_organizacional.direccion.nombre }}
-                            </a>
+                    {% if a.funcionario %}
+                        {{ a.funcionario.email|default:"-" }}
+                    {% else %}
+                        {{ a.email|default:"-" }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if a.funcionario %}
+                        {% if a.funcionario.unidad_organizacional %}
+                            {{ a.funcionario.unidad_organizacional.nombre }}
                         {% else %}
-                            {{ a.funcionario.unidad_organizacional.direccion.nombre }}
+                            -
                         {% endif %}
                     {% else %}
-                        -
+                        {{ a.unidad_organizacional.nombre|default:"-" }}
                     {% endif %}
                 </td>
-                <td>{{ a.funcionario.rol_organizacional.nombre|default:"-" }}</td>
-                <td>{{ a.funcionario.cargo|default:"-" }}</td>
+                <td>
+                    {% if a.funcionario %}
+                        {% if a.funcionario.unidad_organizacional.direccion %}
+                            {% if a.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
+                                <a href="{{ a.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
+                                   target="_blank"
+                                   class="text-primary text-decoration-none">
+                                    <i class="bi bi-geo-alt-fill"></i> {{ a.funcionario.unidad_organizacional.direccion.nombre }}
+                                </a>
+                            {% else %}
+                                {{ a.funcionario.unidad_organizacional.direccion.nombre }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% else %}
+                        {% if a.unidad_organizacional.direccion %}
+                            {% if a.unidad_organizacional.direccion.enlace_google_maps %}
+                                <a href="{{ a.unidad_organizacional.direccion.enlace_google_maps }}"
+                                   target="_blank"
+                                   class="text-primary text-decoration-none">
+                                    <i class="bi bi-geo-alt-fill"></i> {{ a.unidad_organizacional.direccion.nombre }}
+                                </a>
+                            {% else %}
+                                {{ a.unidad_organizacional.direccion.nombre }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if a.funcionario %}
+                        {{ a.funcionario.rol_organizacional.nombre|default:"-" }}
+                    {% else %}
+                        {{ a.rol_organizacional.nombre|default:"-" }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if a.funcionario %}
+                        {{ a.funcionario.cargo|default:"-" }}
+                    {% else %}
+                        {{ a.encargado_de|default:"-" }}
+                    {% endif %}
+                </td>
             </tr>
         {% empty %}
             <tr>
@@ -69,6 +113,8 @@
 
 
 
+
+
                                     {{ request.GET.per_page }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
                             hx-target="#table-results-public">Anterior
                     </button>
@@ -82,6 +128,8 @@
                 <li class="page-item">
                     <button class="page-link"
                             hx-get="{% url 'agenda:buscar_anexo' %}?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&per_page=
+
+
 
 
 

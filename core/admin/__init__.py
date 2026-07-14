@@ -1,4 +1,3 @@
-from .cargo import *
 from .direccion import *
 from .establecimientos import *
 from .funcionario import *
