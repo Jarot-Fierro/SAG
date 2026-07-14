@@ -21,18 +21,18 @@ class Migration(migrations.Migration):
         #     model_name='historicalperfilagenda',
         #     name='subrrogante',
         # ),
-        migrations.RemoveField(
-            model_name='perfilagenda',
-            name='jefatura',
-        ),
-        migrations.RemoveField(
-            model_name='perfilagenda',
-            name='posicion_subrrogante',
-        ),
-        migrations.RemoveField(
-            model_name='perfilagenda',
-            name='subrrogante',
-        ),
+        # migrations.RemoveField(
+        #     model_name='perfilagenda',
+        #     name='jefatura',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='perfilagenda',
+        #     name='posicion_subrrogante',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='perfilagenda',
+        #     name='subrrogante',
+        # ),
         migrations.AlterField(
             model_name='anexo',
             name='anexo',
