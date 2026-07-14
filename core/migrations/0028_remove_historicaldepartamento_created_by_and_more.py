@@ -6,10 +6,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0027_alter_cargo_options_alter_direccion_options_and_more'),
         ('soporte', '0016_remove_historicalticket_departamento_and_more'),
+        ('gestion_tic', '0002_remove_celular_departamento_and_more'),
     ]
 
     operations = [
@@ -32,12 +32,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(app_label)s_%(class)s_created', to=settings.AUTH_USER_MODEL, verbose_name='Creado Por'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='%(app_label)s_%(class)s_created', to=settings.AUTH_USER_MODEL,
+                                    verbose_name='Creado Por'),
         ),
         migrations.AlterField(
             model_name='user',
             name='updated_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(app_label)s_%(class)s_updated', to=settings.AUTH_USER_MODEL, verbose_name='Actualizado Por'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='%(app_label)s_%(class)s_updated', to=settings.AUTH_USER_MODEL,
+                                    verbose_name='Actualizado Por'),
         ),
         migrations.DeleteModel(
             name='Departamento',
