@@ -29,10 +29,10 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
         related_name="hijos"
     )
 
-    lft = models.PositiveIntegerField(default=0)
-    rght = models.PositiveIntegerField(default=0)
-    tree_id = models.PositiveIntegerField(default=0)
-    level = models.PositiveIntegerField(default=0)
+    lft = models.PositiveIntegerField(default=0, null=True, blank=True)
+    rght = models.PositiveIntegerField(default=0, null=True, blank=True)
+    tree_id = models.PositiveIntegerField(default=0, null=True, blank=True)
+    level = models.PositiveIntegerField(default=0, null=True, blank=True)
 
     class MPTTMeta:
         order_insertion_by = ['nombre']
