@@ -9,7 +9,7 @@
 
 {% block buttons %}
     <a href="{% url 'agenda:anexos_pdf' %}" target="_blank" class="btn btn-danger btn-sm">PDF</a>
-    <a href="{% url 'agenda:anexos_sin_funcionario' %}" class="btn btn-info btn-sm">Anexo para Entidad</a>
+    {#    <a href="{% url 'agenda:anexos_sin_funcionario' %}" class="btn btn-info btn-sm">Anexo para Entidad</a>#}
 {% endblock %}
 
 {% block content %}
@@ -271,7 +271,7 @@
 
         function confirmarEliminar(id) {
             if (confirm('¿Está seguro de que desea eliminar este anexo y desactivar al funcionario?')) {
-                window.location.href = `/agenda/anexos/eliminar/${id}/`;
+                window.location.href = "{% url 'agenda:anexo_eliminar' 0 %}".replace('0', id);
             }
         }
 

@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.urls import reverse_lazy
 
 from agenda_telefonica.models import Anexo
 from core.models.rol_organizacional import RolOrganizacional
@@ -169,7 +170,7 @@ class AnexoFilterForm(forms.Form):
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-sm',
             'placeholder': 'Buscar por nombre, anexo o correo...',
-            'hx-get': '/agenda/buscar/',
+            'hx-get': reverse_lazy('agenda:buscar_anexo'),
             'hx-target': '#table-results-public',
             'hx-trigger': 'keyup changed delay:500ms, search',
         })
@@ -181,7 +182,7 @@ class AnexoFilterForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={
             'class': 'form-select form-select-sm',
-            'hx-get': '/agenda/buscar/',
+            'hx-get': reverse_lazy('agenda:buscar_anexo'),
             'hx-target': '#table-results-public',
             'hx-trigger': 'change',
             'name': 'per_page',
@@ -194,7 +195,7 @@ class AnexoFilterForm(forms.Form):
         label='Unidad Organizacional',
         widget=forms.Select(attrs={
             'class': 'form-select form-select-sm select2',
-            'hx-get': '/agenda/buscar/',
+            'hx-get': reverse_lazy('agenda:buscar_anexo'),
             'hx-target': '#table-results-public',
             'hx-trigger': 'change',
         })
