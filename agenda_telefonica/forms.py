@@ -68,8 +68,20 @@ class AnexoFuncionarioForm(forms.ModelForm):
 
         return anexo
 
+    def clean(self):
+        cleaned_data = super().clean()
+        unidad_organizacional = cleaned_data.get('unidad_organizacional')
+
+        if self.user and self.user.establecimiento and unidad_organizacional:
+            if unidad_organizacional.establecimiento != self.user.establecimiento:
+                raise ValidationError(
+                    f"La unidad organizacional '{unidad_organizacional.nombre}' no corresponde a su establecimiento."
+                )
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        self.user = user
         super().__init__(*args, **kwargs)
         # Añadir clases de bootstrap a todos los campos
         for field_name, field in self.fields.items():
@@ -135,8 +147,20 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
                 raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
         return anexo
 
+    def clean(self):
+        cleaned_data = super().clean()
+        unidad_organizacional = cleaned_data.get('unidad_organizacional')
+
+        if self.user and self.user.establecimiento and unidad_organizacional:
+            if unidad_organizacional.establecimiento != self.user.establecimiento:
+                raise ValidationError(
+                    f"La unidad organizacional '{unidad_organizacional.nombre}' no corresponde a su establecimiento."
+                )
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        self.user = user
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             if field_name == 'unidad_organizacional':

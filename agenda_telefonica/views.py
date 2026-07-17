@@ -170,7 +170,12 @@ def anexos_view(request, pk=None):
             'funcionario__rol_organizacional',
             'rol_organizacional',
             'unidad_organizacional'
-        ).all()
+        )
+
+        if request.user.establecimiento:
+            queryset = queryset.filter(establecimiento=request.user.establecimiento)
+
+        queryset = queryset.all()
 
         total_records = queryset.count()
 
@@ -330,7 +335,11 @@ def anexos_pdf_view(request):
     # Obtener anexos activos y agruparlos por unidad organizacional
 
     # Optimizamos la consulta
-    anexos = Anexo.objects.filter(is_active=True).select_related(
+    queryset = Anexo.objects.filter(is_active=True)
+    if request.user.establecimiento:
+        queryset = queryset.filter(establecimiento=request.user.establecimiento)
+
+    anexos = queryset.select_related(
         'funcionario', 'funcionario__unidad_organizacional', 'unidad_organizacional', 'rol_organizacional',
         'funcionario__rol_organizacional'
     ).order_by('funcionario__unidad_organizacional__nombre', 'unidad_organizacional__nombre', 'funcionario__nombres',
