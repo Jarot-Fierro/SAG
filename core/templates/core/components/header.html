@@ -31,7 +31,7 @@
             {% if user.is_authenticated and user.is_staff %}
                 <li class="nav-item d-flex align-items-center me-2">
                     <select class="form-select form-select-sm"
-                            onchange="window.location.href='{% url 'usuarios:cambiar-establecimiento' 0 %}'.replace('0', this.value)">
+                            onchange="window.location.href='{% url 'usuarios:cambiar_establecimiento' 0 %}'.replace('0', this.value)">
                         <option value="" disabled>Seleccione Establecimiento</option>
                         {% for est in global_establecimientos %}
                             <option value="{{ est.id }}" {% if user.establecimiento_id == est.id %}selected{% endif %}>
