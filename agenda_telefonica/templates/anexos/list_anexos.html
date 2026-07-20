@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block sidebar %}
+
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'agenda:anexo_nuevo' %}"
+       class="btn btn-sm btn-primary"
+       title="Nuevo Registro">
+        <i class="bi bi-person-plus-fill me-1"></i>
+        Nuevo Registro
+    </a>
+{% endblock %}
+
+{% block title %}Lista de Anexos{% endblock %}
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <!--begin::Card-->
+            <div class="card mb-4">
+                <!--begin::Card Header-->
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                    </span>
+                                    {{ filter_form.anexo }}
+                                    {{ filter_form.anexo_publico }}
+                                    {{ filter_form.numero_telefonico }}
+                                    {{ filter_form.encargado_de }}
+
+                                    {{ filter_form.nombre }}
+                                    {{ filter_form.email }}
+                                    {{ filter_form.cargo }}
+
+                                    {{ filter_form.rol_organizacional }}
+                                    {{ filter_form.unidad_organizacional }}
+
+                                    {{ filter_form.is_active }}
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{% url 'agenda:index' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card Header-->
+                <!--begin::Card Body-->
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0" role="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Anexo</th>
+                                <th scope="col">Público</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">Nombres</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Unidad Organizacional</th>
+                                <th scope="col">Dirección</th>
+                                <th scope="col">Puesto</th>
+                                <th scope="col">Cargo</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for anexo in anexos %}
+                                <tr>
+                                    <td>{{ anexo.anexo|default:"-" }}</td>
+                                    <td>{{ anexo.anexo_publico|default:"-" }}</td>
+                                    <td>{{ anexo.numero_telefonico|default:"-" }}</td>
+                                    <td>{{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}</td>
+                                    <td>{{ anexo.funcionario.email|default:"-" }}</td>
+                                    <td>{{ anexo.funcionario.unidad_organizacional|default:"-" }}</td>
+                                    <td>
+                                        {% if anexo.funcionario.unidad_organizacional.direccion %}
+                                            <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
+                                               class="text-decoration-none text-primary"
+                                               target="_blank"
+                                               rel="noopener noreferrer"
+                                               title="Abrir ubicación en Google Maps">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                                {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ anexo.funcionario.rol_organizacional|default:"-" }}</td>
+                                    <td>{{ anexo.funcionario.cargo|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'agenda:anexo_editar' anexo.pk %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top">
+                                            <i class="bi bi-pencil"></i>
+                                            <span class="d-none">Editar</span>
+                                        </a>
+
+                                        <form method="post"
+                                              action="{% url 'agenda:anexo_eliminar' anexo.pk %}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('¿Estás seguro de eliminar este funcionario?');">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Eliminar"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="d-none">Eliminar</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-body-secondary py-4">
+                                        No se encontraron anexos para la búsqueda.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+                <!--end::Card Body-->
+                <!--begin::Card Footer-->
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        anexos
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ i }}{% if q %}&q={{ q }}{% endif %}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+                <!--end::Card Footer-->
+            </div>
+            <!--end::Card-->
+        </div>
+        <!-- /.col -->
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+{% endblock %}

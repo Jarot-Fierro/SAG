@@ -5,11 +5,18 @@ from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
+from django.views.generic import ListView, CreateView, UpdateView
 from weasyprint import HTML
 
 from agenda_telefonica.decorators import user_editor_module
-from agenda_telefonica.forms import AnexoFuncionarioForm, AnexoFilterForm, AnexoSinFuncionarioForm
+from agenda_telefonica.filters import AnexoFilter
+from agenda_telefonica.forms import (
+    AnexoFilterForm,
+    AnexoFuncionarioCompletoForm,
+    AnexoSinFuncionarioForm,
+)
 from agenda_telefonica.models import Anexo
 from core.models import Establecimiento
 from core.models.funcionario import Funcionario
@@ -100,7 +107,7 @@ def anexos_view(request, pk=None):
         anexo_instance = None
 
     if request.method == 'POST':
-        form = AnexoFuncionarioForm(request.POST, instance=anexo_instance, user=request.user)
+        form = AnexoFuncionarioCompletoForm(request.POST, instance=anexo_instance, user=request.user)
         if form.is_valid():
             rut = form.cleaned_data.get('rut').upper()
             nombres = form.cleaned_data.get('nombres').title()
@@ -153,7 +160,7 @@ def anexos_view(request, pk=None):
 
             return redirect('agenda:anexos')
     else:
-        form = AnexoFuncionarioForm(instance=anexo_instance, user=request.user)
+        form = AnexoFuncionarioCompletoForm(instance=anexo_instance, user=request.user)
 
     # Lógica para DataTables AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('draw'):
@@ -275,9 +282,11 @@ def anexos_view(request, pk=None):
             "data": data,
         })
 
-    return render(request, 'anexos/anexos_form.html', {
+    return render(request, 'anexos/form_anexos.html', {
         'form': form,
-        'is_edit': pk is not None
+        'is_edit': pk is not None,
+        'page_title': 'Editar anexo' if pk else 'Nuevo anexo',
+        'submit_label': 'Actualizar' if pk else 'Guardar',
     })
 
 
@@ -387,3 +396,132 @@ def anexos_pdf_view(request):
     response['Content-Disposition'] = 'inline; filename="listado_anexos.pdf"'
 
     return response
+
+
+class AnexoListView(ListView):
+    model = Anexo
+    template_name = "anexos/list_anexos.html"
+    context_object_name = "anexos"
+    paginate_by = 10
+
+    def get_queryset(self):
+        establecimiento = self.request.user.establecimiento
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(establecimiento=establecimiento)
+            .select_related(
+                "establecimiento",
+            )
+        )
+
+        self.filter_form = AnexoFilter(self.request.GET)
+
+        if self.filter_form.is_valid():
+            data = self.filter_form.cleaned_data
+
+            if data["anexo"]:
+                queryset = queryset.filter(anexo__icontains=data["anexo"])
+
+            if data["anexo_publico"]:
+                queryset = queryset.filter(anexo_publico__icontains=data["anexo_publico"])
+
+            if data["numero_telefonico"]:
+                queryset = queryset.filter(numero_telefonico__icontains=data["numero_telefonico"])
+
+            if data["nombre"]:
+                queryset = queryset.filter(
+                    Q(funcionario__nombres__icontains=data["nombre"])
+                    | Q(funcionario__apellidos__icontains=data["nombre"])
+                    | Q(nombre_anexo__icontains=data["nombre"])
+                )
+
+            if data["email"]:
+                queryset = queryset.filter(
+                    Q(funcionario__email__icontains=data["email"]) | Q(email__icontains=data["email"])
+                )
+
+            if data["cargo"]:
+                queryset = queryset.filter(
+                    Q(funcionario__cargo__icontains=data["cargo"]) | Q(encargado_de__icontains=data["cargo"])
+                )
+
+            if data["rol_organizacional"]:
+                queryset = queryset.filter(
+                    Q(funcionario__rol_organizacional=data["rol_organizacional"])
+                    | Q(rol_organizacional=data["rol_organizacional"])
+                )
+
+            if data["unidad_organizacional"]:
+                queryset = queryset.filter(
+                    Q(funcionario__unidad_organizacional=data["unidad_organizacional"])
+                    | Q(unidad_organizacional=data["unidad_organizacional"])
+                )
+
+            if data["is_active"]:
+                queryset = queryset.filter(is_active=(data["is_active"] == "True"))
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["filter_form"] = self.filter_form
+        return context
+
+
+class AnexoBaseFormView:
+    model = Anexo
+    form_class = AnexoFuncionarioCompletoForm
+    template_name = "anexos/form_anexos.html"
+    success_url = reverse_lazy("agenda:index")
+    page_title = "Formulario Anexo"
+    submit_label = "Guardar"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page_title"] = self.page_title
+        context["submit_label"] = self.submit_label
+        return context
+
+
+class AnexoCreateView(AnexoBaseFormView, CreateView):
+    page_title = "Nuevo funcionario"
+    submit_label = "Crear"
+
+    def form_valid(self, form):
+        establecimiento = getattr(self.request.user, "establecimiento", None)
+        if not establecimiento:
+            form.add_error(
+                None,
+                "No se pudo asignar el establecimiento del usuario autenticado.",
+            )
+            return self.form_invalid(form)
+
+        form.instance.establecimiento = establecimiento
+        form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
+        messages.success(self.request, "Anexo creado correctamente.")
+        return super().form_valid(form)
+
+
+class AnexoUpdateView(AnexoBaseFormView, UpdateView):
+    page_title = "Editar funcionario"
+    submit_label = "Actualizar"
+
+    def form_valid(self, form):
+        establecimiento = getattr(self.request.user, "establecimiento", None)
+        if establecimiento:
+            form.instance.establecimiento = establecimiento
+
+        form.instance.updated_by = self.request.user
+        messages.success(self.request, "Anexo actualizado correctamente.")
+        return super().form_valid(form)
+
+
+@require_POST
+def funcionario_delete_view(request, pk):
+    funcionario = get_object_or_404(Anexo, pk=pk)
+    funcionario.is_active = False
+    funcionario.save()
+    messages.success(request, "Anexo eliminado correctamente.")
+    return redirect("funcionarios:list_funcionarios")

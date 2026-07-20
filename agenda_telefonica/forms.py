@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.urls import reverse_lazy
 
 from agenda_telefonica.models import Anexo
+from core.models.profesion import Profesion
 from core.models.rol_organizacional import RolOrganizacional
 from core.models.unidad_organizacional import UnidadOrganizacional
 
@@ -121,6 +122,140 @@ class AnexoFuncionarioForm(forms.ModelForm):
             self.fields['cargo'].initial = f.cargo
             self.fields['unidad_organizacional'].initial = f.unidad_organizacional
             self.fields['rol_organizacional'].initial = f.rol_organizacional
+
+
+class AnexoFuncionarioCompletoForm(forms.ModelForm):
+    rut = forms.CharField(
+        max_length=12,
+        label="Rut",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "RUT"}),
+    )
+    nombres = forms.CharField(
+        max_length=255,
+        label="Nombres",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Nombres"}),
+    )
+    apellidos = forms.CharField(
+        max_length=255,
+        label="Apellidos",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Apellidos"}),
+    )
+    email = forms.EmailField(
+        label="Correo",
+        required=False,
+        widget=forms.EmailInput(attrs={"placeholder": "Correo"}),
+    )
+    cargo = forms.CharField(
+        max_length=255,
+        label="Cargo",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Cargo"}),
+    )
+    profesion = forms.ModelChoiceField(
+        queryset=Profesion.objects.filter(is_active=True),
+        label="Profesión",
+        required=False,
+        empty_label="-- Seleccione una profesión --",
+    )
+    rol_organizacional = forms.ModelChoiceField(
+        queryset=RolOrganizacional.objects.filter(is_active=True),
+        label="Puesto",
+        required=True,
+        empty_label="-- Seleccione un puesto --",
+    )
+    unidad_organizacional = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.all(),
+        label="Unidad Organizacional",
+        required=True,
+    )
+
+    class Meta:
+        model = Anexo
+        fields = ["anexo", "anexo_publico", "numero_telefonico", "establecimiento"]
+
+    def clean_rut(self):
+        rut = self.cleaned_data.get("rut")
+        if rut:
+            rut = rut.upper()
+            from core.models.funcionario import Funcionario
+
+            funcionario = Funcionario.objects.filter(rut=rut).first()
+            if funcionario:
+                anexo_query = Anexo.objects.filter(funcionario=funcionario)
+                if self.instance and self.instance.pk:
+                    anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+                if anexo_query.exists():
+                    raise ValidationError("Este funcionario ya tiene un anexo asignado.")
+        return rut
+
+    def clean_anexo(self):
+        anexo = self.cleaned_data.get("anexo")
+        if anexo:
+            anexo = str(anexo)
+            if not anexo.isdigit():
+                raise ValidationError("El anexo solo puede contener números.")
+            if len(anexo) != 6:
+                raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+        return anexo
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unidad_organizacional = cleaned_data.get("unidad_organizacional")
+
+        if self.user and self.user.establecimiento and unidad_organizacional:
+            if unidad_organizacional.establecimiento != self.user.establecimiento:
+                raise ValidationError(
+                    f"La unidad organizacional '{unidad_organizacional.nombre}' no corresponde a su establecimiento."
+                )
+        return cleaned_data
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+        self.fields["anexo"].widget.attrs.update({"placeholder": "Anexo"})
+        self.fields["anexo_publico"].widget.attrs.update({"placeholder": "Anexo público"})
+        self.fields["numero_telefonico"].widget.attrs.update({"placeholder": "Teléfono"})
+
+        for field_name, field in self.fields.items():
+            if field_name == "unidad_organizacional":
+                field.widget.attrs.update({"class": "form-control form-control-sm select2"})
+            else:
+                field.widget.attrs.update({"class": "form-control form-control-sm"})
+
+        if user and hasattr(user, "perfilagenda"):
+            perfil = user.perfilagenda
+            unidades_permitidas = perfil.unidad_organizacional.all()
+            if unidades_permitidas.exists():
+                todas_permitidas_ids = set()
+
+                def obtener_descendientes(unidad):
+                    todas_permitidas_ids.add(unidad.id)
+                    for hijo in unidad.hijos.all():
+                        obtener_descendientes(hijo)
+
+                for unidad in unidades_permitidas:
+                    obtener_descendientes(unidad)
+
+                self.fields["unidad_organizacional"].queryset = UnidadOrganizacional.objects.filter(
+                    id__in=todas_permitidas_ids
+                )
+
+        if self.instance and self.instance.funcionario:
+            funcionario = self.instance.funcionario
+            self.fields["rut"].initial = funcionario.rut
+            self.fields["nombres"].initial = funcionario.nombres
+            self.fields["apellidos"].initial = funcionario.apellidos
+            self.fields["email"].initial = funcionario.email
+            self.fields["cargo"].initial = funcionario.cargo
+            self.fields["profesion"].initial = funcionario.profesion
+            self.fields["unidad_organizacional"].initial = funcionario.unidad_organizacional
+            self.fields["rol_organizacional"].initial = funcionario.rol_organizacional
 
 
 class AnexoSinFuncionarioForm(forms.ModelForm):
