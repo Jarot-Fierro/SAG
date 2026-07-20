@@ -127,7 +127,7 @@ class AnexoFuncionarioForm(forms.ModelForm):
 class AnexoFuncionarioCompletoForm(forms.ModelForm):
     rut = forms.CharField(
         max_length=12,
-        label="Rut",
+        label="Rut (Consulte si el funcionario existe)",
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "RUT"}),
     )
@@ -184,12 +184,18 @@ class AnexoFuncionarioCompletoForm(forms.ModelForm):
 
             funcionario = Funcionario.objects.filter(rut=rut).first()
             if funcionario:
+                # Si estamos creando un nuevo anexo, o editando un anexo diferente al que pertenece este funcionario
                 anexo_query = Anexo.objects.filter(funcionario=funcionario)
+
                 if self.instance and self.instance.pk:
+                    # En modo edición, permitimos que el funcionario ya tenga un anexo SI ES ESTE MISMO anexo
                     anexo_query = anexo_query.exclude(pk=self.instance.pk)
 
                 if anexo_query.exists():
-                    raise ValidationError("Este funcionario ya tiene un anexo asignado.")
+                    anexo_existente = anexo_query.first()
+                    unidad = anexo_existente.unidad_organizacional.nombre if anexo_existente.unidad_organizacional else "desconocida"
+                    raise ValidationError(
+                        f"El funcionario con el RUT {rut} ya cuenta con anexo en la unidad organizacional {unidad}.")
         return rut
 
     def clean_anexo(self):

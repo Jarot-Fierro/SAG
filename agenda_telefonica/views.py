@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -331,12 +333,18 @@ def anexos_sin_funcionario_view(request, pk=None):
     })
 
 
-def eliminar_anexo(request, pk):
+@login_required
+@require_POST
+def anexo_delete_view(request, pk):
     anexo = get_object_or_404(Anexo, pk=pk)
     with transaction.atomic():
+        if anexo.funcionario:
+            anexo.funcionario.is_active = False
+            anexo.funcionario.save()
         anexo.delete()
-    messages.info(request, "Anexo eliminado y funcionario desactivado correctamente.")
-    return redirect('agenda:anexos')
+
+    messages.success(request, "Anexo eliminado correctamente.")
+    return redirect("agenda:list_anexos_edit")
 
 
 @user_editor_module
@@ -405,14 +413,19 @@ class AnexoListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        establecimiento = self.request.user.establecimiento
-        queryset = (
-            super()
-            .get_queryset()
-            .filter(establecimiento=establecimiento)
-            .select_related(
-                "establecimiento",
-            )
+        establecimiento_id = self.request.GET.get("establecimiento")
+        if establecimiento_id:
+            queryset = self.model.objects.filter(establecimiento_id=establecimiento_id)
+        else:
+            establecimiento = getattr(self.request.user, "establecimiento", None)
+            queryset = self.model.objects.filter(establecimiento=establecimiento)
+
+        queryset = queryset.select_related(
+            "establecimiento",
+            "funcionario",
+            "funcionario__unidad_organizacional",
+            "funcionario__profesion",
+            "unidad_organizacional",
         )
 
         self.filter_form = AnexoFilter(self.request.GET)
@@ -473,7 +486,7 @@ class AnexoBaseFormView:
     model = Anexo
     form_class = AnexoFuncionarioCompletoForm
     template_name = "anexos/form_anexos.html"
-    success_url = reverse_lazy("agenda:index")
+    success_url = reverse_lazy("agenda:list_anexos_edit")
     page_title = "Formulario Anexo"
     submit_label = "Guardar"
 
@@ -481,10 +494,11 @@ class AnexoBaseFormView:
         context = super().get_context_data(**kwargs)
         context["page_title"] = self.page_title
         context["submit_label"] = self.submit_label
+        context["is_edit"] = isinstance(self, UpdateView)
         return context
 
 
-class AnexoCreateView(AnexoBaseFormView, CreateView):
+class AnexoCreateView(LoginRequiredMixin, AnexoBaseFormView, CreateView):
     page_title = "Nuevo funcionario"
     submit_label = "Crear"
 
@@ -497,14 +511,46 @@ class AnexoCreateView(AnexoBaseFormView, CreateView):
             )
             return self.form_invalid(form)
 
-        form.instance.establecimiento = establecimiento
-        form.instance.created_by = self.request.user
-        form.instance.updated_by = self.request.user
-        messages.success(self.request, "Anexo creado correctamente.")
-        return super().form_valid(form)
+        from core.models.funcionario import Funcionario
+        from django.db import transaction
+
+        try:
+            with transaction.atomic():
+                rut = form.cleaned_data.get("rut").upper()
+                funcionario, created = Funcionario.objects.get_or_create(
+                    rut=rut,
+                    defaults={
+                        "establecimiento": establecimiento,
+                        "created_by": self.request.user,
+                        "updated_by": self.request.user
+                    }
+                )
+
+                # Actualizar datos del funcionario (siempre, según requerimiento)
+                funcionario.nombres = form.cleaned_data.get("nombres")
+                funcionario.apellidos = form.cleaned_data.get("apellidos")
+                funcionario.email = form.cleaned_data.get("email")
+                funcionario.cargo = form.cleaned_data.get("cargo")
+                funcionario.profesion = form.cleaned_data.get("profesion")
+                funcionario.rol_organizacional = form.cleaned_data.get("rol_organizacional")
+                funcionario.unidad_organizacional = form.cleaned_data.get("unidad_organizacional")
+                funcionario.updated_by = self.request.user
+                funcionario.save()
+
+                form.instance.funcionario = funcionario
+                form.instance.establecimiento = establecimiento
+                form.instance.created_by = self.request.user
+                form.instance.updated_by = self.request.user
+
+                response = super().form_valid(form)
+                messages.success(self.request, "Anexo creado correctamente.")
+                return response
+        except Exception as e:
+            form.add_error(None, f"Error al procesar el anexo: {str(e)}")
+            return self.form_invalid(form)
 
 
-class AnexoUpdateView(AnexoBaseFormView, UpdateView):
+class AnexoUpdateView(LoginRequiredMixin, AnexoBaseFormView, UpdateView):
     page_title = "Editar funcionario"
     submit_label = "Actualizar"
 
@@ -513,15 +559,119 @@ class AnexoUpdateView(AnexoBaseFormView, UpdateView):
         if establecimiento:
             form.instance.establecimiento = establecimiento
 
-        form.instance.updated_by = self.request.user
-        messages.success(self.request, "Anexo actualizado correctamente.")
-        return super().form_valid(form)
+        from django.db import transaction
+
+        try:
+            with transaction.atomic():
+                funcionario = form.instance.funcionario
+                if funcionario:
+                    # Actualizar datos del funcionario
+                    funcionario.rut = form.cleaned_data.get("rut").upper()
+                    funcionario.nombres = form.cleaned_data.get("nombres")
+                    funcionario.apellidos = form.cleaned_data.get("apellidos")
+                    funcionario.email = form.cleaned_data.get("email")
+                    funcionario.cargo = form.cleaned_data.get("cargo")
+                    funcionario.profesion = form.cleaned_data.get("profesion")
+                    funcionario.rol_organizacional = form.cleaned_data.get("rol_organizacional")
+                    funcionario.unidad_organizacional = form.cleaned_data.get("unidad_organizacional")
+                    funcionario.updated_by = self.request.user
+                    funcionario.save()
+
+                form.instance.updated_by = self.request.user
+                response = super().form_valid(form)
+                messages.success(self.request, "Anexo actualizado correctamente.")
+                return response
+        except Exception as e:
+            form.add_error(None, f"Error al actualizar el anexo: {str(e)}")
+            return self.form_invalid(form)
 
 
-@require_POST
-def funcionario_delete_view(request, pk):
-    funcionario = get_object_or_404(Anexo, pk=pk)
-    funcionario.is_active = False
-    funcionario.save()
-    messages.success(request, "Anexo eliminado correctamente.")
-    return redirect("funcionarios:list_funcionarios")
+class AnexoEditListView(LoginRequiredMixin, ListView):
+    model = Anexo
+    template_name = "anexos/list_anexos_edit.html"
+    context_object_name = "anexos"
+    paginate_by = 10
+
+    def get_queryset(self):
+        establecimiento = self.request.user.establecimiento
+
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(establecimiento=establecimiento)
+            .select_related(
+                "establecimiento",
+                "funcionario",
+                "funcionario__unidad_organizacional",
+                "unidad_organizacional"
+            )
+        )
+
+        # Filtro por unidades organizacionales del PerfilAgenda
+        if hasattr(self.request.user, 'perfilagenda'):
+            unidades = self.request.user.perfilagenda.unidad_organizacional.all()
+            if unidades.exists():
+                queryset = queryset.filter(
+                    Q(funcionario__unidad_organizacional__in=unidades) |
+                    Q(unidad_organizacional__in=unidades)
+                )
+
+        self.filter_form = AnexoFilter(self.request.GET)
+
+        if self.filter_form.is_valid():
+            data = self.filter_form.cleaned_data
+
+            if data["anexo"]:
+                queryset = queryset.filter(anexo__icontains=data["anexo"])
+
+            if data["anexo_publico"]:
+                queryset = queryset.filter(anexo_publico__icontains=data["anexo_publico"])
+
+            if data["numero_telefonico"]:
+                queryset = queryset.filter(numero_telefonico__icontains=data["numero_telefonico"])
+
+            if data["nombre"]:
+                queryset = queryset.filter(
+                    Q(funcionario__nombres__icontains=data["nombre"])
+                    | Q(funcionario__apellidos__icontains=data["nombre"])
+                    | Q(nombre_anexo__icontains=data["nombre"])
+                )
+
+            if data["email"]:
+                queryset = queryset.filter(
+                    Q(funcionario__email__icontains=data["email"]) | Q(email__icontains=data["email"])
+                )
+
+            if data["cargo"]:
+                queryset = queryset.filter(
+                    Q(funcionario__cargo__icontains=data["cargo"]) | Q(encargado_de__icontains=data["cargo"])
+                )
+
+            if data["rol_organizacional"]:
+                queryset = queryset.filter(
+                    Q(funcionario__rol_organizacional=data["rol_organizacional"])
+                    | Q(rol_organizacional=data["rol_organizacional"])
+                )
+
+            if data["unidad_organizacional"]:
+                queryset = queryset.filter(
+                    Q(funcionario__unidad_organizacional=data["unidad_organizacional"])
+                    | Q(unidad_organizacional=data["unidad_organizacional"])
+                )
+
+            if data["is_active"]:
+                queryset = queryset.filter(is_active=(data["is_active"] == "True"))
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Filtrar las opciones de unidad_organizacional en el formulario de filtro
+        if hasattr(self.request.user, 'perfilagenda'):
+            unidades = self.request.user.perfilagenda.unidad_organizacional.all()
+            if unidades.exists():
+                self.filter_form.fields['unidad_organizacional'].queryset = unidades
+
+        context["filter_form"] = self.filter_form
+        return context

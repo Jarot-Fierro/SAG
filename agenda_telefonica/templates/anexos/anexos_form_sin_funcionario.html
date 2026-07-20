@@ -260,7 +260,7 @@
 
         function confirmarEliminar(id) {
             if (confirm('¿Está seguro de que desea eliminar este anexo y desactivar al funcionario?')) {
-                window.location.href = "{% url 'agenda:anexo_eliminar' 0 %}".replace('0', id);
+                window.location.href = "{% url 'agenda:anexo_delete' 0 %}".replace('0', id);
             }
         }
 

@@ -4,12 +4,15 @@
 {% endblock %}
 
 {% block buttons %}
-
-    <a href="{% url 'agenda:list_anexos_edit' %}"
+    <a href="{% url 'agenda:anexo_nuevo' %}"
        class="btn btn-sm btn-primary"
        title="Nuevo Registro">
         <i class="bi bi-person-plus-fill me-1"></i>
-        Mis Anexos
+        Nuevo Registro
+    </a>
+    <a href="{% url 'agenda:list_anexos' %}" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left-circle me-1"></i>
+        Volver
     </a>
 {% endblock %}
 
@@ -39,7 +42,6 @@
                                     {{ filter_form.cargo }}
 
                                     {{ filter_form.rol_organizacional }}
-                                    {{ filter_form.unidad_organizacional }}
 
                                     {{ filter_form.is_active }}
 
@@ -68,10 +70,11 @@
                                 <th scope="col">Teléfono</th>
                                 <th scope="col">Nombres</th>
                                 <th scope="col">Email</th>
-                                <th scope="col">Unidad Organizacional</th>
                                 <th scope="col">Dirección</th>
+                                <th scope="col">Departamento</th>
                                 <th scope="col">Puesto</th>
                                 <th scope="col">Cargo</th>
+                                <th scope="col">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -112,6 +115,31 @@
                                     </td>
                                     <td>{{ anexo.funcionario.rol_organizacional|default:"-" }}</td>
                                     <td>{{ anexo.funcionario.cargo|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'agenda:anexo_editar' anexo.pk %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top">
+                                            <i class="bi bi-pencil"></i>
+                                            <span class="d-none">Editar</span>
+                                        </a>
+
+                                        <form method="post"
+                                              action="{% url 'agenda:anexo_delete' anexo.pk %}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('¿Estás seguro de eliminar este funcionario?');">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Eliminar"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="d-none">Eliminar</span>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr>
@@ -169,4 +197,12 @@
         </div>
         <!-- /.col -->
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
 {% endblock %}

@@ -55,8 +55,9 @@ class MenuSidebarAdmin(StandardAdmin):
 
 @admin.register(PerfilAgenda)
 class PerfilAgendaAdmin(StandardAdmin):
-    list_display = ('usuario', 'editor', 'is_active')
+    list_display = ('id', 'usuario', 'editor',)
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name')
     list_filter = ('editor', 'is_active')
     autocomplete_fields = ('usuario',)
     filter_horizontal = ('unidad_organizacional',)
+    list_display_links = ('usuario',)

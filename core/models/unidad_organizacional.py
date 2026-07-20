@@ -37,17 +37,33 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
     class MPTTMeta:
         order_insertion_by = ['nombre']
         parent_attr = 'padre'
+        left_attr = 'lft'
+        right_attr = 'rght'
+        tree_id_attr = 'tree_id'
+        level_attr = 'level'
 
     def __str__(self):
         return self.get_jerarquia()
 
     def get_jerarquia(self):
+        return " > ".join(self.get_jerarquia_list())
+
+    def get_jerarquia_list(self):
         nombres = [self.nombre]
         actual = self.padre
         while actual:
             nombres.append(actual.nombre)
             actual = actual.padre
-        return " > ".join(reversed(nombres))
+        return list(reversed(nombres))
+
+    def get_jerarquia_reducida(self):
+        lista = self.get_jerarquia_list()
+        return lista[-2:]
+
+    def get_jerarquia_reducida_invertida(self):
+        lista = self.get_jerarquia_list()
+        reducida = lista[-2:]
+        return list(reversed(reducida))
 
     def get_departamento(self):
         actual = self

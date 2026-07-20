@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
@@ -7,6 +9,54 @@ from django.views.generic import CreateView, ListView, UpdateView
 from core.filters.funcionarios import FuncionarioFilter
 from core.forms.funcionarios import FuncionarioForm
 from core.models.funcionario import Funcionario
+
+
+def funcionario_api_view(request):
+    term = request.GET.get("term", "")
+    if not term:
+        return JsonResponse({"error": "No term provided"}, status=400)
+
+    # Buscar por id, rut, nombres, apellidos o correo
+    # Generalmente se consultará por rut
+    queryset = Funcionario.objects.filter(
+        Q(id__iexact=term) |
+        Q(rut__iexact=term) |
+        Q(nombres__icontains=term) |
+        Q(apellidos__icontains=term) |
+        Q(email__icontains=term)
+    ).select_related("profesion", "rol_organizacional", "unidad_organizacional")
+
+    # Si hay más de uno, podrías devolver el primero o una lista. 
+    # El requerimiento dice "devolver al funcionario", asumimos el más exacto o el primero.
+    funcionario = queryset.first()
+
+    if not funcionario:
+        return JsonResponse({"not_found": True}, status=200)
+
+    # Verificar si tiene anexo
+    has_anexo = hasattr(funcionario, "anexo")
+    anexo_info = None
+    if has_anexo:
+        anexo_info = {
+            "anexo": funcionario.anexo.anexo,
+            "unidad": funcionario.anexo.unidad_organizacional.nombre if funcionario.anexo.unidad_organizacional else "-"
+        }
+
+    data = {
+        "id": funcionario.id,
+        "rut": funcionario.rut,
+        "nombres": funcionario.nombres,
+        "apellidos": funcionario.apellidos,
+        "email": funcionario.email,
+        "cargo": funcionario.cargo,
+        "profesion": funcionario.profesion_id,
+        "rol_organizacional": funcionario.rol_organizacional_id,
+        "unidad_organizacional": funcionario.unidad_organizacional_id,
+        "has_anexo": has_anexo,
+        "anexo_info": anexo_info
+    }
+
+    return JsonResponse(data)
 
 
 class FuncionarioListView(ListView):

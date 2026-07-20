@@ -36,12 +36,30 @@
                 <td>
                     {% if a.funcionario %}
                         {% if a.funcionario.unidad_organizacional %}
-                            {{ a.funcionario.unidad_organizacional.nombre }}
+                            {% for unidad in a.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                {% if forloop.first %}
+                                    <strong>{{ unidad }}</strong>
+                                {% else %}
+                                    <span style="font-size: 8px;">{{ unidad }}</span>
+                                {% endif %}
+                                {% if not forloop.last %}<br>{% endif %}
+                            {% endfor %}
                         {% else %}
                             -
                         {% endif %}
                     {% else %}
-                        {{ a.unidad_organizacional.nombre|default:"-" }}
+                        {% if a.unidad_organizacional %}
+                            {% for unidad in a.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                {% if forloop.first %}
+                                    <strong>{{ unidad }}</strong>
+                                {% else %}
+                                    <span style="font-size: 8px;">{{ unidad }}</span>
+                                {% endif %}
+                                {% if not forloop.last %}<br>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            -
+                        {% endif %}
                     {% endif %}
                 </td>
                 <td>
@@ -115,6 +133,9 @@
 
 
 
+
+
+
                                     {{ request.GET.per_page }}{% if establecimiento_id %}&establecimiento={{ establecimiento_id }}{% endif %}"
                             hx-target="#table-results-public">Anterior
                     </button>
@@ -128,6 +149,9 @@
                 <li class="page-item">
                     <button class="page-link"
                             hx-get="{% url 'agenda:buscar_anexo' %}?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&per_page=
+
+
+
 
 
 
