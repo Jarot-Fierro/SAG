@@ -16,9 +16,21 @@ class UserResource(resources.ModelResource):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, StandardAdmin):
+    reset_password_value = 'SSA.2026'
+
     list_display = ('username', 'email', 'first_name', 'last_name', 'establecimiento', 'is_staff')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'establecimiento',)
     search_fields = ('username', 'email', 'first_name', 'last_name', 'establecimiento__nombre')
+
+    actions = ['reset_password']
+
+    def reset_password(self, request, queryset):
+        for user in queryset:
+            user.set_password(self.reset_password_value)
+            user.save()
+        self.message_user(request, f"Se ha reseteado la contraseña de {queryset.count()} usuarios correctamente.")
+
+    reset_password.short_description = "Resetear contraseña"
 
     resource_class = UserResource
 

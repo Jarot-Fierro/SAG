@@ -50,6 +50,14 @@
                         {% endfor %}
                     </select>
                 </li>
+            {% else %}
+                <li class="nav-item d-flex align-items-center me-2">
+                    <select class="form-select form-select-sm">
+                        <option value="request.user.establecimiento.id">
+                            {{ request.user.establecimiento }}
+                        </option>
+                    </select>
+                </li>
             {% endif %}
             <li class="nav-item dropdown">
                 <a
