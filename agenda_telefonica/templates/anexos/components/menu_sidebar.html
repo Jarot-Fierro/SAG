@@ -6,6 +6,13 @@
         </a>
     </li>
 {% endfor %}
+<li class="nav-item">
+    <a href="{% url 'agenda:anexos_pdf' %}" class="nav-link">
+        <i class="nav-icon bi bi-pdf-badge"></i>
+        <p>PDF</p>
+    </a>
+</li>
+
 <li class="nav-header">Ingreso</li>
 <li class="nav-item">
     <a href="{% url 'agenda:list_anexos_edit' %}" class="nav-link">

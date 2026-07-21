@@ -358,7 +358,8 @@ def anexo_delete_view(request, pk):
 
 @user_editor_module
 def anexos_pdf_view(request):
-    # Obtener anexos activos y agruparlos por unidad organizacional
+    from core.models.unidad_organizacional import UnidadOrganizacional
+    # Obtener anexos activos y agruparlos por unidad organizacional (departamento)
 
     # Optimizamos la consulta
     queryset = Anexo.objects.filter(is_active=True)
@@ -371,41 +372,70 @@ def anexos_pdf_view(request):
     ).order_by('funcionario__unidad_organizacional__nombre', 'unidad_organizacional__nombre', 'funcionario__nombres',
                'nombre_anexo')
 
+    # Mapeo de todas las UOs para encontrar departamentos eficientemente sin N+1
+    all_uos = {u.id: u for u in UnidadOrganizacional.objects.all()}
+
+    def get_main_department(uo):
+        if not uo:
+            return None
+        # Usamos la unidad del mapa para asegurar acceso a los campos necesarios
+        curr = all_uos.get(uo.id) or uo
+
+        # Buscamos el departamento de mayor nivel (el más cercano a la raíz)
+        top_depto = None
+        temp = curr
+        while temp:
+            if temp.es_departamento:
+                top_depto = temp
+            if not temp.padre_id:
+                # Si llegamos a la raíz y no hay nada marcado como depto, la raíz es el depto
+                if not top_depto:
+                    top_depto = temp
+                break
+            temp = all_uos.get(temp.padre_id)
+        return top_depto
+
     # Lista de colores pasteles
     pastel_colors = [
         '#FFD1DC', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA',
         '#F3FFE3', '#E0BBE4', '#CFD8DC', '#FFF9C4', '#F1F8E9', '#E1F5FE'
     ]
 
-    # Agrupar por unidad
+    # Agrupar por departamento
     unidades_dict = {}
     color_index = 0
     for anexo in anexos:
-        if anexo.funcionario:
-            uo = anexo.funcionario.unidad_organizacional
-        else:
-            uo = anexo.unidad_organizacional
+        # Prioridad a la unidad del funcionario
+        uo = anexo.funcionario.unidad_organizacional if anexo.funcionario else anexo.unidad_organizacional
 
-        uo_id = uo.id if uo else 0
-        uo_nombre = uo.nombre if uo else "SIN UNIDAD"
+        depto = get_main_department(uo)
+        # Usamos el nombre para la clave de agrupación para asegurar que nombres idénticos se junten
+        # pero incluimos el ID en el objeto para mantener referencias si fuera necesario
+        depto_id = depto.id if depto else 0
+        depto_nombre = depto.nombre if depto else "SIN UNIDAD"
 
-        if uo_id not in unidades_dict:
-            unidades_dict[uo_id] = {
-                'nombre': uo_nombre,
+        if depto_nombre not in unidades_dict:
+            unidades_dict[depto_nombre] = {
+                'id': depto_id,
+                'nombre': depto_nombre,
                 'anexos_list': [],
                 'color': pastel_colors[color_index % len(pastel_colors)]
             }
             color_index += 1
-        unidades_dict[uo_id]['anexos_list'].append(anexo)
+        unidades_dict[depto_nombre]['anexos_list'].append(anexo)
 
-    # Convertir a lista para el template
-    unidades = list(unidades_dict.values())
+    # Convertir a lista y ordenar por nombre de departamento
+    unidades = sorted(unidades_dict.values(), key=lambda x: x['nombre'])
 
     # Renderizar el HTML
-    html_string = render_to_string('anexos/anexos_pdf.html', {'unidades': unidades})
+    html_string = render_to_string('anexos/anexos_pdf.html', {
+        'unidades': unidades,
+        'request': request,
+    })
 
     # Crear el PDF
-    html = HTML(string=html_string)
+    base_url = request.build_absolute_uri('/')
+    html = HTML(string=html_string, base_url=base_url)
     pdf = html.write_pdf()
 
     # Devolver el PDF

@@ -67,6 +67,14 @@ class AnexoFuncionarioForm(forms.ModelForm):
             if len(anexo) != 6:
                 raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
 
+            # Verificar si ya existe un anexo con este número
+            anexo_query = Anexo.objects.filter(anexo=anexo)
+            if self.instance and self.instance.pk:
+                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+            if anexo_query.exists():
+                raise ValidationError("Ya existe un registro con este número de anexo.")
+
         return anexo
 
     def clean(self):
@@ -129,7 +137,7 @@ class AnexoFuncionarioCompletoForm(forms.ModelForm):
         max_length=12,
         label="Rut (Consulte si el funcionario existe)",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "RUT"}),
+        widget=forms.TextInput(attrs={"placeholder": "RUT", }),
     )
     nombres = forms.CharField(
         max_length=255,
@@ -180,6 +188,30 @@ class AnexoFuncionarioCompletoForm(forms.ModelForm):
         rut = self.cleaned_data.get("rut")
         if rut:
             rut = rut.upper()
+
+            # Validación de RUT Chileno (Algoritmo Módulo 11)
+            rut_limpio = rut.replace(".", "").replace("-", "")
+            if len(rut_limpio) < 2:
+                raise ValidationError("El RUT no tiene un formato válido.")
+
+            cuerpo = rut_limpio[:-1]
+            dv = rut_limpio[-1]
+
+            if not cuerpo.isdigit():
+                raise ValidationError("El cuerpo del RUT debe contener solo números.")
+
+            suma = 0
+            multiplo = 2
+            for c in reversed(cuerpo):
+                suma += int(c) * multiplo
+                multiplo = 2 if multiplo == 7 else multiplo + 1
+
+            dv_esperado = 11 - (suma % 11)
+            dv_real = '0' if dv_esperado == 11 else 'K' if dv_esperado == 10 else str(dv_esperado)
+
+            if dv != dv_real:
+                raise ValidationError("El RUT ingresado no es válido.")
+
             from core.models.funcionario import Funcionario
 
             funcionario = Funcionario.objects.filter(rut=rut).first()
@@ -206,6 +238,15 @@ class AnexoFuncionarioCompletoForm(forms.ModelForm):
                 raise ValidationError("El anexo solo puede contener números.")
             if len(anexo) != 6:
                 raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+
+            # Verificar si ya existe un anexo con este número
+            anexo_query = Anexo.objects.filter(anexo=anexo)
+            if self.instance and self.instance.pk:
+                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+            if anexo_query.exists():
+                raise ValidationError("Ya existe un registro con este número de anexo.")
+
         return anexo
 
     def clean(self):
@@ -286,6 +327,15 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
                 raise ValidationError("El anexo solo puede contener números.")
             if len(anexo) != 6:
                 raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+
+            # Verificar si ya existe un anexo con este número
+            anexo_query = Anexo.objects.filter(anexo=anexo)
+            if self.instance and self.instance.pk:
+                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+            if anexo_query.exists():
+                raise ValidationError("Ya existe un registro con este número de anexo.")
+
         return anexo
 
     def clean(self):
