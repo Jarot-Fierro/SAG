@@ -41,7 +41,7 @@
                                     {{ filter_form.rol_organizacional }}
                                     {{ filter_form.unidad_organizacional }}
 
-                                    {{ filter_form.is_active }}
+                                    {{ filter_form.subdepartamento }}
 
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-funnel-fill me-1"></i>
@@ -68,7 +68,7 @@
                                 <th scope="col">Teléfono</th>
                                 <th scope="col">Nombres</th>
                                 <th scope="col">Email</th>
-                                <th scope="col">Unidad Organizacional</th>
+                                <th scope="col">Departamentos</th>
                                 <th scope="col">Dirección</th>
                                 <th scope="col">Puesto</th>
                                 <th scope="col">Cargo</th>
@@ -169,4 +169,16 @@
         </div>
         <!-- /.col -->
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione una opción',
+                allowClear: true
+            });
+        });
+    </script>
 {% endblock %}

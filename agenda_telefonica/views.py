@@ -13,7 +13,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 from weasyprint import HTML
 
 from agenda_telefonica.decorators import user_editor_module
-from agenda_telefonica.filters import AnexoFilter
+from agenda_telefonica.filters import AnexoFilter, AnexoEditFilter
 from agenda_telefonica.forms import (
     AnexoFilterForm,
     AnexoFuncionarioCompletoForm,
@@ -43,6 +43,7 @@ def buscar_anexo(request):
     establecimiento_id = request.GET.get('establecimiento')
     per_page = request.GET.get('per_page', 10)
     unidad_organizacional_id = request.GET.get('unidad_organizacional')
+    subdepartamento_id = request.GET.get('subdepartamento')
 
     queryset = Anexo.objects.select_related(
         'funcionario',
@@ -58,7 +59,15 @@ def buscar_anexo(request):
     if establecimiento_id:
         queryset = queryset.filter(establecimiento_id=establecimiento_id)
 
-    if unidad_organizacional_id:
+    if subdepartamento_id:
+        from core.models.unidad_organizacional import UnidadOrganizacional
+        subdepto = get_object_or_404(UnidadOrganizacional, id=subdepartamento_id)
+        descendientes = subdepto.get_descendants(include_self=True).filter(is_active=True)
+        queryset = queryset.filter(
+            Q(funcionario__unidad_organizacional__in=descendientes) |
+            Q(unidad_organizacional__in=descendientes)
+        )
+    elif unidad_organizacional_id:
         # Filtrar por la unidad seleccionada y todas sus descendientes
         from core.models.unidad_organizacional import UnidadOrganizacional
         unidad = get_object_or_404(UnidadOrganizacional, id=unidad_organizacional_id)
@@ -465,14 +474,19 @@ class AnexoListView(ListView):
                     | Q(rol_organizacional=data["rol_organizacional"])
                 )
 
-            if data["unidad_organizacional"]:
+            if data.get("subdepartamento"):
+                descendientes = data["subdepartamento"].get_descendants(include_self=True)
                 queryset = queryset.filter(
-                    Q(funcionario__unidad_organizacional=data["unidad_organizacional"])
-                    | Q(unidad_organizacional=data["unidad_organizacional"])
+                    Q(funcionario__unidad_organizacional__in=descendientes)
+                    | Q(unidad_organizacional__in=descendientes)
                 )
-
-            if data["is_active"]:
-                queryset = queryset.filter(is_active=(data["is_active"] == "True"))
+            elif data.get("unidad_organizacional"):
+                # Filtrar por la unidad seleccionada y todas sus descendientes
+                descendientes = data["unidad_organizacional"].get_descendants(include_self=True)
+                queryset = queryset.filter(
+                    Q(funcionario__unidad_organizacional__in=descendientes)
+                    | Q(unidad_organizacional__in=descendientes)
+                )
 
         return queryset
 
@@ -616,7 +630,7 @@ class AnexoEditListView(LoginRequiredMixin, ListView):
                     Q(unidad_organizacional__in=unidades)
                 )
 
-        self.filter_form = AnexoFilter(self.request.GET)
+        self.filter_form = AnexoEditFilter(self.request.GET)
 
         if self.filter_form.is_valid():
             data = self.filter_form.cleaned_data
@@ -653,10 +667,18 @@ class AnexoEditListView(LoginRequiredMixin, ListView):
                     | Q(rol_organizacional=data["rol_organizacional"])
                 )
 
-            if data["unidad_organizacional"]:
+            if data.get("subdepartamento"):
+                descendientes = data["subdepartamento"].get_descendants(include_self=True)
                 queryset = queryset.filter(
-                    Q(funcionario__unidad_organizacional=data["unidad_organizacional"])
-                    | Q(unidad_organizacional=data["unidad_organizacional"])
+                    Q(funcionario__unidad_organizacional__in=descendientes)
+                    | Q(unidad_organizacional__in=descendientes)
+                )
+            elif data.get("unidad_organizacional"):
+                # Filtrar por la unidad seleccionada y todas sus descendientes
+                descendientes = data["unidad_organizacional"].get_descendants(include_self=True)
+                queryset = queryset.filter(
+                    Q(funcionario__unidad_organizacional__in=descendientes)
+                    | Q(unidad_organizacional__in=descendientes)
                 )
 
             if data["is_active"]:

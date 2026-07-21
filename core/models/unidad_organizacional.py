@@ -12,6 +12,8 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
         related_name="unidades"
     )
     unidad_principal = models.BooleanField(default=False)
+    es_departamento = models.BooleanField(default=False, verbose_name='Es Departamento')
+    es_subdepartamento = models.BooleanField(default=False, verbose_name='Es Subdepartamento')
     nombre = models.CharField(max_length=200, default='SIN NOMBRE', null=False, blank=False)
     direccion = models.ForeignKey(
         "core.direccion",
@@ -43,7 +45,7 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
         level_attr = 'level'
 
     def __str__(self):
-        return self.get_jerarquia()
+        return self.nombre
 
     def get_jerarquia(self):
         return " > ".join(self.get_jerarquia_list())

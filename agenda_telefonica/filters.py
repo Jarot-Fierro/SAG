@@ -75,25 +75,22 @@ class AnexoFilter(forms.Form):
     )
 
     unidad_organizacional = UnidadOrganizacionalModelChoiceField(
-        queryset=UnidadOrganizacional.objects.all(),
+        queryset=UnidadOrganizacional.objects.filter(es_departamento=True),
         required=False,
-        empty_label="Todas las Unidades",
+        empty_label="Todas los Departamentos",
         widget=forms.Select(attrs={
             "class": "form-control",
-            "data-placeholder": "Unidad organizacional"
+            "data-placeholder": "Departamento"
         })
     )
 
-    is_active = forms.ChoiceField(
+    subdepartamento = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.filter(es_subdepartamento=True),
         required=False,
-        choices=(
-            ("", "Todos los estados"),
-            ("True", "Activo"),
-            ("False", "Inactivo"),
-        ),
+        empty_label="Todas los Subdepartamentos",
         widget=forms.Select(attrs={
             "class": "form-control",
-            "data-placeholder": "Estado"
+            "data-placeholder": "Subdepartamento"
         })
     )
 
@@ -177,5 +174,25 @@ class AnexoEditFilter(forms.Form):
         widget=forms.Select(attrs={
             "class": "form-control",
             "data-placeholder": "Estado"
+        })
+    )
+
+    unidad_organizacional = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.filter(es_departamento=True),
+        required=False,
+        empty_label="Todas los Departamentos",
+        widget=forms.Select(attrs={
+            "class": "form-control",
+            "data-placeholder": "Departamento"
+        })
+    )
+
+    subdepartamento = UnidadOrganizacionalModelChoiceField(
+        queryset=UnidadOrganizacional.objects.filter(es_subdepartamento=True),
+        required=False,
+        empty_label="Todas los Subdepartamentos",
+        widget=forms.Select(attrs={
+            "class": "form-control",
+            "data-placeholder": "Subdepartamento"
         })
     )
