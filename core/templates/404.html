@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Error 404 | SAG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    {% include 'core/components/subscomponents/styles.html' %}
+</head>
+<body class="bg-light">
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="col-md-6 text-center">
+            <div class="card card-outline card-danger shadow">
+                <div class="card-header">
+                    <h1 class="card-title text-danger fw-bold" style="font-size: 5rem;">404</h1>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-danger">Página No Encontrada</h2>
+                    <p class="lead">Lo sentimos, la página que estás buscando no existe.</p>
+                    <a href="{% url 'usuarios:login' %}" class="btn btn-danger btn-lg mt-3">
+                        <i class="bi bi-house-door"></i> Ir al Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

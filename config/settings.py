@@ -64,9 +64,9 @@ CSRF_COOKIE_SAMESITE = os.getenv('CSRF_COOKIE_SAMESITE', 'Lax')
 USE_X_FORWARDED_HOST = os.getenv('USE_X_FORWARDED_HOST', 'True') == 'True'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 # Configuración de sesiones
-SESSION_COOKIE_AGE = 3600  # 1 hora por defecto
-SESSION_SAVE_EVERY_REQUEST = True  # Para que la inactividad se cuente desde la última petición
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Por defecto expira al cerrar el navegador si no se dice lo contrario
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', 3600))
+SESSION_SAVE_EVERY_REQUEST = os.getenv('SESSION_SAVE_EVERY_REQUEST', 'True') == 'True'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv('SESSION_EXPIRE_AT_BROWSER_CLOSE', 'True') == 'True'
 
 # Application definition
 

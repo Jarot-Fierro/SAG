@@ -11,3 +11,7 @@ urlpatterns = [
     path('horos/', include('horos.urls')),
     # path('gestion/', include('gestion_tic.urls')),
 ]
+
+handler404 = 'core.views.errors.handler404'
+handler403 = 'core.views.errors.handler403'
+handler500 = 'core.views.errors.handler500'

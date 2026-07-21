@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView
 from weasyprint import HTML
 
-from agenda_telefonica.decorators import user_editor_module
+from agenda_telefonica.decorators import user_editor_module, user_mantenedores_module
 from agenda_telefonica.filters import AnexoFilter, AnexoEditFilter
 from agenda_telefonica.forms import (
     AnexoFilterForm,
@@ -493,6 +493,8 @@ class AnexoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["filter_form"] = self.filter_form
+        context["establecimiento_select"] = Establecimiento.objects.filter(
+            pk=self.request.GET.get("establecimiento")).first()
         return context
 
 
@@ -696,4 +698,45 @@ class AnexoEditListView(LoginRequiredMixin, ListView):
                 self.filter_form.fields['unidad_organizacional'].queryset = unidades
 
         context["filter_form"] = self.filter_form
+        context["establecimiento_select"] = Establecimiento.objects.filter(
+            pk=self.request.GET.get("establecimiento")).first()
         return context
+
+
+@login_required
+@user_mantenedores_module
+def mantenedores_list_view(request, tipo):
+    from core.views.direccion import DireccionListView
+    from core.views.unidad_organizacional import UnidadOrganizacionalListView
+    if tipo == 'direccion':
+        return DireccionListView.as_view()(request)
+    elif tipo == 'servicio':
+        return UnidadOrganizacionalListView.as_view()(request)
+    else:
+        raise Http404
+
+
+@login_required
+@user_mantenedores_module
+def mantenedores_create_view(request, tipo):
+    from core.views.direccion import DireccionCreateView
+    from core.views.unidad_organizacional import UnidadOrganizacionalCreateView
+    if tipo == 'direccion':
+        return DireccionCreateView.as_view()(request)
+    elif tipo == 'servicio':
+        return UnidadOrganizacionalCreateView.as_view()(request)
+    else:
+        raise Http404
+
+
+@login_required
+@user_mantenedores_module
+def mantenedores_update_view(request, tipo, pk):
+    from core.views.direccion import DireccionUpdateView
+    from core.views.unidad_organizacional import UnidadOrganizacionalUpdateView
+    if tipo == 'direccion':
+        return DireccionUpdateView.as_view()(request, pk=pk)
+    elif tipo == 'servicio':
+        return UnidadOrganizacionalUpdateView.as_view()(request, pk=pk)
+    else:
+        raise Http404

@@ -1,5 +1,6 @@
 from django.db import models
 
+from core.models import Establecimiento
 from core.standard.models import StandardModel
 
 
@@ -13,6 +14,14 @@ class Direccion(StandardModel):
                   "Para obtener mejores resultados: 1. Busque la dirección en Google Maps. 2. Haga clic en 'Compartir'. "
                   "3. Seleccione 'Insertar un mapa' y copie solo el contenido entre comillas de 'src=\"...\"'. "
                   "Si pega el enlace normal de compartir, se mostrará un botón para abrirlo externamente."
+    )
+    establecimiento = models.ForeignKey(
+        Establecimiento,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Establecimiento",
+        related_name="direcciones_modelo"
     )
 
     class Meta:

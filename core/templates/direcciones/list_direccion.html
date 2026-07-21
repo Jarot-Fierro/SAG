@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Direcciones {{ request.user.establecimiento }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'core/menu_sidebar_agenda.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'agenda:mantenedores_create' tipo='direccion' %}"
+       class="btn btn-sm btn-primary"
+       title="Nuevo Registro">
+        <i class="bi bi-plus-circle me-1"></i>
+        Nueva Dirección
+    </a>
+{% endblock %}
+
+
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0">
+                            <thead>
+                            <tr>
+                                <th scope="col">Nombre</th>
+                                <th scope="col">Enlace Google Maps</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col" class="text-end">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for direccion in direcciones %}
+                                <tr>
+                                    <td>{{ direccion.nombre }}</td>
+                                    <td>
+                                        {% if direccion.enlace_google_maps %}
+                                            <a href="{{ direccion.enlace_google_maps }}" target="_blank"
+                                               class="text-primary text-decoration-none">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>Ver ubicación
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if direccion.is_active %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'agenda:mantenedores_update' tipo='direccion' pk=direccion.pk %}"
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-body-secondary py-4">
+                                        No se encontraron direcciones.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        registros
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
