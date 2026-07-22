@@ -453,11 +453,16 @@ class AnexoListView(ListView):
 
     def get_queryset(self):
         establecimiento_id = self.request.GET.get("establecimiento")
-        if establecimiento_id:
-            queryset = self.model.objects.filter(establecimiento_id=establecimiento_id)
+        if self.request.user.is_authenticated:
+
+            if establecimiento_id:
+                queryset = self.model.objects.filter(establecimiento_id=establecimiento_id)
+            else:
+                establecimiento = getattr(self.request.user, "establecimiento", None)
+                queryset = self.model.objects.filter(establecimiento=establecimiento)
         else:
-            establecimiento = getattr(self.request.user, "establecimiento", None)
-            queryset = self.model.objects.filter(establecimiento=establecimiento)
+            obj = Establecimiento.objects.order_by('id').first()
+            queryset = self.model.objects.filter(establecimiento=obj.id)
 
         queryset = queryset.select_related(
             "establecimiento",
