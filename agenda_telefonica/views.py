@@ -453,16 +453,12 @@ class AnexoListView(ListView):
 
     def get_queryset(self):
         establecimiento_id = self.request.GET.get("establecimiento")
-        if self.request.user.is_authenticated:
 
-            if establecimiento_id:
-                queryset = self.model.objects.filter(establecimiento_id=establecimiento_id)
-            else:
-                establecimiento = getattr(self.request.user, "establecimiento", None)
-                queryset = self.model.objects.filter(establecimiento=establecimiento)
+        if establecimiento_id:
+            queryset = self.model.objects.filter(establecimiento_id=establecimiento_id)
         else:
-            obj = Establecimiento.objects.order_by('id').first()
-            queryset = self.model.objects.filter(establecimiento=obj.id)
+            establecimiento = Establecimiento.objects.order_by("id").first()
+            queryset = self.model.objects.filter(establecimiento=establecimiento)
 
         queryset = queryset.select_related(
             "establecimiento",
@@ -528,8 +524,11 @@ class AnexoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["filter_form"] = self.filter_form
-        context["establecimiento_select"] = Establecimiento.objects.filter(
-            pk=self.request.GET.get("establecimiento")).first()
+        establecimiento_id = self.request.GET.get("establecimiento")
+        if establecimiento_id:
+            context["establecimiento_select"] = Establecimiento.objects.filter(pk=establecimiento_id).first()
+        else:
+            context["establecimiento_select"] = Establecimiento.objects.order_by("id").first()
         return context
 
 
