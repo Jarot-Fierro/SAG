@@ -38,7 +38,7 @@
 
         </ul>
         <ul class="navbar-nav ms-auto">
-            {% if user.is_authenticated and user.is_staff %}
+            {% if user.is_authenticated and user.is_staff and user.is_superuser %}
                 <li class="nav-item d-flex align-items-center me-2">
                     <select class="form-select form-select-sm"
                             onchange="window.location.href='{% url 'usuarios:cambiar_establecimiento' 0 %}'.replace('0', this.value)">
@@ -50,7 +50,7 @@
                         {% endfor %}
                     </select>
                 </li>
-            {% else %}
+            {% elif user.is_authenticated and not user.is_staff and not user.is_superuser %}
                 <li class="nav-item d-flex align-items-center me-2">
                     <select class="form-select form-select-sm">
                         <option value="request.user.establecimiento.id">
@@ -115,46 +115,50 @@
                     </li>
                 </ul>
             </li>
-            <li class="nav-item dropdown user-menu">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <img
-                            src="{% static 'core/media/logo_redondo_ssa.jpg' %}"
-                            class="user-image rounded-circle shadow"
-                            alt="Imagen de perfil"
-                            style="border-radius: 50%"
-                    />
-                    <span class="d-none d-md-inline">
+
+            {% if user.is_authenticated %}
+                <li class="nav-item dropdown user-menu">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <img
+                                src="{% static 'core/media/logo_redondo_ssa.jpg' %}"
+                                class="user-image rounded-circle shadow"
+                                alt="Imagen de perfil"
+                                style="border-radius: 50%"
+                        />
+                        <span class="d-none d-md-inline">
                         {% if user.get_full_name %}
                             {{ user.get_full_name }}
                         {% else %}
                             {{ user.username }}
                         {% endif %}
                     </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-                    <li class="user-header text-bg-primary">
-                        <img
-                                src="{% static 'core/media/logo_redondo_ssa.jpg' %}"
-                                class="rounded-circle shadow"
-                                alt="User Image"
-                        />
-                        <p>
-                            {{ user.username }}
-                            <br>
-                            {{ user.get_full_name }}
-                            <small>{{ user.date_joined }}</small>
-                        </p>
-                    </li>
-                    <li class="user-footer">
-                        <a href="{% url 'usuarios:perfil' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-person-circle me-1"></i>Perfil
-                        </a>
-                        <a href="{% url 'usuarios:logout' %}" class="btn btn-outline-danger float-end">
-                            <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
-                        </a>
-                    </li>
-                </ul>
-            </li>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                        <li class="user-header text-bg-primary">
+                            <img
+                                    src="{% static 'core/media/logo_redondo_ssa.jpg' %}"
+                                    class="rounded-circle shadow"
+                                    alt="User Image"
+                            />
+                            <p>
+                                {{ user.username }}
+                                <br>
+                                {{ user.get_full_name }}
+                                <small>{{ user.date_joined }}</small>
+                            </p>
+                        </li>
+                        <li class="user-footer">
+                            <a href="{% url 'usuarios:perfil' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-person-circle me-1"></i>Perfil
+                            </a>
+                            <a href="{% url 'usuarios:logout' %}" class="btn btn-outline-danger float-end">
+                                <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
+
         </ul>
     </div>
 </nav>

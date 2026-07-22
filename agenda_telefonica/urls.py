@@ -5,7 +5,7 @@ from agenda_telefonica import views
 app_name = 'agenda'
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    # path('', views.index, name='index'),
     path('buscar/', views.buscar_anexo, name='buscar_anexo'),
     path('anexos/', views.anexos_view, name='anexos'),
     path('anexos/nuevo/', views.anexos_view, name='anexo_nuevo'),
@@ -16,7 +16,7 @@ urlpatterns = [
          name='anexo_sin_funcionario_editar'),
     path('anexos/eliminar/<int:pk>/', views.anexo_delete_view, name='anexo_delete'),
 
-    path('listado-anexos', views.AnexoListView.as_view(), name='list_anexos'),
+    path('', views.AnexoListView.as_view(), name='list_anexos'),
     path('listado-anexos-edit', views.AnexoEditListView.as_view(), name='list_anexos_edit'),
 
     path('mantenedores/<str:tipo>/', views.mantenedores_list_view, name='mantenedores'),
