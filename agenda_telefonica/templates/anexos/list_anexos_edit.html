@@ -4,6 +4,13 @@
 {% endblock %}
 
 {% block buttons %}
+
+    <a href="{% url 'agenda:anexos_pdf' %}"
+       class="btn btn-sm btn-danger"
+       title="PDF">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i>
+        PDF
+    </a>
     <a href="{% url 'agenda:anexo_nuevo' %}"
        class="btn btn-sm btn-primary"
        title="Nuevo Registro">
