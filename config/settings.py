@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'import_export',
     'django_select2',
     'mptt',
+    'django_user_agents',
     # STANDARD
     'core.apps.CoreConfig',
     # AGENDA TELEFONICA
@@ -105,6 +106,7 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
     'core.middleware.MantenimientoMiddleware',
 ]
 
@@ -187,3 +189,11 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+
+# Configuración Recuperación de Contraseña
+PASSWORD_RECOVERY_EXPIRATION_MINUTES = 30
+PASSWORD_RECOVERY_MAX_REQUESTS_PER_USER = 3
+PASSWORD_RECOVERY_MAX_REQUESTS_PER_IP = 5
+PASSWORD_RECOVERY_RATE_LIMIT_MINUTES = 15
+PASSWORD_RECOVERY_EMAIL_SUBJECT = 'Recuperación de Contraseña - SAG'
+PASSWORD_RECOVERY_BASE_URL = os.getenv('PASSWORD_RECOVERY_BASE_URL', 'http://localhost:8000')

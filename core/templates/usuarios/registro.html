@@ -3,27 +3,6 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>SAG | Registro</title>
-    <!--begin::Theme Init-->
-    <script>
-        (() => {
-            'use strict';
-            const STORAGE_KEY = 'lte-theme';
-            let stored = null;
-            try {
-                stored = localStorage.getItem(STORAGE_KEY);
-            } catch {
-            }
-            const prefersDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
-            let resolved = 'light';
-            if (stored === 'dark' || stored === 'light') {
-                resolved = stored;
-            } else if (prefersDark) {
-                resolved = 'dark';
-            }
-            document.documentElement.setAttribute('data-bs-theme', resolved);
-            document.documentElement.style.colorScheme = resolved;
-        })();
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css">
     <link rel="stylesheet"
