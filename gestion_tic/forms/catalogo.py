@@ -1,42 +1,13 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from ..models.catalogo import Categoria, Contrato, Ips, JefeTic, LicenciaOs, Marca, MicrosoftOffice, Modelo, \
-    Propietario, PuestoTrabajo, SistemaOperativo, SubCategoria, TipoCelular, TipoComputador, TipoImpresora, Toner
+from ..models.catalogo import Contrato, Ips, JefeTic, LicenciaOs, Marca, MicrosoftOffice, Modelo, \
+    Propietario, TipoCelular, TipoComputador, TipoImpresora, Toner
 
 
 def validate_exists(value, exists):
     if exists:
         raise ValidationError(f"{value} ya existe.")
-
-
-class FormCategoria(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la categoria',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_categoria',
-                'class': 'form-control',
-                'placeholder': 'Monitor/Cables/Adaptadores/Pendrives/Switch/Routers',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Categoria.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
-    class Meta:
-        model = Categoria
-        fields = ['nombre']
 
 
 class FormContrato(forms.ModelForm):
@@ -52,16 +23,6 @@ class FormContrato(forms.ModelForm):
             }),
         required=True
     )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Contrato.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
 
     class Meta:
         model = Contrato
@@ -83,16 +44,12 @@ class FormIps(forms.ModelForm):
         ),
         required=True
     )
-
-    establecimiento = forms.ModelChoiceField(
-        label='Establecimiento',
-        queryset=None,
+    asignado = forms.BooleanField(
         required=False,
-        empty_label='Seleccione un establecimiento',
-        widget=forms.Select(
+        widget=forms.CheckboxInput(
             attrs={
-                'id': 'ip_establecimiento',
-                'class': 'form-control select2'
+                'id': 'ip_asignado',
+                'class': 'form-check-input'
             }
         )
     )
@@ -115,26 +72,11 @@ class FormIps(forms.ModelForm):
         fields = [
             'ip',
             'asignado',
-            'establecimiento',
             'observacion',
         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields['establecimiento'].queryset = self._meta.model._meta.get_field(
-            'establecimiento').related_model.objects.all().order_by('nombre')
-
-    def clean_ip(self):
-        ip = self.cleaned_data['ip']
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Ips.objects.filter(ip__iexact=ip).exclude(
-            pk=current_instance.pk if current_instance else None
-        ).exists()
-
-        validate_exists(ip, exists)
-        return ip
 
 
 class FormJefeTic(forms.ModelForm):
@@ -169,16 +111,6 @@ class FormJefeTic(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = JefeTic.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = JefeTic
         fields = ['nombre', 'posicion']
@@ -197,16 +129,6 @@ class FormLicenciaOs(forms.ModelForm):
             }),
         required=True
     )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = LicenciaOs.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
 
     class Meta:
         model = LicenciaOs
@@ -227,16 +149,6 @@ class FormMarca(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Marca.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = Marca
         fields = ['nombre']
@@ -255,16 +167,6 @@ class FormMicrosoftOffice(forms.ModelForm):
             }),
         required=True
     )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = MicrosoftOffice.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
 
     class Meta:
         model = MicrosoftOffice
@@ -285,16 +187,6 @@ class FormModelo(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Modelo.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = Modelo
         fields = ['nombre']
@@ -314,128 +206,9 @@ class FormPropietario(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Propietario.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = Propietario
         fields = ['nombre']
-
-
-class FormPuestoTrabajo(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la categoria',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_categoria',
-                'class': 'form-control',
-                'placeholder': 'PuestoTrabajo',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = PuestoTrabajo.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
-    class Meta:
-        model = PuestoTrabajo
-        fields = ['nombre']
-
-
-class FormSistemaOperativo(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la sistema operativo',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_sistema_operativo',
-                'class': 'form-control',
-                'placeholder': 'Windows 11 / Windows 10 / Windows 7 / Linux / macOS',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = SistemaOperativo.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
-    class Meta:
-        model = SistemaOperativo
-        fields = ['nombre']
-
-
-class FormSubCategoria(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la subcategoria',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_subcategoria',
-                'class': 'form-control',
-                'placeholder': 'Pulgadas/Modelo/Tipo',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-    categoria = forms.ModelChoiceField(
-        required=True,
-        empty_label='Selecciona una Categoría',
-        label='Categoría',
-        queryset=Categoria.objects.filter(is_active=True),
-        widget=forms.Select(
-            attrs={
-                'id': 'categoria_subcategoria',
-                'class': 'form-control select2',
-            }
-        ),
-    )
-    ver_mantencion = forms.BooleanField(
-        required=False,
-        label='Ver para Mantención',
-        widget=forms.CheckboxInput(attrs={'class': 'mt-4 form-check-input'}),
-    )
-    ver_informatica = forms.BooleanField(
-        required=False,
-        label='Ver para Informática',
-        widget=forms.CheckboxInput(attrs={'class': 'mt-4 form-check-input'}),
-    )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = SubCategoria.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
-    class Meta:
-        model = SubCategoria
-        fields = ['nombre', 'categoria', 'ver_mantencion', 'ver_informatica']
 
 
 class FormTipoCelular(forms.ModelForm):
@@ -451,16 +224,6 @@ class FormTipoCelular(forms.ModelForm):
             }),
         required=True
     )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = TipoCelular.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
 
     class Meta:
         model = TipoCelular
@@ -481,16 +244,6 @@ class FormTipoComputador(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = TipoComputador.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = TipoComputador
         fields = ['nombre']
@@ -510,16 +263,6 @@ class FormTipoImpresora(forms.ModelForm):
         required=True
     )
 
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = TipoImpresora.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
-
     class Meta:
         model = TipoImpresora
         fields = ['nombre']
@@ -538,16 +281,6 @@ class FormToner(forms.ModelForm):
             }),
         required=True
     )
-
-    def clean_nombre(self):
-        nombre = self.cleaned_data['nombre'].strip()
-        current_instance = self.instance if self.instance.pk else None
-
-        exists = Toner.objects.filter(nombre__iexact=nombre).exclude(
-            pk=current_instance.pk if current_instance else None).exists()
-
-        validate_exists(nombre, exists)
-        return nombre
 
     class Meta:
         model = Toner

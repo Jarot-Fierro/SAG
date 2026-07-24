@@ -1,13 +1,31 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from core.standard.admin import StandardAdmin
 from gestion_tic.models.catalogo import (
-    Marca, Categoria, SubCategoria, Modelo, Propietario, LicenciaOs,
-    MicrosoftOffice, SistemaOperativo, TipoCelular, TipoComputador,
-    TipoImpresora, Toner, JefeTic, Contrato, PuestoTrabajo, Ips
+    Marca, Modelo, Propietario, LicenciaOs,
+    MicrosoftOffice, TipoCelular, TipoComputador,
+    TipoImpresora, Toner, JefeTic, Contrato, Ips
 )
 from gestion_tic.models.celular import Celular
 from gestion_tic.models.equipos import Equipo, AsignacionIP
+
+
+# ==============================================================================
+# BASE TIC ADMIN
+# ==============================================================================
+
+class TicStandardAdmin(StandardAdmin):
+    actions = StandardAdmin.actions + ['asignar_establecimiento']
+
+    @admin.action(description='Asignar mi establecimiento masivamente')
+    def asignar_establecimiento(self, request, queryset):
+        establecimiento = getattr(request.user, 'establecimiento', None)
+        if not establecimiento:
+            self.message_user(request, "Su usuario no tiene un establecimiento asignado.", level=messages.ERROR)
+            return
+
+        updated = queryset.update(establecimiento=establecimiento)
+        self.message_user(request, f"Se han asignado {updated} registros al establecimiento: {establecimiento}")
 
 
 # ==============================================================================
@@ -15,35 +33,17 @@ from gestion_tic.models.equipos import Equipo, AsignacionIP
 # ==============================================================================
 
 @admin.register(Marca)
-class MarcaAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class MarcaAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
     ordering = ('nombre',)
-
-
-@admin.register(Categoria)
-class CategoriaAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(SubCategoria)
-class SubCategoriaAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'categoria', 'ver_mantencion', 'ver_informatica', 'is_active')
-    search_fields = ('nombre', 'categoria__nombre')
-    list_filter = ('categoria', 'ver_mantencion', 'ver_informatica', 'is_active')
-    list_display_links = ('nombre',)
-    ordering = ('categoria', 'nombre')
 
 
 @admin.register(Modelo)
-class ModeloAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class ModeloAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -51,8 +51,8 @@ class ModeloAdmin(StandardAdmin):
 
 
 @admin.register(Propietario)
-class PropietarioAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class PropietarioAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -60,8 +60,8 @@ class PropietarioAdmin(StandardAdmin):
 
 
 @admin.register(LicenciaOs)
-class LicenciaOsAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class LicenciaOsAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -69,17 +69,8 @@ class LicenciaOsAdmin(StandardAdmin):
 
 
 @admin.register(MicrosoftOffice)
-class MicrosoftOfficeAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(SistemaOperativo)
-class SistemaOperativoAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class MicrosoftOfficeAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -87,8 +78,8 @@ class SistemaOperativoAdmin(StandardAdmin):
 
 
 @admin.register(TipoCelular)
-class TipoCelularAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class TipoCelularAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -96,8 +87,8 @@ class TipoCelularAdmin(StandardAdmin):
 
 
 @admin.register(TipoComputador)
-class TipoComputadorAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class TipoComputadorAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -105,8 +96,8 @@ class TipoComputadorAdmin(StandardAdmin):
 
 
 @admin.register(TipoImpresora)
-class TipoImpresoraAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class TipoImpresoraAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -114,8 +105,8 @@ class TipoImpresoraAdmin(StandardAdmin):
 
 
 @admin.register(Toner)
-class TonerAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class TonerAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -123,8 +114,8 @@ class TonerAdmin(StandardAdmin):
 
 
 @admin.register(JefeTic)
-class JefeTicAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'posicion', 'is_active')
+class JefeTicAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'posicion', 'establecimiento')
     search_fields = ('nombre', 'posicion')
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -132,17 +123,8 @@ class JefeTicAdmin(StandardAdmin):
 
 
 @admin.register(Contrato)
-class ContratoAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(PuestoTrabajo)
-class PuestoTrabajoAdmin(StandardAdmin):
-    list_display = ('id', 'nombre', 'is_active')
+class ContratoAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'establecimiento')
     search_fields = ('nombre',)
     list_filter = ('is_active',)
     list_display_links = ('nombre',)
@@ -150,8 +132,8 @@ class PuestoTrabajoAdmin(StandardAdmin):
 
 
 @admin.register(Ips)
-class IpsAdmin(StandardAdmin):
-    list_display = ('id', 'ip', 'asignado', 'establecimiento', 'is_active')
+class IpsAdmin(TicStandardAdmin):
+    list_display = ('id', 'ip', 'asignado', 'establecimiento',)
     search_fields = ('ip', 'observacion')
     list_filter = ('asignado', 'establecimiento', 'is_active')
     list_display_links = ('ip',)
@@ -163,10 +145,10 @@ class IpsAdmin(StandardAdmin):
 # ==============================================================================
 
 @admin.register(Equipo)
-class EquipoAdmin(StandardAdmin):
+class EquipoAdmin(TicStandardAdmin):
     list_display = (
         'id', 'serie', 'tipo_equipo', 'marca', 'modelo',
-        'establecimiento', 'responsable', 'de_baja', 'is_active'
+        'establecimiento', 'responsable', 'de_baja',
     )
     search_fields = ('serie', 'mac', 'hh', 'observaciones')
     list_filter = (
@@ -184,8 +166,8 @@ class EquipoAdmin(StandardAdmin):
 
 
 @admin.register(AsignacionIP)
-class AsignacionIPAdmin(StandardAdmin):
-    list_display = ('id', 'ip', 'equipo', 'activa', 'is_active')
+class AsignacionIPAdmin(TicStandardAdmin):
+    list_display = ('id', 'ip', 'equipo', 'activa', 'establecimiento')
     search_fields = ('ip__ip', 'equipo__serie', 'observacion')
     list_filter = ('activa', 'is_active')
     list_display_links = ('ip',)
@@ -197,10 +179,10 @@ class AsignacionIPAdmin(StandardAdmin):
 # ==============================================================================
 
 @admin.register(Celular)
-class CelularAdmin(StandardAdmin):
+class CelularAdmin(TicStandardAdmin):
     list_display = (
         'id', 'numero_telefono', 'imei', 'marca', 'modelo',
-        'responsable', 'asignado', 'de_baja', 'is_active'
+        'responsable', 'asignado', 'de_baja', 'establecimiento',
     )
     search_fields = ('numero_telefono', 'imei', 'numero_chip', 'observaciones')
     list_filter = (

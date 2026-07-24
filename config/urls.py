@@ -9,7 +9,7 @@ urlpatterns = [
     # path('soporte/', include('soporte.urls')),
 
     path('horos/', include('horos.urls')),
-    # path('gestion/', include('gestion_tic.urls')),
+    path('gestion/', include('gestion_tic.urls')),
 ]
 
 handler404 = 'core.views.errors.handler404'

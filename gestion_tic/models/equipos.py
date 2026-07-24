@@ -2,13 +2,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from core.models import Establecimiento
-from core.standard.models import StandardModel
+from core.standard.models import StandardModelEstablishment
 from gestion_tic.models.catalogo import Ips, Marca, Modelo, Propietario, JefeTic, Contrato, TipoComputador, \
-    SistemaOperativo, MicrosoftOffice, Toner, TipoImpresora
+    MicrosoftOffice, Toner, TipoImpresora, LicenciaOs
 
 
-class Equipo(StandardModel):
+class Equipo(StandardModelEstablishment):
     TIPO_EQUIPO = (
         ('PC', 'Computador'),
         ('IMP', 'Impresora'),
@@ -32,7 +31,6 @@ class Equipo(StandardModel):
     # UBICACIÓN / RESPONSABLE
     # =========================
     propietario = models.ForeignKey(Propietario, on_delete=models.SET_NULL, null=True, blank=True)
-    establecimiento = models.ForeignKey(Establecimiento, on_delete=models.SET_NULL, null=True, blank=True)
     responsable = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     jefe_entrega = models.ForeignKey(JefeTic, on_delete=models.SET_NULL, null=True, blank=True)
     contrato = models.ForeignKey(Contrato, on_delete=models.SET_NULL, null=True, blank=True)
@@ -42,7 +40,7 @@ class Equipo(StandardModel):
     # =========================
     tipo_pc = models.ForeignKey(TipoComputador, on_delete=models.SET_NULL, null=True, blank=True)
     mac = models.CharField(max_length=30, null=True, blank=True)
-    sistema_operativo = models.ForeignKey(SistemaOperativo, on_delete=models.SET_NULL, null=True, blank=True)
+    sistema_operativo = models.ForeignKey(LicenciaOs, on_delete=models.SET_NULL, null=True, blank=True)
     microsoft_office = models.ForeignKey(MicrosoftOffice, on_delete=models.SET_NULL, null=True, blank=True)
 
     # PC ARMADO
@@ -123,7 +121,7 @@ class Equipo(StandardModel):
         return f'{self.get_tipo_equipo_display()} - {self.serie}'
 
 
-class AsignacionIP(StandardModel):
+class AsignacionIP(StandardModelEstablishment):
     ip = models.OneToOneField(Ips, on_delete=models.CASCADE, related_name='asignacion_ip', verbose_name='Dirección IP')
     equipo = models.OneToOneField(Equipo, on_delete=models.CASCADE, related_name='asignacion_ip', verbose_name='Equipo',
                                   null=True, blank=True)

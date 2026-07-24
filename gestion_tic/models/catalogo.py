@@ -1,10 +1,9 @@
 from django.db import models
 
-from core.models import Establecimiento
-from core.standard.models import StandardModel
+from core.standard.models import StandardModelEstablishment
 
 
-class Marca(StandardModel):
+class Marca(StandardModelEstablishment):
     nombre = models.CharField(max_length=100, verbose_name='Nombre de la Marca')
 
     UPPERCASE_FIELDS = ['nombre']
@@ -12,45 +11,13 @@ class Marca(StandardModel):
     class Meta:
         verbose_name = 'Marca'
         verbose_name_plural = 'Marcas'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class Categoria(StandardModel):
-    nombre = models.CharField(max_length=100, verbose_name='Nombre de la Categoría')
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = 'Categoría'
-        verbose_name_plural = 'Categorías'
-
-    def __str__(self):
-        return self.nombre
-
-
-class SubCategoria(StandardModel):
-    nombre = models.CharField(max_length=100, verbose_name='Nombre de la Subcategoría')
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.CASCADE,
-        verbose_name='Categoría'
-    )
-    ver_mantencion = models.BooleanField(default=False)
-    ver_informatica = models.BooleanField(default=False)
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = 'Subcategoría'
-        verbose_name_plural = 'Subcategorías'
-
-    def __str__(self):
-        return f"{self.categoria} - {self.nombre}"
-
-
-class Modelo(StandardModel):
+class Modelo(StandardModelEstablishment):
     nombre = models.CharField(max_length=100, verbose_name='Nombre del Modelo')
 
     UPPERCASE_FIELDS = ['nombre']
@@ -58,12 +25,13 @@ class Modelo(StandardModel):
     class Meta:
         verbose_name = 'Modelo'
         verbose_name_plural = 'Modelos'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class Propietario(StandardModel):
+class Propietario(StandardModelEstablishment):
     nombre = models.CharField(max_length=100, verbose_name='Nombre del Propietario')
 
     UPPERCASE_FIELDS = ['nombre']
@@ -71,12 +39,13 @@ class Propietario(StandardModel):
     class Meta:
         verbose_name = 'Propietario de Dispositivo'
         verbose_name_plural = 'Propietarios de Dispositivo'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class LicenciaOs(StandardModel):
+class LicenciaOs(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100, verbose_name="Nombre de la Licencia de SO"
     )
@@ -86,12 +55,13 @@ class LicenciaOs(StandardModel):
     class Meta:
         verbose_name = "Licencia de Sistema Operativo"
         verbose_name_plural = "Licencias de Sistema Operativo"
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class MicrosoftOffice(StandardModel):
+class MicrosoftOffice(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100, verbose_name="Nombre de la Licencia de Microsoft Office"
     )
@@ -101,27 +71,13 @@ class MicrosoftOffice(StandardModel):
     class Meta:
         verbose_name = "Licencia de Microsoft Office"
         verbose_name_plural = "Licencias de Microsoft Office"
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class SistemaOperativo(StandardModel):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre del Sistema Operativo"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Sistema Operativo"
-        verbose_name_plural = "Sistemas Operativos"
-
-    def __str__(self):
-        return self.nombre
-
-
-class TipoCelular(StandardModel):
+class TipoCelular(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100, verbose_name="Nombre del tipo plan"
     )
@@ -131,12 +87,13 @@ class TipoCelular(StandardModel):
     class Meta:
         verbose_name = "Tipo Celular"
         verbose_name_plural = "Tipos Celular"
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class TipoComputador(StandardModel):
+class TipoComputador(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100, verbose_name="Nombre del tipo computador"
     )
@@ -146,12 +103,13 @@ class TipoComputador(StandardModel):
     class Meta:
         verbose_name = "Tipo Computador"
         verbose_name_plural = "Tipos Computador"
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class TipoImpresora(StandardModel):
+class TipoImpresora(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100, verbose_name="Nombre del tipo impresora"
     )
@@ -161,12 +119,13 @@ class TipoImpresora(StandardModel):
     class Meta:
         verbose_name = "Tipo Impresora"
         verbose_name_plural = "Tipos Impresoras"
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class Toner(StandardModel):
+class Toner(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
 
     UPPERCASE_FIELDS = ['nombre']
@@ -174,12 +133,13 @@ class Toner(StandardModel):
     class Meta:
         verbose_name = 'Tinta'
         verbose_name_plural = 'Tintas'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class JefeTic(StandardModel):
+class JefeTic(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
     posicion = models.CharField(max_length=100, null=True, blank=True)
 
@@ -188,12 +148,13 @@ class JefeTic(StandardModel):
     class Meta:
         verbose_name = 'JefeTic'
         verbose_name_plural = 'JefesTic'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class Contrato(StandardModel):
+class Contrato(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
 
     UPPERCASE_FIELDS = ['nombre']
@@ -201,39 +162,19 @@ class Contrato(StandardModel):
     class Meta:
         verbose_name = 'Contrato'
         verbose_name_plural = 'Contratos'
+        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 
-class PuestoTrabajo(StandardModel):
-    nombre = models.CharField(max_length=100)
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = 'Puesto de Trabajo'
-        verbose_name_plural = 'Puesto de Trabajo'
-
-    def __str__(self):
-        return self.nombre
-
-
-class Ips(StandardModel):
+class Ips(StandardModelEstablishment):
     ip = models.GenericIPAddressField(
         unique=True,
         protocol='IPv4',
         verbose_name='Dirección IP'
     )
     asignado = models.BooleanField(default=False)
-    establecimiento = models.ForeignKey(
-        Establecimiento,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='ips',
-        verbose_name='Establecimiento'
-    )
     observacion = models.TextField(
         null=True,
         blank=True,

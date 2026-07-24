@@ -6,7 +6,7 @@ from gestion_tic.models.catalogo import (
     Marca,
     Modelo,
     TipoComputador,
-    SistemaOperativo,
+    LicenciaOs,
     MicrosoftOffice, Propietario, JefeTic, Contrato, Ips
 )
 from gestion_tic.models.equipos import AsignacionIP, Equipo
@@ -92,7 +92,7 @@ class FormComputador(forms.ModelForm):
 
     sistema_operativo = forms.ModelChoiceField(
         label='Sistema Operativo',
-        queryset=SistemaOperativo.objects.all(),
+        queryset=LicenciaOs.objects.all(),
         required=False,
         widget=forms.Select(
             attrs={

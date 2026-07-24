@@ -5,38 +5,43 @@
     {% include 'gestion_tic/sidebar.html' %}
 {% endblock %}
 
+{% block buttons %}
+    <div class="card-tools ms-auto">
+        <a href="{{ create_url }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Nuevo
+        </a>
+    </div>
+{% endblock %}
+
 {% block content %}
     <section class="content">
         <div class="container-fluid">
-            <div class="card card-primary card-outline shadow-sm mb-4">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="bi bi-search me-2"></i> Buscar en {{ title }}
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-10">
-                            <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ q }}">
-                        </div>
-                        <div class="col-md-2 d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> Filtrar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">
-                        <i class="bi bi-list-ul me-2"></i> {{ title }}
-                    </h3>
-                    <div class="card-tools ms-auto">
-                        <a href="{{ create_url }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-lg"></i> Nuevo
-                        </a>
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                    </span>
+                                    {{ filter_form.tipo_pc }}
+                                    {{ filter_form.marca }}
+                                    {{ filter_form.serie }}
+                                    {{ filter_form.ip }}
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{% url 'agenda:list_anexos' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -48,7 +53,7 @@
                                 <th>Marca/Modelo</th>
                                 <th>IP</th>
                                 <th>Responsable</th>
-                                <th>Departamento</th>
+                                <th>Propietario</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                             </thead>
@@ -66,7 +71,7 @@
                                             <span class="badge bg-danger">Sin asignar</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ obj.departamento.nombre|default:'<span class="badge bg-danger">Sin asignar</span>'|safe }}</td>
+                                    <td>{{ obj.propietario.nombre|default:'<span class="badge bg-danger">Sin asignar</span>'|safe }}</td>
                                     <td class="text-center">
                                         {% if obj.responsable %}
                                             <a href="{% url 'gestion_tic:computador_pdf' obj.id %}"
@@ -131,4 +136,16 @@
             </div>
         </div>
     </section>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione una opción',
+                allowClear: true
+            });
+        });
+    </script>
 {% endblock %}

@@ -18,12 +18,6 @@ urlpatterns = [
     path('catalogo/marca/editar/<int:pk>/', catalogo.MarcaUpdateView.as_view(), name='marca_update'),
     path('catalogo/marca/desactivar/<int:pk>/', catalogo.marca_desactivar, name='marca_delete'),
 
-    # Categoria
-    path('catalogo/categoria/', catalogo.CategoriaListView.as_view(), name='categoria_list'),
-    path('catalogo/categoria/nuevo/', catalogo.CategoriaCreateView.as_view(), name='categoria_create'),
-    path('catalogo/categoria/editar/<int:pk>/', catalogo.CategoriaUpdateView.as_view(), name='categoria_update'),
-    path('catalogo/categoria/desactivar/<int:pk>/', catalogo.categoria_desactivar, name='categoria_delete'),
-
     # Ips
     path('catalogo/ips/', catalogo.IpsListView.as_view(), name='ips_list'),
     path('catalogo/ips/nuevo/', catalogo.IpsCreateView.as_view(), name='ips_create'),
@@ -62,29 +56,6 @@ urlpatterns = [
     path('catalogo/propietario/nuevo/', catalogo.PropietarioCreateView.as_view(), name='propietario_create'),
     path('catalogo/propietario/editar/<int:pk>/', catalogo.PropietarioUpdateView.as_view(), name='propietario_update'),
     path('catalogo/propietario/desactivar/<int:pk>/', catalogo.propietario_desactivar, name='propietario_delete'),
-
-    # PuestoTrabajo
-    path('catalogo/puestotrabajo/', catalogo.PuestoTrabajoListView.as_view(), name='puestotrabajo_list'),
-    path('catalogo/puestotrabajo/nuevo/', catalogo.PuestoTrabajoCreateView.as_view(), name='puestotrabajo_create'),
-    path('catalogo/puestotrabajo/editar/<int:pk>/', catalogo.PuestoTrabajoUpdateView.as_view(),
-         name='puestotrabajo_update'),
-    path('catalogo/puestotrabajo/desactivar/<int:pk>/', catalogo.puestotrabajo_desactivar, name='puestotrabajo_delete'),
-
-    # SistemaOperativo
-    path('catalogo/sistemaoperativo/', catalogo.SistemaOperativoListView.as_view(), name='sistemaoperativo_list'),
-    path('catalogo/sistemaoperativo/nuevo/', catalogo.SistemaOperativoCreateView.as_view(),
-         name='sistemaoperativo_create'),
-    path('catalogo/sistemaoperativo/editar/<int:pk>/', catalogo.SistemaOperativoUpdateView.as_view(),
-         name='sistemaoperativo_update'),
-    path('catalogo/sistemaoperativo/desactivar/<int:pk>/', catalogo.sistemaoperativo_desactivar,
-         name='sistemaoperativo_delete'),
-
-    # SubCategoria
-    path('catalogo/subcategoria/', catalogo.SubCategoriaListView.as_view(), name='subcategoria_list'),
-    path('catalogo/subcategoria/nuevo/', catalogo.SubCategoriaCreateView.as_view(), name='subcategoria_create'),
-    path('catalogo/subcategoria/editar/<int:pk>/', catalogo.SubCategoriaUpdateView.as_view(),
-         name='subcategoria_update'),
-    path('catalogo/subcategoria/desactivar/<int:pk>/', catalogo.subcategoria_desactivar, name='subcategoria_delete'),
 
     # TipoCelular
     path('catalogo/tipocelular/', catalogo.TipoCelularListView.as_view(), name='tipocelular_list'),

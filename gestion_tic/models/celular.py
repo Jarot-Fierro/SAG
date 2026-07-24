@@ -1,12 +1,11 @@
 from django.conf import settings
 from django.db import models
 
-from core.models import Establecimiento
-from core.standard.models import StandardModel
+from core.standard.models import StandardModelEstablishment
 from gestion_tic.models.catalogo import Marca, Modelo, TipoCelular, Propietario, JefeTic, Contrato
 
 
-class Celular(StandardModel):
+class Celular(StandardModelEstablishment):
     imei = models.CharField(max_length=30)
     numero_telefono = models.CharField(max_length=15)
     minsal = models.BooleanField(default=False)
@@ -46,13 +45,6 @@ class Celular(StandardModel):
         null=True,
         blank=True,
         related_name='celular_contrato'
-    )
-    establecimiento = models.ForeignKey(
-        Establecimiento,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='celular_establecimiento'
     )
     de_baja = models.BooleanField(default=False)
     motivo_baja = models.TextField(null=True, blank=True)
