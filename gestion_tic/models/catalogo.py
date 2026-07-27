@@ -45,100 +45,6 @@ class Propietario(StandardModelEstablishment):
         return self.nombre
 
 
-class LicenciaOs(StandardModelEstablishment):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre de la Licencia de SO"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Licencia de Sistema Operativo"
-        verbose_name_plural = "Licencias de Sistema Operativo"
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
-class MicrosoftOffice(StandardModelEstablishment):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre de la Licencia de Microsoft Office"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Licencia de Microsoft Office"
-        verbose_name_plural = "Licencias de Microsoft Office"
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
-class TipoCelular(StandardModelEstablishment):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre del tipo plan"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Tipo Celular"
-        verbose_name_plural = "Tipos Celular"
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
-class TipoComputador(StandardModelEstablishment):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre del tipo computador"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Tipo Computador"
-        verbose_name_plural = "Tipos Computador"
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
-class TipoImpresora(StandardModelEstablishment):
-    nombre = models.CharField(
-        max_length=100, verbose_name="Nombre del tipo impresora"
-    )
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = "Tipo Impresora"
-        verbose_name_plural = "Tipos Impresoras"
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
-class Toner(StandardModelEstablishment):
-    nombre = models.CharField(max_length=100)
-
-    UPPERCASE_FIELDS = ['nombre']
-
-    class Meta:
-        verbose_name = 'Tinta'
-        verbose_name_plural = 'Tintas'
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-
 class JefeTic(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
     posicion = models.CharField(max_length=100, null=True, blank=True)
@@ -173,6 +79,24 @@ class Ips(StandardModelEstablishment):
         unique=True,
         protocol='IPv4',
         verbose_name='Dirección IP'
+    )
+    mascara = models.GenericIPAddressField(
+        protocol='IPv4',
+        verbose_name='Máscara',
+        null=True,
+        blank=True
+    )
+    gateway = models.GenericIPAddressField(
+        protocol='IPv4',
+        verbose_name='Gateway',
+        null=True,
+        blank=True
+    )
+    vlan = models.CharField(
+        max_length=50,
+        verbose_name='VLAN',
+        null=True,
+        blank=True
     )
     asignado = models.BooleanField(default=False)
     observacion = models.TextField(

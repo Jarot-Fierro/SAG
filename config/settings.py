@@ -125,6 +125,7 @@ TEMPLATES = [
                 'agenda_telefonica.context_processors.menu_sidebar',
                 'core.context_processors.establecimientos_processor',
                 'core.context_processors.modulo_actual_processor',
+                'gestion_tic.context_processors.menu_activos',
             ],
         },
     },

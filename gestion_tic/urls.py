@@ -1,16 +1,17 @@
 from django.urls import path
 
-from .views import catalogo, computador, pdfs
+from .views import catalogo, tipo_activo, campos_tipo_activos, activos
 
 app_name = 'gestion_tic'
 
 urlpatterns = [
-    # Computadores
-    path('equipo/computador/', computador.ComputadorListView.as_view(), name='computador_list'),
-    path('equipo/computador/nuevo/', computador.ComputadorCreateView.as_view(), name='computador_create'),
-    path('equipo/computador/editar/<int:pk>/', computador.ComputadorUpdateView.as_view(), name='computador_update'),
-    path('equipo/computador/desactivar/<int:pk>/', computador.computador_desactivar, name='computador_delete'),
-    path('equipo/computador/pdf/<int:pk>/', pdfs.generar_pdf_computador, name='computador_pdf'),
+
+    # path('equipo/computador/pdf/<int:pk>/', pdfs.generar_pdf_computador, name='computador_pdf'),
+
+    # Activos
+    path('activos/', activos.activo_list, name='activo_list'),
+    path('activos/nuevo/', activos.activo_create, name='activo_create'),
+    path('activos/editar/<int:pk>/', activos.activo_edit, name='activo_edit'),
 
     # Marca
     path('catalogo/marca/', catalogo.MarcaListView.as_view(), name='marca_list'),
@@ -30,21 +31,6 @@ urlpatterns = [
     path('catalogo/jefetic/editar/<int:pk>/', catalogo.JefeTicUpdateView.as_view(), name='jefetic_update'),
     path('catalogo/jefetic/desactivar/<int:pk>/', catalogo.jefetic_desactivar, name='jefetic_delete'),
 
-    # LicenciaOs
-    path('catalogo/licenciaos/', catalogo.LicenciaOsListView.as_view(), name='licenciaos_list'),
-    path('catalogo/licenciaos/nuevo/', catalogo.LicenciaOsCreateView.as_view(), name='licenciaos_create'),
-    path('catalogo/licenciaos/editar/<int:pk>/', catalogo.LicenciaOsUpdateView.as_view(), name='licenciaos_update'),
-    path('catalogo/licenciaos/desactivar/<int:pk>/', catalogo.licenciaos_desactivar, name='licenciaos_delete'),
-
-    # MicrosoftOffice
-    path('catalogo/microsoftoffice/', catalogo.MicrosoftOfficeListView.as_view(), name='microsoftoffice_list'),
-    path('catalogo/microsoftoffice/nuevo/', catalogo.MicrosoftOfficeCreateView.as_view(),
-         name='microsoftoffice_create'),
-    path('catalogo/microsoftoffice/editar/<int:pk>/', catalogo.MicrosoftOfficeUpdateView.as_view(),
-         name='microsoftoffice_update'),
-    path('catalogo/microsoftoffice/desactivar/<int:pk>/', catalogo.microsoftoffice_desactivar,
-         name='microsoftoffice_delete'),
-
     # Modelo
     path('catalogo/modelo/', catalogo.ModeloListView.as_view(), name='modelo_list'),
     path('catalogo/modelo/nuevo/', catalogo.ModeloCreateView.as_view(), name='modelo_create'),
@@ -57,36 +43,17 @@ urlpatterns = [
     path('catalogo/propietario/editar/<int:pk>/', catalogo.PropietarioUpdateView.as_view(), name='propietario_update'),
     path('catalogo/propietario/desactivar/<int:pk>/', catalogo.propietario_desactivar, name='propietario_delete'),
 
-    # TipoCelular
-    path('catalogo/tipocelular/', catalogo.TipoCelularListView.as_view(), name='tipocelular_list'),
-    path('catalogo/tipocelular/nuevo/', catalogo.TipoCelularCreateView.as_view(), name='tipocelular_create'),
-    path('catalogo/tipocelular/editar/<int:pk>/', catalogo.TipoCelularUpdateView.as_view(), name='tipocelular_update'),
-    path('catalogo/tipocelular/desactivar/<int:pk>/', catalogo.tipocelular_desactivar, name='tipocelular_delete'),
-
-    # TipoComputador
-    path('catalogo/tipocomputador/', catalogo.TipoComputadorListView.as_view(), name='tipocomputador_list'),
-    path('catalogo/tipocomputador/nuevo/', catalogo.TipoComputadorCreateView.as_view(), name='tipocomputador_create'),
-    path('catalogo/tipocomputador/editar/<int:pk>/', catalogo.TipoComputadorUpdateView.as_view(),
-         name='tipocomputador_update'),
-    path('catalogo/tipocomputador/desactivar/<int:pk>/', catalogo.tipocomputador_desactivar,
-         name='tipocomputador_delete'),
-
-    # TipoImpresora
-    path('catalogo/tipoimpresora/', catalogo.TipoImpresoraListView.as_view(), name='tipoimpresora_list'),
-    path('catalogo/tipoimpresora/nuevo/', catalogo.TipoImpresoraCreateView.as_view(), name='tipoimpresora_create'),
-    path('catalogo/tipoimpresora/editar/<int:pk>/', catalogo.TipoImpresoraUpdateView.as_view(),
-         name='tipoimpresora_update'),
-    path('catalogo/tipoimpresora/desactivar/<int:pk>/', catalogo.tipoimpresora_desactivar, name='tipoimpresora_delete'),
-
-    # Toner
-    path('catalogo/toner/', catalogo.TonerListView.as_view(), name='toner_list'),
-    path('catalogo/toner/nuevo/', catalogo.TonerCreateView.as_view(), name='toner_create'),
-    path('catalogo/toner/editar/<int:pk>/', catalogo.TonerUpdateView.as_view(), name='toner_update'),
-    path('catalogo/toner/desactivar/<int:pk>/', catalogo.toner_desactivar, name='toner_delete'),
-
     # Contrato
     path('catalogo/contrato/', catalogo.ContratoListView.as_view(), name='contrato_list'),
     path('catalogo/contrato/nuevo/', catalogo.ContratoCreateView.as_view(), name='contrato_create'),
     path('catalogo/contrato/editar/<int:pk>/', catalogo.ContratoUpdateView.as_view(), name='contrato_update'),
     path('catalogo/contrato/desactivar/<int:pk>/', catalogo.contrato_desactivar, name='contrato_delete'),
+
+    # Tipo Activo
+    path('tipo-activo/', tipo_activo.TipoActivoListView.as_view(), name='tipo_activo_list'),
+    path('tipo-activo/nuevo/', tipo_activo.TipoActivoCreateView.as_view(), name='tipo_activo_create'),
+    path('tipo-activo/editar/<int:pk>/', tipo_activo.TipoActivoUpdateView.as_view(), name='tipo_activo_update'),
+    path('tipo-activo/desactivar/<int:pk>/', tipo_activo.tipo_activo_desactivar, name='tipo_activo_delete'),
+
+    path('campos-tipo-activos/', campos_tipo_activos.campos_tipo_activos, name='campos_tipo_activos')
 ]

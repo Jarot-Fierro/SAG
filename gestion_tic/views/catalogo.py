@@ -6,14 +6,11 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView
 
 from ..forms.catalogo import (
-    FormMarca, FormContrato, FormIps, FormJefeTic, FormLicenciaOs,
-    FormMicrosoftOffice, FormModelo, FormPropietario, FormTipoCelular, FormTipoComputador,
-    FormTipoImpresora, FormToner
+    FormMarca, FormContrato, FormIps, FormJefeTic, FormModelo, FormPropietario
 )
 from ..models.catalogo import (
-    Marca, Contrato, Ips, JefeTic, LicenciaOs, MicrosoftOffice,
+    Marca, Contrato, Ips, JefeTic,
     Modelo, Propietario,
-    TipoCelular, TipoComputador, TipoImpresora, Toner
 )
 
 
@@ -207,80 +204,6 @@ def jefetic_desactivar(request, pk):
     return catalogo_desactivar(request, pk, JefeTic, 'gestion_tic:jefetic_list')
 
 
-# --- Implementación para LicenciaOs ---
-
-class LicenciaOsListView(CatalogoListView):
-    model = LicenciaOs
-    title = 'Listado de Licencias de SO'
-    list_url_name = 'gestion_tic:licenciaos_list'
-    update_url_name = 'gestion_tic:licenciaos_update'
-    delete_url_name = 'gestion_tic:licenciaos_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:licenciaos_create')
-
-
-class LicenciaOsCreateView(CatalogoCreateView):
-    model = LicenciaOs
-    form_class = FormLicenciaOs
-    title = 'Crear Licencia de SO'
-    success_url = reverse_lazy('gestion_tic:licenciaos_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:licenciaos_list')
-
-
-class LicenciaOsUpdateView(CatalogoUpdateView):
-    model = LicenciaOs
-    form_class = FormLicenciaOs
-    title = 'Editar Licencia de SO'
-    success_url = reverse_lazy('gestion_tic:licenciaos_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:licenciaos_list')
-
-
-def licenciaos_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, LicenciaOs, 'gestion_tic:licenciaos_list')
-
-
-# --- Implementación para MicrosoftOffice ---
-
-class MicrosoftOfficeListView(CatalogoListView):
-    model = MicrosoftOffice
-    title = 'Listado de Licencias Office'
-    list_url_name = 'gestion_tic:microsoftoffice_list'
-    update_url_name = 'gestion_tic:microsoftoffice_update'
-    delete_url_name = 'gestion_tic:microsoftoffice_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:microsoftoffice_create')
-
-
-class MicrosoftOfficeCreateView(CatalogoCreateView):
-    model = MicrosoftOffice
-    form_class = FormMicrosoftOffice
-    title = 'Crear Licencia Office'
-    success_url = reverse_lazy('gestion_tic:microsoftoffice_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:microsoftoffice_list')
-
-
-class MicrosoftOfficeUpdateView(CatalogoUpdateView):
-    model = MicrosoftOffice
-    form_class = FormMicrosoftOffice
-    title = 'Editar Licencia Office'
-    success_url = reverse_lazy('gestion_tic:microsoftoffice_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:microsoftoffice_list')
-
-
-def microsoftoffice_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, MicrosoftOffice, 'gestion_tic:microsoftoffice_list')
-
-
 # --- Implementación para Modelo ---
 
 class ModeloListView(CatalogoListView):
@@ -353,154 +276,6 @@ class PropietarioUpdateView(CatalogoUpdateView):
 
 def propietario_desactivar(request, pk):
     return catalogo_desactivar(request, pk, Propietario, 'gestion_tic:propietario_list')
-
-
-# --- Implementación para TipoCelular ---
-
-class TipoCelularListView(CatalogoListView):
-    model = TipoCelular
-    title = 'Listado de Tipos de Celular'
-    list_url_name = 'gestion_tic:tipocelular_list'
-    update_url_name = 'gestion_tic:tipocelular_update'
-    delete_url_name = 'gestion_tic:tipocelular_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:tipocelular_create')
-
-
-class TipoCelularCreateView(CatalogoCreateView):
-    model = TipoCelular
-    form_class = FormTipoCelular
-    title = 'Crear Tipo de Celular'
-    success_url = reverse_lazy('gestion_tic:tipocelular_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipocelular_list')
-
-
-class TipoCelularUpdateView(CatalogoUpdateView):
-    model = TipoCelular
-    form_class = FormTipoCelular
-    title = 'Editar Tipo de Celular'
-    success_url = reverse_lazy('gestion_tic:tipocelular_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipocelular_list')
-
-
-def tipocelular_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, TipoCelular, 'gestion_tic:tipocelular_list')
-
-
-# --- Implementación para TipoComputador ---
-
-class TipoComputadorListView(CatalogoListView):
-    model = TipoComputador
-    title = 'Listado de Tipos de Computador'
-    list_url_name = 'gestion_tic:tipocomputador_list'
-    update_url_name = 'gestion_tic:tipocomputador_update'
-    delete_url_name = 'gestion_tic:tipocomputador_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:tipocomputador_create')
-
-
-class TipoComputadorCreateView(CatalogoCreateView):
-    model = TipoComputador
-    form_class = FormTipoComputador
-    title = 'Crear Tipo de Computador'
-    success_url = reverse_lazy('gestion_tic:tipocomputador_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipocomputador_list')
-
-
-class TipoComputadorUpdateView(CatalogoUpdateView):
-    model = TipoComputador
-    form_class = FormTipoComputador
-    title = 'Editar Tipo de Computador'
-    success_url = reverse_lazy('gestion_tic:tipocomputador_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipocomputador_list')
-
-
-def tipocomputador_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, TipoComputador, 'gestion_tic:tipocomputador_list')
-
-
-# --- Implementación para TipoImpresora ---
-
-class TipoImpresoraListView(CatalogoListView):
-    model = TipoImpresora
-    title = 'Listado de Tipos de Impresora'
-    list_url_name = 'gestion_tic:tipoimpresora_list'
-    update_url_name = 'gestion_tic:tipoimpresora_update'
-    delete_url_name = 'gestion_tic:tipoimpresora_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:tipoimpresora_create')
-
-
-class TipoImpresoraCreateView(CatalogoCreateView):
-    model = TipoImpresora
-    form_class = FormTipoImpresora
-    title = 'Crear Tipo de Impresora'
-    success_url = reverse_lazy('gestion_tic:tipoimpresora_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipoimpresora_list')
-
-
-class TipoImpresoraUpdateView(CatalogoUpdateView):
-    model = TipoImpresora
-    form_class = FormTipoImpresora
-    title = 'Editar Tipo de Impresora'
-    success_url = reverse_lazy('gestion_tic:tipoimpresora_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:tipoimpresora_list')
-
-
-def tipoimpresora_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, TipoImpresora, 'gestion_tic:tipoimpresora_list')
-
-
-# --- Implementación para Toner ---
-
-class TonerListView(CatalogoListView):
-    model = Toner
-    title = 'Listado de Tintas/Toner'
-    list_url_name = 'gestion_tic:toner_list'
-    update_url_name = 'gestion_tic:toner_update'
-    delete_url_name = 'gestion_tic:toner_delete'
-
-    def get_create_url(self):
-        return reverse_lazy('gestion_tic:toner_create')
-
-
-class TonerCreateView(CatalogoCreateView):
-    model = Toner
-    form_class = FormToner
-    title = 'Crear Tinta/Toner'
-    success_url = reverse_lazy('gestion_tic:toner_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:toner_list')
-
-
-class TonerUpdateView(CatalogoUpdateView):
-    model = Toner
-    form_class = FormToner
-    title = 'Editar Tinta/Toner'
-    success_url = reverse_lazy('gestion_tic:toner_list')
-
-    def get_list_url(self):
-        return reverse_lazy('gestion_tic:toner_list')
-
-
-def toner_desactivar(request, pk):
-    return catalogo_desactivar(request, pk, Toner, 'gestion_tic:toner_list')
 
 
 # --- Implementación para Contrato ---

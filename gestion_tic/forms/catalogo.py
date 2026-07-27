@@ -1,8 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from ..models.catalogo import Contrato, Ips, JefeTic, LicenciaOs, Marca, MicrosoftOffice, Modelo, \
-    Propietario, TipoCelular, TipoComputador, TipoImpresora, Toner
+from ..models.catalogo import Contrato, Ips, JefeTic, Modelo, \
+    Propietario, Marca
 
 
 def validate_exists(value, exists):
@@ -44,6 +44,50 @@ class FormIps(forms.ModelForm):
         ),
         required=True
     )
+
+    mascara = forms.GenericIPAddressField(
+        label='Máscara',
+        protocol='IPv4',
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'id': 'ip_mascara',
+                'class': 'form-control',
+                'placeholder': '255.255.255.0',
+                'minlength': '7',
+                'maxlength': '15'
+            }
+        )
+    )
+
+    gateway = forms.GenericIPAddressField(
+        label='Gateway',
+        protocol='IPv4',
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'id': 'ip_gateway',
+                'class': 'form-control',
+                'placeholder': '192.168.0.254',
+                'minlength': '7',
+                'maxlength': '15'
+            }
+        )
+    )
+
+    vlan = forms.CharField(
+        label='VLAN',
+        required=False,
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                'id': 'ip_vlan',
+                'class': 'form-control',
+                'placeholder': 'Ej: VLAN 10'
+            }
+        )
+    )
+
     asignado = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(
@@ -71,6 +115,9 @@ class FormIps(forms.ModelForm):
         model = Ips
         fields = [
             'ip',
+            'mascara',
+            'gateway',
+            'vlan',
             'asignado',
             'observacion',
         ]
@@ -116,25 +163,6 @@ class FormJefeTic(forms.ModelForm):
         fields = ['nombre', 'posicion']
 
 
-class FormLicenciaOs(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la licencia_os',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_licencia_os',
-                'class': 'form-control',
-                'placeholder': 'Lebu',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = LicenciaOs
-        fields = ['nombre']
-
-
 class FormMarca(forms.ModelForm):
     nombre = forms.CharField(
         label='Nombre de la marca',
@@ -151,25 +179,6 @@ class FormMarca(forms.ModelForm):
 
     class Meta:
         model = Marca
-        fields = ['nombre']
-
-
-class FormMicrosoftOffice(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la versión de microsoft office',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_microsoft_office',
-                'class': 'form-control',
-                'placeholder': 'office 2007, office 2016, office 2019, Microsoft 365',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = MicrosoftOffice
         fields = ['nombre']
 
 
@@ -208,80 +217,4 @@ class FormPropietario(forms.ModelForm):
 
     class Meta:
         model = Propietario
-        fields = ['nombre']
-
-
-class FormTipoCelular(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la tipo plan',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_tipo_celular',
-                'class': 'form-control',
-                'placeholder': 'Smartphone / Anexo',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = TipoCelular
-        fields = ['nombre']
-
-
-class FormTipoComputador(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la tipo computador',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_tipo_computador',
-                'class': 'form-control',
-                'placeholder': 'Escritorio/Notebook/OnlyOne',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = TipoComputador
-        fields = ['nombre']
-
-
-class FormTipoImpresora(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la tipo impresora',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_tipo_impresora',
-                'class': 'form-control',
-                'placeholder': 'Multifuncion / Con escaner',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = TipoImpresora
-        fields = ['nombre']
-
-
-class FormToner(forms.ModelForm):
-    nombre = forms.CharField(
-        label='Nombre de la categoria',
-        widget=forms.TextInput(
-            attrs={
-                'id': 'nombre_categoria',
-                'class': 'form-control',
-                'placeholder': 'Estándar Negro / Alta Capacidad / Toner Color',
-                'minlength': '1',
-                'maxlength': '100'
-            }),
-        required=True
-    )
-
-    class Meta:
-        model = Toner
         fields = ['nombre']

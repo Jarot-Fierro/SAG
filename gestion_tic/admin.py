@@ -1,13 +1,13 @@
 from django.contrib import admin, messages
 
 from core.standard.admin import StandardAdmin
-from gestion_tic.models.catalogo import (
-    Marca, Modelo, Propietario, LicenciaOs,
-    MicrosoftOffice, TipoCelular, TipoComputador,
-    TipoImpresora, Toner, JefeTic, Contrato, Ips
+from gestion_tic.models import (
+    TipoActivo, CampoTipoActivo, OpcionCampoTipoActivo,
+    Activo, ActivoCaracteristica, TipoMovimiento, MovimientoActivo
 )
-from gestion_tic.models.celular import Celular
-from gestion_tic.models.equipos import Equipo, AsignacionIP
+from gestion_tic.models.catalogo import (
+    Marca, Modelo, Propietario, JefeTic, Contrato, Ips
+)
 
 
 # ==============================================================================
@@ -59,60 +59,6 @@ class PropietarioAdmin(TicStandardAdmin):
     ordering = ('nombre',)
 
 
-@admin.register(LicenciaOs)
-class LicenciaOsAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(MicrosoftOffice)
-class MicrosoftOfficeAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(TipoCelular)
-class TipoCelularAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(TipoComputador)
-class TipoComputadorAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(TipoImpresora)
-class TipoImpresoraAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
-@admin.register(Toner)
-class TonerAdmin(TicStandardAdmin):
-    list_display = ('id', 'nombre', 'establecimiento')
-    search_fields = ('nombre',)
-    list_filter = ('is_active',)
-    list_display_links = ('nombre',)
-    ordering = ('nombre',)
-
-
 @admin.register(JefeTic)
 class JefeTicAdmin(TicStandardAdmin):
     list_display = ('id', 'nombre', 'posicion', 'establecimiento')
@@ -141,57 +87,67 @@ class IpsAdmin(TicStandardAdmin):
 
 
 # ==============================================================================
-# EQUIPOS ADMIN
+# ACTIVOS TIC ADMIN
 # ==============================================================================
 
-@admin.register(Equipo)
-class EquipoAdmin(TicStandardAdmin):
-    list_display = (
-        'id', 'serie', 'tipo_equipo', 'marca', 'modelo',
-        'establecimiento', 'responsable', 'de_baja',
-    )
-    search_fields = ('serie', 'mac', 'hh', 'observaciones')
-    list_filter = (
-        'tipo_equipo', 'marca', 'establecimiento',
-        'de_baja', 'is_active'
-    )
-    list_display_links = ('serie',)
-    ordering = ('serie',)
-    autocomplete_fields = (
-        'ip', 'marca', 'modelo', 'propietario',
-        'establecimiento', 'responsable', 'jefe_entrega', 'contrato',
-        'tipo_pc', 'sistema_operativo', 'microsoft_office',
-        'tipo_impresora', 'toner'
-    )
+class CampoTipoActivoInline(admin.TabularInline):
+    model = CampoTipoActivo
+    extra = 1
+    fields = ('nombre', 'tipo_campo', 'obligatorio', 'orden')
 
 
-@admin.register(AsignacionIP)
-class AsignacionIPAdmin(TicStandardAdmin):
-    list_display = ('id', 'ip', 'equipo', 'activa', 'establecimiento')
-    search_fields = ('ip__ip', 'equipo__serie', 'observacion')
-    list_filter = ('activa', 'is_active')
-    list_display_links = ('ip',)
-    ordering = ('-updated_at',)
+@admin.register(TipoActivo)
+class TipoActivoAdmin(TicStandardAdmin):
+    list_display = ('nombre', 'establecimiento', 'is_active')
+    search_fields = ('nombre',)
+    inlines = [CampoTipoActivoInline]
 
 
-# ==============================================================================
-# CELULAR ADMIN
-# ==============================================================================
+class OpcionCampoTipoActivoInline(admin.TabularInline):
+    model = OpcionCampoTipoActivo
+    extra = 1
 
-@admin.register(Celular)
-class CelularAdmin(TicStandardAdmin):
-    list_display = (
-        'id', 'numero_telefono', 'imei', 'marca', 'modelo',
-        'responsable', 'asignado', 'de_baja', 'establecimiento',
-    )
-    search_fields = ('numero_telefono', 'imei', 'numero_chip', 'observaciones')
-    list_filter = (
-        'marca', 'tipo', 'asignado', 'establecimiento',
-        'de_baja', 'is_active'
-    )
-    list_display_links = ('numero_telefono',)
-    ordering = ('numero_telefono',)
-    autocomplete_fields = (
-        'marca', 'modelo', 'tipo', 'propietario',
-        'jefe_entrega', 'responsable', 'contrato', 'establecimiento'
-    )
+
+@admin.register(CampoTipoActivo)
+class CampoTipoActivoAdmin(TicStandardAdmin):
+    list_display = ('nombre', 'tipo_activo', 'tipo_campo', 'orden')
+    search_fields = ('nombre',)
+    list_filter = ('tipo_activo', 'tipo_campo')
+    inlines = [OpcionCampoTipoActivoInline]
+
+
+@admin.register(TipoMovimiento)
+class TipoMovimientoAdmin(TicStandardAdmin):
+    list_display = ('nombre', 'color', 'icono', 'is_active')
+    search_fields = ('nombre',)
+
+
+class ActivoCaracteristicaInline(admin.TabularInline):
+    model = ActivoCaracteristica
+    extra = 0
+    autocomplete_fields = ['campo']
+
+
+class MovimientoActivoInline(admin.TabularInline):
+    model = MovimientoActivo
+    extra = 0
+    fields = ('tipo_movimiento', 'funcionario', 'unidad_organizacional', 'ip', 'created_at')
+    readonly_fields = ('created_at',)
+    autocomplete_fields = ['funcionario', 'unidad_organizacional', 'ip']
+
+
+@admin.register(Activo)
+class ActivoAdmin(TicStandardAdmin):
+    list_display = ('numero_inventario', 'tipo', 'marca', 'modelo', 'serie', 'de_baja')
+    list_filter = ('tipo', 'marca', 'de_baja', 'establecimiento')
+    search_fields = ('numero_inventario', 'codigo_barra', 'serie', 'observacion')
+    inlines = [ActivoCaracteristicaInline, MovimientoActivoInline]
+    autocomplete_fields = ['marca', 'modelo']
+
+
+@admin.register(MovimientoActivo)
+class MovimientoActivoAdmin(TicStandardAdmin):
+    list_display = ('activo', 'tipo_movimiento', 'funcionario', 'unidad_organizacional', 'created_at')
+    list_filter = ('tipo_movimiento', 'establecimiento', 'created_at')
+    search_fields = ('activo__numero_inventario', 'activo__serie', 'funcionario__nombre')
+    autocomplete_fields = ['activo', 'funcionario', 'unidad_organizacional', 'ip']

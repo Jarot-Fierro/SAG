@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+                    <form method="post" novalidate id="form-activo">
+                        {% csrf_token %}
+                        <div class="card-body">
+                            {% if not tipo_activo and not activo %}
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Selecciona el Tipo de Activo para crear</label>
+                                    <select class="form-select select2"
+                                            onchange="if(this.value) window.location.href='?tipo=' + this.value">
+                                        <option value="">---------</option>
+                                        {% for t in tipos_activos %}
+                                            <option value="{{ t.id }}">{{ t.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Debes seleccionar un tipo para cargar los campos
+                                        específicos.
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if tipo_activo or activo %}
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <h5 class="mb-3 border-bottom pb-2 text-primary">
+                                            <i class="bi bi-info-circle"></i> Información General
+                                        </h5>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.codigo_barra.label }}</label>
+                                        {{ form.codigo_barra }}
+                                        {% if form.codigo_barra.errors %}
+                                            <div class="text-danger small">{{ form.codigo_barra.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.numero_inventario.label }}</label>
+                                        {{ form.numero_inventario }}
+                                        {% if form.numero_inventario.errors %}
+                                            <div class="text-danger small">{{ form.numero_inventario.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.tipo.label }}</label>
+                                        {{ form.tipo }}
+                                        {% if form.tipo.errors %}
+                                            <div class="text-danger small">{{ form.tipo.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.marca.label }}</label>
+                                        {{ form.marca }}
+                                        {% if form.marca.errors %}
+                                            <div class="text-danger small">{{ form.marca.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.modelo.label }}</label>
+                                        {{ form.modelo }}
+                                        {% if form.modelo.errors %}
+                                            <div class="text-danger small">{{ form.modelo.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form.serie.label }}</label>
+                                        {{ form.serie }}
+                                        {% if form.serie.errors %}
+                                            <div class="text-danger small">{{ form.serie.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-10">
+                                        <label class="form-label fw-bold">{{ form.observacion.label }}</label>
+                                        {{ form.observacion }}
+                                        {% if form.observacion.errors %}
+                                            <div class="text-danger small">{{ form.observacion.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <div class="form-check mb-2">
+                                            {{ form.de_baja }}
+                                            <label class="form-check-label fw-bold">{{ form.de_baja.label }}</label>
+                                        </div>
+                                    </div>
+
+                                    {% if form.dynamic_form_fields %}
+                                        <div class="col-12 mt-4">
+                                            <h5 class="mb-3 border-bottom pb-2 text-primary">
+                                                <i class="bi bi-cpu"></i> Características del Activo
+                                                ({{ tipo_activo.nombre }})
+                                            </h5>
+                                        </div>
+                                        {% for field in form.dynamic_form_fields %}
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                                {{ field }}
+                                                {% if field.help_text %}
+                                                    <div class="form-text small">{{ field.help_text }}</div>
+                                                {% endif %}
+                                                {% if field.errors %}
+                                                    <div class="text-danger small">{{ field.errors.0 }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer text-end">
+                            <a href="{% url 'gestion_tic:activo_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                            {% if tipo_activo or activo %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Guardar Activo
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
+    </script>
+{% endblock %}
