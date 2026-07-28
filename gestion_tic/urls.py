@@ -1,12 +1,12 @@
 from django.urls import path
 
-from .views import catalogo, tipo_activo, campos_tipo_activos, activos
+from .views import catalogo, tipo_activo, campos_tipo_activos, activos, movimientos_activo, pdfs
 
 app_name = 'gestion_tic'
 
 urlpatterns = [
 
-    # path('equipo/computador/pdf/<int:pk>/', pdfs.generar_pdf_computador, name='computador_pdf'),
+    path('activo/acta/pdf/<int:pk>/', pdfs.generar_acta_activo, name='activo_acta_pdf'),
 
     # Activos
     path('activos/', activos.activo_list, name='activo_list'),
@@ -55,5 +55,9 @@ urlpatterns = [
     path('tipo-activo/editar/<int:pk>/', tipo_activo.TipoActivoUpdateView.as_view(), name='tipo_activo_update'),
     path('tipo-activo/desactivar/<int:pk>/', tipo_activo.tipo_activo_desactivar, name='tipo_activo_delete'),
 
-    path('campos-tipo-activos/', campos_tipo_activos.campos_tipo_activos, name='campos_tipo_activos')
+    path('campos-tipo-activos/', campos_tipo_activos.campos_tipo_activos, name='campos_tipo_activos'),
+    path('movimientos-activo/', movimientos_activo.movimientos_activo, name='movimientos_activo'),
+    path('busqueda-activo/', movimientos_activo.movimientos_busqueda, name='movimientos_busqueda'),
+
+    path('activos-asignados/', activos.activo_list_asignado, name='activo_list_asignado'),
 ]

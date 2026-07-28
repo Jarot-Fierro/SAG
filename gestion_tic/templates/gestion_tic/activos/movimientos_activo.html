@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {% if ultimo_movimiento %}
+        <a href="{% url 'gestion_tic:activo_acta_pdf' ultimo_movimiento.pk %}"
+           class="btn btn-outline-danger btn-sm" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> Acta PDF
+        </a>
+    {% endif %}
+{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <!-- Buscador siempre visible arriba -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-primary">
+                    <form method="get" action="{% url 'gestion_tic:movimientos_activo' %}" id="form-buscador">
+                        <div class="card-body">
+                            <label for="q" class="form-label fw-bold">Consultar Equipo (Código o Serie)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-primary text-white"><i class="bi bi-search"></i></span>
+                                <input id="q" name="q" type="search" class="form-control"
+                                       placeholder="Escanee código de barras o ingrese serie..." autofocus
+                                       value="{{ query|default:'' }}">
+                                <button type="submit" class="btn btn-primary px-4" id="btn-consultar">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Consultar
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">
+                                La búsqueda se realiza por código de barras o número de serie.
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if activo %}
+            <div class="row">
+                <!-- Datos del Activo (Disabled) -->
+                <div class="col-lg-4">
+                    <div class="card card-outline card-info shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title"><i class="bi bi-info-circle me-1"></i> Detalles del Equipo</h3>
+
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-muted">CÓDIGO DE BARRAS</label>
+                                    <input type="text" class="form-control bg-light" value="{{ activo.codigo_barra }}"
+                                           disabled>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">TIPO</label>
+                                    <input type="text" class="form-control bg-light" value="{{ activo.tipo.nombre }}"
+                                           disabled>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">SERIE</label>
+                                    <input type="text" class="form-control bg-light"
+                                           value="{{ activo.serie|default:'-' }}" disabled>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">MARCA</label>
+                                    <input type="text" class="form-control bg-light"
+                                           value="{{ activo.marca.nombre|default:'-' }}" disabled>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold small text-muted">MODELO</label>
+                                    <input type="text" class="form-control bg-light"
+                                           value="{{ activo.modelo.nombre|default:'-' }}" disabled>
+                                </div>
+
+                                {% for carac in activo.caracteristicas.all %}
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold small text-muted">{{ carac.campo.nombre|upper }}</label>
+                                        <input type="text" class="form-control bg-light" value="{{ carac.valor }}"
+                                               disabled>
+                                    </div>
+                                {% endfor %}
+
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small text-muted">OBSERVACIÓN</label>
+                                    <textarea class="form-control bg-light" rows="2"
+                                              disabled>{{ activo.observacion }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario Nuevo Movimiento e Historial -->
+                <div class="col-lg-8">
+                    <!-- Formulario Nuevo Movimiento -->
+                    <div class="card card-outline card-success shadow-sm mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Movimiento
+                            </h3>
+                        </div>
+                        <form method="post" id="form-movimiento" name="form-movimiento">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form_movimiento.tipo_movimiento.label }}</label>
+                                        {{ form_movimiento.tipo_movimiento }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form_movimiento.funcionario.label }}</label>
+                                        {{ form_movimiento.funcionario }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">{{ form_movimiento.ip.label }}</label>
+                                        {{ form_movimiento.ip }}
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">{{ form_movimiento.observacion.label }}</label>
+                                        {{ form_movimiento.observacion }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-save me-1"></i> Guardar Movimiento
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Historial de Movimientos -->
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Funcionario / Unidad</th>
+                                        <th>IP</th>
+                                        <th>Observación</th>
+                                        <th class="text-center">Acta</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for mov in movimientos %}
+                                        <tr>
+                                            <td class="small">{{ mov.created_at|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                    <span class="text-danger">
+                                                        {{ mov.tipo_movimiento.nombre }}
+                                                    </span>
+                                            </td>
+                                            <td>
+                                                {% if mov.funcionario %}
+                                                    <span class="fw-bold">{{ mov.funcionario }}</span><br>
+                                                    <small class="text-muted">{{ mov.unidad_organizacional.nombre|default:"-" }}</small>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if mov.ip %}
+                                                    <code class="text-dark">{{ mov.ip.ip }}</code>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td class="small">{{ mov.observacion }}</td>
+                                            <td class="text-center">
+                                                <a href="{% url 'gestion_tic:activo_acta_pdf' mov.pk %}"
+                                                   class="btn btn-link text-danger p-0" title="Ver Acta PDF"
+                                                   target="_blank">
+                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                Este activo no cuenta con movimientos previos.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
+    </script>
+{% endblock %}

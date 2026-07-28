@@ -70,7 +70,7 @@
         footer {
             text-align: center;
             font-size: 12px;
-            margin-top: 40px;
+            margin-top: 5px;
             color: #555;
         }
 
@@ -95,81 +95,109 @@
 <h1>ACTA DE ENTREGA</h1>
 <hr>
 
-<div class="section-title">1.- IDENTIFICACIÓN DEL PRODUCTO - COMPUTADOR</div>
+<div class="section-title">1.- IDENTIFICACIÓN DEL PRODUCTO - {{ activo.tipo.nombre|upper }}</div>
 
-<table class="mt-2">
+<table>
     <tbody>
     <tr>
         <th>TIPO DE EQUIPO</th>
-        <td>{% if equipo.tipo_pc %}{{ equipo.tipo_pc }}{% endif %}</td>
+        <td>{{ activo.tipo.nombre }}</td>
     </tr>
     <tr>
         <th>MARCA - MODELO</th>
-        <td>{% if equipo.marca %}{{ equipo.marca }}{% endif %} -
-            {% if equipo.modelo %}{{ equipo.modelo }}{% endif %}</td>
+        <td>{{ activo.marca.nombre|default:"" }} - {{ activo.modelo.nombre|default:"" }}</td>
     </tr>
     <tr>
         <th>N° DE SERIE</th>
-        <td>{% if equipo.serie %}{{ equipo.serie }}{% endif %}</td>
+        <td>{{ activo.serie|default:"" }}</td>
     </tr>
     <tr>
-        <th>MAC</th>
-        <td>{% if equipo.mac %}{{ equipo.mac }}{% endif %}</td>
+        <th>CÓDIGO DE BARRAS</th>
+        <td>{{ activo.codigo_barra }}</td>
     </tr>
-    <tr>
-        <th>IP</th>
-        <td>{% if equipo.ip %}{{ equipo.ip }}{% endif %}</td>
-    </tr>
-    <tr>
-        <th>SISTEMA OPERATIVO</th>
-        <td>{% if equipo.sistema_operativo %}{{ equipo.sistema_operativo }}{% endif %}</td>
-    </tr>
-    <tr>
-        <th>LICENCIA OFFICE</th>
-        <td>{% if equipo.microsoft_office %}{{ equipo.microsoft_office }}{% endif %}</td>
-    </tr>
-    <tr>
-        <th>DESCRIPCIÓN</th>
-        <td>{% if equipo.observaciones %}{{ equipo.observaciones }}{% endif %}</td>
-    </tr>
+
+    {% for caracteristica in caracteristicas %}
+        <tr>
+            <th>{{ caracteristica.campo.nombre|upper }}</th>
+            <td>{{ caracteristica.valor }}</td>
+        </tr>
+    {% endfor %}
+
+    {% if ultimo_movimiento.ip %}
+        <tr>
+            <th>IP</th>
+            <td>{{ ultimo_movimiento.ip.ip }}</td>
+        </tr>
+    {% endif %}
+
+    {% if ultimo_movimiento.funcionario %}
+        <tr>
+            <th>FUNCIONARIO</th>
+            <td>{{ ultimo_movimiento.funcionario }}</td>
+        </tr>
+    {% endif %}
+
+    {% if ultimo_movimiento.observacion %}
+        <tr>
+            <th>OBSERVACIÓN ENTREGA</th>
+            <td>{{ ultimo_movimiento.observacion }}</td>
+        </tr>
+    {% endif %}
+
+    {% if activo.observacion %}
+        <tr>
+            <th>DESCRIPCIÓN / OBS GENERAL</th>
+            <td>{{ activo.observacion }}</td>
+        </tr>
+    {% endif %}
 
     </tbody>
 </table>
 
 <div class="note">
     <strong>NOTA:</strong><br>
-    EL USUARIO QUE ESTA A CARGO DEL EQUIPO (CELULAR, BAM, ETC) SERÁ RESPONSABLE DE SU REPARACIÓN, EXTRAVÍO O MAL USO DE
+    EL USUARIO QUE ESTA A CARGO DEL EQUIPO (CELULAR, PC, ETC) SERÁ RESPONSABLE DE SU REPARACIÓN, EXTRAVÍO O MAL USO DE
     ESTE, O EN SU DEFECTO ENTREGAR EN BUENAS CONDICIONES Y TODOS SUS ACCESORIOS
 </div>
 
 <div class="signature-block text-center ">
     <p>ENTREGUE CONFORME A:</p>
 
-    <div class="row" style="margin-top: 120px">
+    <div class="row" style="margin-top: 100px">
         <div class="col-6 text-center">
             <div class="signature-line">
-                {% if equipo.responsable.puesto_trabajo %}
-                    {{ equipo.responsable.puesto_trabajo }}{% endif %}<br>{% if equipo.responsable %}
-                {{ equipo.responsable }}{% endif %}.
+                {% if ultimo_movimiento.funcionario.cargo %}
+                    {{ ultimo_movimiento.funcionario.cargo }}<br>
+                {% endif %}
+                {% if ultimo_movimiento.funcionario %}
+                    {{ ultimo_movimiento.funcionario|upper }}
+                {% else %}
+                    &nbsp;
+                {% endif %}
             </div>
         </div>
         <div class="col-6 text-center">
             <div class="signature-line">
-                {% if equipo.jefe_entrega.posicion %}
-                    {{ equipo.jefe_entrega.posicion }}{% endif %}.<br>{% if equipo.jefe_entrega %}
-                {{ equipo.jefe_entrega }}{% endif %}.
+                {% if jefe_tic.posicion %}
+                    {{ jefe_tic.posicion }}<br>
+                {% endif %}
+                {% if jefe_tic.nombre %}
+                    {{ jefe_tic.nombre }}
+                {% else %}
+                    &nbsp;
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="mt-3">
-        <div>{{ request.user.establecimiento.nombre }}</div>
-        {#        <div>SERVICIO DE SALUD ARAUCO</div>#}
+    <div>
+        <div>{{ activo.establecimiento.nombre }}</div>
     </div>
 </div>
 
 <footer>
-    Página 1/1<br>
+    Página 1/1
+    <br>
     <a href="http://www.ssarauco.cl">http://www.ssarauco.cl</a>
 </footer>
 

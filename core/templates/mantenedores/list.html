@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block sidebar %}
-    {% include 'gestion_tic/sidebar.html' %}
+
 {% endblock %}
 
 {% block buttons %}
@@ -15,13 +15,12 @@
 {% endblock %}
 
 {% block title %}{{ title }}{% endblock %}
-
 {% block content %}
     <div class="row mx-2">
         <div class="col-12">
             <!--begin::Card-->
-            <div class="card mb-4 container p-0">
-                <!--begin::Card Header-->
+            <div class="card mb-4">
+                <!--begin::Card Footer-->
                 <div class="card-header">
                     <div class="row g-2 align-items-center">
                         <div class="col-12">
@@ -53,9 +52,7 @@
                             <thead>
                             <tr>
                                 <th scope="col">Nombre</th>
-                                {% if "Contratos" in title %}
-                                    <th scope="col">Archivo</th>
-                                {% endif %}
+                                <th scope="col">Estado</th>
                                 <th scope="col" class="text-end">Acciones</th>
                             </tr>
                             </thead>
@@ -63,18 +60,13 @@
                             {% for objeto in objetos %}
                                 <tr>
                                     <td>{{ objeto }}</td>
-                                    {% if "Contratos" in title %}
-                                        <td>
-                                            {% if objeto.file %}
-                                                <a href="{{ objeto.file.url }}" target="_blank"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-file-earmark-text"></i> Ver Contrato
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">Sin archivo</span>
-                                            {% endif %}
-                                        </td>
-                                    {% endif %}
+                                    <td>
+                                        {% if objeto.is_active or objeto.activo %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             {% if update_url_name %}
@@ -84,21 +76,26 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                             {% endif %}
+
                                             {% if delete_url_name %}
-                                                <a href="{% url delete_url_name objeto.pk %}"
-                                                   class="btn btn-outline-danger"
-                                                   title="Desactivar"
-                                                   onclick="return confirm('¿Está seguro de desactivar este registro?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
+                                                <form method="post"
+                                                      action="{% url delete_url_name objeto.pk %}"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('¿Estás seguro de desactivar este registro?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger"
+                                                            title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
                                             {% endif %}
                                         </div>
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="{% if "Contratos" in title %}3{% else %}2{% endif %}"
-                                        class="text-center text-body-secondary py-4">
+                                    <td colspan="3" class="text-center text-body-secondary py-4">
                                         No se encontraron registros.
                                     </td>
                                 </tr>
@@ -106,7 +103,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- /.table-responsive -->
                 </div>
                 <!--end::Card Body-->
                 <!--begin::Card Footer-->
@@ -156,10 +152,17 @@
 
 {% block scripts %}
     <script>
-        $(document).ready(function () {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar Select2
             $('.select2').select2({
                 theme: 'bootstrap-5',
-                placeholder: 'Seleccione una opción',
+                placeholder: '-- Seleccione una unidad --',
                 allowClear: true
             });
         });

@@ -138,9 +138,9 @@ class MovimientoActivoInline(admin.TabularInline):
 
 @admin.register(Activo)
 class ActivoAdmin(TicStandardAdmin):
-    list_display = ('numero_inventario', 'tipo', 'marca', 'modelo', 'serie', 'de_baja')
+    list_display = ('codigo_barra', 'tipo', 'marca', 'modelo', 'serie', 'de_baja')
     list_filter = ('tipo', 'marca', 'de_baja', 'establecimiento')
-    search_fields = ('numero_inventario', 'codigo_barra', 'serie', 'observacion')
+    search_fields = ('codigo_barra', 'serie', 'observacion')
     inlines = [ActivoCaracteristicaInline, MovimientoActivoInline]
     autocomplete_fields = ['marca', 'modelo']
 
@@ -149,5 +149,5 @@ class ActivoAdmin(TicStandardAdmin):
 class MovimientoActivoAdmin(TicStandardAdmin):
     list_display = ('activo', 'tipo_movimiento', 'funcionario', 'unidad_organizacional', 'created_at')
     list_filter = ('tipo_movimiento', 'establecimiento', 'created_at')
-    search_fields = ('activo__numero_inventario', 'activo__serie', 'funcionario__nombre')
+    search_fields = ('activo__codigo_barra', 'activo__serie', 'funcionario__nombre')
     autocomplete_fields = ['activo', 'funcionario', 'unidad_organizacional', 'ip']

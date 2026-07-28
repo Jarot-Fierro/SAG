@@ -29,44 +29,46 @@
                                     <th>Tipo</th>
                                     <th>Marca / Modelo</th>
                                     <th>Serie</th>
-                                    <th>Estado</th>
+                                    <th>Funcionario</th>
+                                    <th>Departamento/Unidad</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for activo in activos %}
+                                {% for movimiento in movimientos_activos %}
                                     <tr>
-                                        <td class="fw-bold">{{ activo.codigo_barra }}</td>
-                                        <td>{{ activo.tipo.nombre }}</td>
-                                        <td>{{ activo.marca.nombre|default:"-" }}
-                                            / {{ activo.modelo.nombre|default:"-" }}</td>
-                                        <td>{{ activo.serie|default:"-" }}</td>
+                                        <td class="fw-bold">{{ movimiento.activo.codigo_barra }}</td>
+                                        <td>{{ movimiento.activo.tipo.nombre }}</td>
+                                        <td>{{ movimiento.activo.marca.nombre|default:"-" }}
+                                            / {{ movimiento.activo.modelo.nombre|default:"-" }}</td>
+                                        <td>{{ movimiento.activo.serie|default:"-" }}</td>
                                         <td>
-                                            {% if activo.de_baja %}
-                                                <span class="badge bg-danger">De Baja</span>
+                                            {% if movimiento.funcionario.nombre %}
+                                                {{ movimiento.funcionario.nombre }}
+                                            {% elif movimiento.funcionario.nombres %}
+                                                {{ movimiento.funcionario.nombres }}
+                                                {{ movimiento.funcionario.apellidos }}
                                             {% else %}
-                                                <span class="badge bg-success">Activo</span>
+                                                -
                                             {% endif %}
                                         </td>
+                                        <td>
+                                            <strong>{{ movimiento.funcionario.unidad_organizacional.nombre }}</strong>
+
+                                            <br>
+                                            {{ movimiento.funcionario.unidad_organizacional.padre.nombre }}
+                                        </td>
                                         <td class="text-center">
-                                            {% with ultimo_mov=activo.movimientos.first %}
-                                                {% if ultimo_mov %}
-                                                    <a href="{% url 'gestion_tic:activo_acta_pdf' ultimo_mov.pk %}"
-                                                       class="btn btn-outline-danger btn-sm" title="Ver Acta"
-                                                       target="_blank">
-                                                        <i class="bi bi-file-earmark-pdf"></i>
-                                                    </a>
-                                                {% endif %}
-                                            {% endwith %}
-                                            <a href="{% url 'gestion_tic:activo_edit' activo.pk %}"
-                                               class="btn btn-outline-primary btn-sm" title="Editar">
-                                                <i class="bi bi-pencil"></i>
+                                            <a href="{% url 'gestion_tic:activo_acta_pdf' movimiento.id %}"
+                                               class="btn btn-outline-danger btn-sm"
+                                               title="Ver acta PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i>
                                             </a>
                                         </td>
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
+                                        <td colspan="7" class="text-center py-4 text-muted">
                                             No se encontraron activos registrados.
                                         </td>
                                     </tr>

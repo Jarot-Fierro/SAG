@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <!-- Buscador siempre visible arriba -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-primary">
+                    <form method="get" action="{% url 'gestion_tic:movimientos_activo' %}" id="form-buscador">
+                        <div class="card-body">
+                            <label for="q" class="form-label fw-bold">Consultar Equipo (Código o
+                                Serie)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-primary text-white"><i class="bi bi-search"></i></span>
+                                <input id="q" name="q" type="search" class="form-control"
+                                       placeholder="Escanee código de barras o ingrese serie..." autofocus
+                                       value="{{ query|default:'' }}">
+                                <button type="submit" class="btn btn-primary px-4" id="btn-consultar">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Consultar
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">
+                                La búsqueda se realiza por código de barras o número de serie.
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

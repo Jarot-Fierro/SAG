@@ -23,10 +23,22 @@ class FormContrato(forms.ModelForm):
             }),
         required=True
     )
+    file = forms.FileField(
+        label='Contrato',
+        widget=forms.FileInput(
+            attrs={
+                'id': 'file_contrato',
+                'class': 'form-control',
+                'placeholder': 'Contrato',
+                'minlength': '1',
+            }
+        ),
+        required=False
+    )
 
     class Meta:
         model = Contrato
-        fields = ['nombre']
+        fields = ['nombre', 'file', ]
 
 
 class FormIps(forms.ModelForm):

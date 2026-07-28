@@ -1,7 +1,7 @@
 from django.db import models
 
 from core.standard.models import StandardModelEstablishment
-from .catalogo import Marca, Modelo
+from .catalogo import Marca, Modelo, Contrato
 from .tipo_activo import TipoActivo
 
 
@@ -10,12 +10,6 @@ class Activo(StandardModelEstablishment):
         max_length=100,
         unique=True,
         verbose_name="Código de Barras"
-    )
-
-    numero_inventario = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name="Número de Inventario"
     )
 
     tipo = models.ForeignKey(
@@ -41,6 +35,7 @@ class Activo(StandardModelEstablishment):
         max_length=150,
         blank=True
     )
+    contrato = models.ForeignKey(Contrato, on_delete=models.SET_NULL, null=True, blank=True)
 
     observacion = models.TextField(
         blank=True
@@ -51,7 +46,7 @@ class Activo(StandardModelEstablishment):
     )
 
     class Meta:
-        ordering = ["numero_inventario"]
+        ordering = ["codigo_barra"]
 
     def __str__(self):
-        return f"{self.numero_inventario}"
+        return f"{self.codigo_barra}"

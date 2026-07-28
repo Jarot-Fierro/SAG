@@ -10,13 +10,12 @@ class ActivoForm(forms.ModelForm):
     class Meta:
         model = Activo
         fields = [
-            'codigo_barra', 'numero_inventario', 'tipo',
+            'codigo_barra', 'tipo',
             'marca', 'modelo', 'serie', 'observacion', 'de_baja'
         ]
         widgets = {
             'codigo_barra': forms.TextInput(attrs={'class': 'form-control'}),
-            'numero_inventario': forms.TextInput(attrs={'class': 'form-control'}),
-            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'tipo': forms.Select(attrs={'class': 'form-select', 'style': 'pointer-events:none;background:#e9ecef;'}),
             'marca': forms.Select(attrs={'class': 'form-select select2'}),
             'modelo': forms.Select(attrs={'class': 'form-select select2'}),
             'serie': forms.TextInput(attrs={'class': 'form-control'}),

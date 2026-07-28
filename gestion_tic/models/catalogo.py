@@ -62,6 +62,7 @@ class JefeTic(StandardModelEstablishment):
 
 class Contrato(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
+    file = models.FileField(upload_to='contratos/%Y', null=True, blank=True)
 
     UPPERCASE_FIELDS = ['nombre']
 

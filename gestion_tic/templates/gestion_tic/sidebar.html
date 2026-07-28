@@ -68,15 +68,9 @@
         </p>
     </a>
     <ul class="nav nav-treeview">
-        {#        <li class="nav-item">#}
-        {#            <a href="{% url 'gestion_tic:activo_list' %}" class="nav-link">#}
-        {#                <i class="nav-icon bi bi-list-ul"></i>#}
-        {#                <p>Todos los Activos</p>#}
-        {#            </a>#}
-        {#        </li>#}
         {% for activo in sidebar_activos %}
             <li class="nav-item">
-                <a href="{% url 'gestion_tic:activo_list' %}?tipo={{ activo.tipo.pk }}" class="nav-link">
+                <a href="{% url 'gestion_tic:activo_list' %}?tipo={{ activo.pk }}" class="nav-link">
                     <i class="nav-icon bi bi-circle"></i>
                     <p>{{ activo.nombre }}</p>
                 </a>
@@ -91,3 +85,21 @@
         {% endfor %}
     </ul>
 </li>
+
+<li class="nav-item">
+    <a href="{% url 'gestion_tic:movimientos_busqueda' %}" class="nav-link">
+        <i class="nav-icon bi bi-arrow-left-right"></i>
+        <p>
+            Movimientos Activo
+        </p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'gestion_tic:activo_list_asignado' %}" class="nav-link">
+        <i class="nav-icon bi bi-file-earmark-pdf"></i>
+        <p>
+            Equipos Asignados
+        </p>
+    </a>
+</li>
+
