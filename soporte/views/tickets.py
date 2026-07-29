@@ -4,17 +4,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView
 
-from core.utils import IncludeUserFormUpdate, IncludeUserFormCreate
-from soporte.decorators import soporte_required
 from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
 from soporte.models import Ticket
 
 MODULE_NAME = 'Tickets'
 
 
+@login_required
 def list_tickets(request):
     # Obtener todos los tickets inicialmente
     tickets = Ticket.objects.filter(is_active=True).order_by('created_at')
@@ -33,8 +31,6 @@ def list_tickets(request):
         tickets = tickets.filter(area_soporte=area_soporte, is_active=True)
     if tipo_soporte:
         tickets = tickets.filter(tipo_soporte_id=tipo_soporte, is_active=True)
-    if funcionario:
-        tickets = tickets.filter(funcionario__username__icontains=funcionario, is_active=True)
     if estado:
         tickets = tickets.filter(estado=estado, is_active=True)
 
@@ -47,7 +43,6 @@ def list_tickets(request):
 
 
 @login_required
-@soporte_required
 def ticket_delete(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
     ticket.is_active = False
@@ -56,8 +51,7 @@ def ticket_delete(request, pk):
     return redirect('soporte:ticket_list')
 
 
-@method_decorator(soporte_required, name='dispatch')
-class TicketCreateView(LoginRequiredMixin, CreateView, IncludeUserFormCreate):
+class TicketCreateView(LoginRequiredMixin, CreateView):
     template_name = 'tickets/form.html'
     model = Ticket
     form_class = FormTicket
@@ -89,8 +83,7 @@ class TicketCreateView(LoginRequiredMixin, CreateView, IncludeUserFormCreate):
         return context
 
 
-@method_decorator(soporte_required, name='dispatch')
-class TicketsUpdateView(LoginRequiredMixin, IncludeUserFormUpdate, UpdateView):
+class TicketsUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'tickets/form.html'
     model = Ticket
     form_class = FormTicket
@@ -114,8 +107,7 @@ class TicketsUpdateView(LoginRequiredMixin, IncludeUserFormUpdate, UpdateView):
         return super().form_invalid(form)
 
 
-@method_decorator(soporte_required, name='dispatch')
-class TicketEditorUpdateView(LoginRequiredMixin, IncludeUserFormUpdate, UpdateView):
+class TicketEditorUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'tickets/form_editor.html'
     model = Ticket
     form_class = FormTicketEditor

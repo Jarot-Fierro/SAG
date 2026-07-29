@@ -45,6 +45,7 @@ class ModuloForm(forms.ModelForm):
     )
     icono = forms.CharField(
         label='Icono',
+        required=False,
         widget=forms.Textarea(
             attrs={
                 'id': 'icono_modulo',

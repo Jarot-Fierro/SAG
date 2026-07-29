@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.standard.admin import StandardAdmin
-from soporte.models import TipoSoporte, Ticket, PerfilSoporte
+from soporte.models import TipoSoporte, Ticket
 
 
 @admin.register(TipoSoporte)
@@ -73,41 +73,3 @@ class TicketAdmin(StandardAdmin):
         'tipo_soporte',
         'funcionario',
     )
-
-@admin.register(PerfilSoporte)
-class PerfilSoporteAdmin(StandardAdmin):
-    list_display = (
-        'id',
-        'usuario',
-        'usuario_soporte',
-        'is_active',
-    )
-    list_filter = (
-        'usuario_soporte',
-        'is_active',
-        'usuario__groups',
-    )
-
-    search_fields = (
-        'usuario__username',
-        'usuario__first_name',
-        'usuario__last_name',
-    )
-
-    list_display_links = (
-        'nombre',
-    )
-    autocomplete_fields = ('usuario',)
-
-    ordering = (
-        '-id',
-    )
-
-    fieldsets = (
-        (None, {'fields': ('usuario', 'usuario_soporte', 'is_active')}),
-    )
-
-    def get_usuarios(self, obj):
-        return ", ".join([f"{u.first_name} {u.last_name} ({u.username})" for u in obj.usuario.all()])
-
-    get_usuarios.short_description = 'Usuarios'

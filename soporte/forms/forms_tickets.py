@@ -191,7 +191,6 @@ class FormTicketEditor(forms.ModelForm):
         fields = [
             'numero_ticket',
             'establecimiento',
-            'departamento',
             'asignado_a',
             'estado',
             'titulo',
@@ -204,7 +203,6 @@ class FormTicketEditor(forms.ModelForm):
         ]
         widgets = {
             'establecimiento': forms.Select(attrs={'class': 'form-control'}),
-            'departamento': forms.Select(attrs={'class': 'form-control'}),
             'asignado_a': forms.Select(attrs={'class': 'form-control'}),
             'tipo_soporte': forms.Select(attrs={'class': 'form-control'}),
         }
