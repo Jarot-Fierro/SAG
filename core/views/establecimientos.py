@@ -12,6 +12,9 @@ class EstablecimientoListView(StandardListView):
     delete_url_name = 'core:establecimiento_delete'
     search_fields = ['nombre', 'alias']
 
+    def get_queryset(self):
+        return super().get_queryset().filter(nombre=self.request.user.establecimiento.nombre)
+
 
 class EstablecimientoCreateView(StandardCreateView):
     model = Establecimiento

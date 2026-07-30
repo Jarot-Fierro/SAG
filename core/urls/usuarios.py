@@ -1,7 +1,7 @@
 from django.urls import path
 
 from core.views.usuarios import login_view, logout_view, perfil_view, cambiar_password_view, registro_view, \
-    buscar_funcionario_ajax, cambiar_establecimiento_view
+    buscar_funcionario_ajax, cambiar_establecimiento_view, list_users, UsuarioCreateView
 
 app_name = 'usuarios'
 
@@ -14,4 +14,6 @@ urlpatterns = [
     path('buscar-funcionario-ajax/', buscar_funcionario_ajax, name='buscar_funcionario_ajax'),
     path('cambiar-establecimiento/<int:establecimiento_id>/', cambiar_establecimiento_view,
          name='cambiar_establecimiento'),
+    path('lista-usuarios/', list_users, name='list_usuario'),
+    path('crear-usuario/', UsuarioCreateView.as_view(), name='crear_usuario')
 ]

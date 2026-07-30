@@ -4,13 +4,17 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
 
-from core.forms.usuarios import RegistroForm
+from core.filters.usuarios import FiltroUsuarios
+from core.forms.usuarios import RegistroForm, UsuarioForm
 from core.models import User
 from core.models.establecimientos import Establecimiento
+from core.standard.views import StandardCreateView
 
 
 def login_view(request):
@@ -165,3 +169,63 @@ def cambiar_establecimiento_view(request, establecimiento_id):
         messages.error(request, 'Establecimiento no encontrado.')
 
     return redirect(request.META.get('HTTP_REFERER', 'intranet:index'))
+
+
+@login_required
+def list_users(request):
+    objects = User.objects.filter(establecimiento=request.user.establecimiento).order_by('id')
+    filter_form = FiltroUsuarios(request.GET)
+
+    if request.method == 'GET':
+        if filter_form.is_valid():
+            data = filter_form.cleaned_data
+            if data['username']:
+                objects = objects.filter(username__icontains=data['username'])
+            if data['first_name']:
+                objects = objects.filter(first_name__icontains=data['first_name'])
+            if data['last_name']:
+                objects = objects.filter(last_name__icontains=data['last_name'])
+            if data['email']:
+                objects = objects.filter(email__icontains=data['email'])
+
+    paginator = Paginator(objects, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'usuarios/list_user.html', {
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': page_obj.has_other_pages(),
+        'filter_form': filter_form
+    })
+
+
+class UsuarioCreateView(StandardCreateView):
+    model = User
+    form_class = UsuarioForm
+    title = 'Crear Configuración de Usuario'
+    success_url = reverse_lazy('core:list_usuario')
+    template_name = 'usuarios/form_create_user.html'
+
+    def get_list_url(self):
+        return reverse_lazy('core:list_usuario')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.title
+        context['submit_label'] = 'Crear'
+        return context
+
+# class UsuarioUpdateView(StandardUpdateView):
+#     model = ConfiguracionUsuario
+#     form_class = ConfiguracionUsuarioForm
+#     title = 'Editar Configuración de Usuario'
+#     success_url = reverse_lazy('core:correo_list')
+#
+#     def get_list_url(self):
+#         return reverse_lazy('core:correo_list')
+#
+#
+# @require_POST
+# def correo_desactivar(request, pk):
+#     return catalogo_desactivar(request, pk, ConfiguracionUsuario, 'core:correo_list')

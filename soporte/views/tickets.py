@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 
+from core.models import User
+from core.models.funcionario import Funcionario
 from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
 from soporte.models import Ticket
 
@@ -15,7 +17,7 @@ MODULE_NAME = 'Tickets'
 @login_required
 def list_tickets(request):
     # Obtener todos los tickets inicialmente
-    tickets = Ticket.objects.filter(is_active=True).order_by('created_at')
+    tickets = Ticket.objects.filter(funcionario=request.user, is_active=True).order_by('created_at')
 
     # Obtener parámetros de filtrado
     titulo = request.GET.get('titulo')
@@ -57,16 +59,12 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
     form_class = FormTicket
     success_url = reverse_lazy('soporte:ticket_list')
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
     def form_valid(self, form):
         messages.success(self.request, 'Ticket Generado correctamente')
-        form.instance.departamento = self.request.user.departamento
+        get_funcionario = Funcionario.objects.filter(rut=self.request.user.username).first()
+        if get_funcionario:
+            form.instance.funcionario = User.objects.filter(username=get_funcionario.rut).first()
         form.instance.establecimiento = self.request.user.establecimiento
-        form.instance.created_by = self.request.user
 
         return super().form_valid(form)
 

@@ -1,0 +1,45 @@
+{% if request.user.is_authenticated and request.user.is_superuser %}
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'usuarios:list_usuario' %}">
+            <i class="nav-icon bi bi-people"></i>
+            <p>Usuarios</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'funcionarios:list_funcionarios' %}">
+            <i class="nav-icon bi bi-person-badge"></i>
+            <p>Funcionarios</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:correo_list' %}">
+            <i class="nav-icon bi bi-envelope"></i>
+            <p>Correos</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:establecimiento_list' %}">
+            <i class="nav-icon bi bi-hospital"></i>
+            <p>Establecimientos</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:profesion_list' %}">
+            <i class="nav-icon bi bi-mortarboard"></i>
+            <p>Profesiones</p>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:modulo_list' %}">
+            <i class="nav-icon bi bi-grid-3x3-gap"></i>
+            <p>Módulos</p>
+        </a>
+    </li>
+
+{% endif %}

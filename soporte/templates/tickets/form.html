@@ -43,18 +43,6 @@
                                     {% endif %}
                                 </div>
 
-                                {# Segunda fila: Funcionario (Buscador Select2) #}
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
-                                    {{ form.funcionario }}
-                                    {% if form.funcionario.errors %}
-                                        {% for error in form.funcionario.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-
                                 <div class="col-md-2">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
@@ -92,46 +80,4 @@
         </div>
     </div>
 
-{% endblock %}
-
-
-{% block scripts %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Inicializar Select2 estándar
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-
-            // Inicializar Select2 AJAX para funcionarios
-            $('.select2-ajax').each(function () {
-                var $this = $(this);
-                $this.select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    placeholder: 'Buscar funcionario por nombre o RUT...',
-                    minimumInputLength: 2,
-                    ajax: {
-                        url: $this.data('ajax-url'),
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                q: params.term
-                            };
-                        },
-                        processResults: function (data) {
-                            return {
-                                results: data.results
-                            };
-                        },
-                        cache: true
-                    }
-                });
-            });
-        });
-    </script>
 {% endblock %}

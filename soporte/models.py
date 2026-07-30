@@ -57,6 +57,9 @@ class Ticket(StandardModel):
                                         related_name='tickets')
     asignado_a = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='tickets_asignados')
+
+    funcionario = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='funcionario')
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
@@ -67,8 +70,6 @@ class Ticket(StandardModel):
                                      related_name='tipo_soporte')
     solucion = models.TextField(null=True, blank=True)
     fecha_cierre = models.DateTimeField(null=True, blank=True)
-    funcionario = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
-                                    related_name='funcionario')
 
     UPPERCASE_FIELDS = ['numero_ticket', 'titulo']
     LOWERCASE_FIELDS = ['solucion', ]
