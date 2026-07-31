@@ -4,12 +4,15 @@
 {% block sidebar %}
     {% include 'tickets/sidebar.html' %}
 {% endblock %}
-{% block buttons %}
-    <a class="btn btn-sm btn-info" href="{% url 'soporte:ticket_list' %}">Listado de Tickets</a>
-{% endblock %}
 
 {% block title %}
-    {{ title|default:'Formulario' }} - {{ request.user.departamento.nombre }}
+    Nuevo Ticket
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'soporte:ticket_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
 {% endblock %}
 
 
@@ -43,7 +46,7 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="col-md-2">
+                                <div class="col-md-6">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
                                     {{ form.area_soporte }}

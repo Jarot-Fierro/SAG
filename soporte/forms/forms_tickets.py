@@ -2,10 +2,19 @@ from django import forms
 from django.urls import reverse_lazy
 
 from core.models import User
-from soporte.models import Ticket
+from soporte.models import Ticket, AreaSoporte
 
 
 class FormTicket(forms.ModelForm):
+
+    def __init__(self, *args, request=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if request:
+            self.fields["area_soporte"].queryset = AreaSoporte.objects.filter(
+                establecimiento=request.user.establecimiento
+            )
+
     titulo = forms.CharField(
         label='Título del problema',
         widget=forms.TextInput(attrs={
@@ -25,11 +34,12 @@ class FormTicket(forms.ModelForm):
         required=False
     )
 
-    area_soporte = forms.ChoiceField(
-        label='Área de soporte',
-        choices=[('MANTENCION', 'Mantencion'), ('INFORMATICA', 'Informatica')],
+    area_soporte = forms.ModelChoiceField(
+        queryset=AreaSoporte.objects.all(),
+        label='¿Para que área quieres mandar este soporte?',
+        empty_label='Selecciona una opción',
         widget=forms.Select(attrs={
-            'class': 'form-control'
+            'class': 'form-control form-select'
         }),
         required=True
     )

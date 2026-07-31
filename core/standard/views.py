@@ -13,16 +13,21 @@ class StandardBaseView(LoginRequiredMixin):
     module_name = 'Mantenedor'
     title = 'Mantenedor'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def get_queryset(self):
         queryset = self.model.objects.all()
-        # Si el modelo tiene el campo 'establecimiento', filtramos por él
-        if hasattr(self.model, 'establecimiento'):
-            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
 
-        # Si el modelo tiene 'is_active', filtramos por él
-        if hasattr(self.model, 'is_active'):
+        if (hasattr(self.model, "establecimiento") and not self.request.user.is_superuser):
+            queryset = queryset.filter(
+                establecimiento=self.request.user.establecimiento
+            )
+        if hasattr(self.model, "is_active"):
             queryset = queryset.filter(is_active=True)
-        elif hasattr(self.model, 'activo'):
+        elif hasattr(self.model, "activo"):
             queryset = queryset.filter(activo=True)
 
         return queryset
@@ -52,9 +57,25 @@ class StandardListView(StandardBaseView, ListView):
     context_object_name = 'objetos'
     paginate_by = 10
     search_fields = ['nombre']
+    filter_form_class = None
+
+    def get_filter_form_kwargs(self):
+        kwargs = {
+            'data': self.request.GET or None,
+            'request': self.request,
+        }
+        return kwargs
+
+    def get_filter_form(self):
+        if self.filter_form_class:
+            return self.filter_form_class(**self.get_filter_form_kwargs())
+        return None
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        self.filter_form = self.get_filter_form()
+
+        # Búsqueda simple por 'q'
         query = self.request.GET.get('q')
         if query:
             search_query = Q()
@@ -68,12 +89,13 @@ class StandardListView(StandardBaseView, ListView):
         context['update_url_name'] = self.update_url_name
         context['delete_url_name'] = self.delete_url_name
         context['q'] = self.request.GET.get('q', '')
+        context['filter_form'] = getattr(self, 'filter_form', self.get_filter_form())
         return context
 
 
 class StandardCreateView(StandardBaseView, CreateView):
     def form_valid(self, form):
-        if hasattr(form.instance, 'establecimiento'):
+        if hasattr(form.instance, 'establecimiento') and not form.instance.establecimiento:
             form.instance.establecimiento = self.request.user.establecimiento
 
         if hasattr(form.instance, 'created_by'):
@@ -81,6 +103,12 @@ class StandardCreateView(StandardBaseView, CreateView):
 
         messages.success(self.request, f'{self.model._meta.verbose_name} creado correctamente.')
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'add'
+        context['module_name'] = self.module_name
+        return context
 
 
 class StandardUpdateView(StandardBaseView, UpdateView):
@@ -90,6 +118,12 @@ class StandardUpdateView(StandardBaseView, UpdateView):
 
         messages.success(self.request, f'{self.model._meta.verbose_name} actualizado correctamente.')
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'edit'
+        context['module_name'] = self.module_name
+        return context
 
 
 @require_POST

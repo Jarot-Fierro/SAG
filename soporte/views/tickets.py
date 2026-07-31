@@ -1,47 +1,49 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView
 
 from core.models import User
 from core.models.funcionario import Funcionario
+from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView
+from soporte.filters.tickets import FiltroTicket
 from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
 from soporte.models import Ticket
 
 MODULE_NAME = 'Tickets'
 
 
-@login_required
-def list_tickets(request):
-    # Obtener todos los tickets inicialmente
-    tickets = Ticket.objects.filter(funcionario=request.user, is_active=True).order_by('created_at')
+class TicketListView(StandardListView):
+    model = Ticket
+    filter_form_class = FiltroTicket
+    template_name = "tickets/list.html"
 
-    # Obtener parámetros de filtrado
-    titulo = request.GET.get('titulo')
-    area_soporte = request.GET.get('area_soporte')
-    tipo_soporte = request.GET.get('tipo_soporte')
-    funcionario = request.GET.get('funcionario')
-    estado = request.GET.get('estado')
+    title = "Tickets"
 
-    # Aplicar filtros de forma acumulativa
-    if titulo:
-        tickets = tickets.filter(titulo__icontains=titulo, is_active=True)
-    if area_soporte:
-        tickets = tickets.filter(area_soporte=area_soporte, is_active=True)
-    if tipo_soporte:
-        tickets = tickets.filter(tipo_soporte_id=tipo_soporte, is_active=True)
-    if estado:
-        tickets = tickets.filter(estado=estado, is_active=True)
+    list_url_name = "soporte:ticket_list"
+    create_url_name = "soporte:ticket_create"
+    update_url_name = "soporte:ticket_update"
+    delete_url_name = "soporte:ticket_update"
 
-    # Paginación
-    paginator = Paginator(tickets, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related("establecimiento", "area_soporte", "funcionario")
 
-    return render(request, 'tickets/list.html', {'page_obj': page_obj})
+        if self.filter_form and self.filter_form.is_valid():
+            data = self.filter_form.cleaned_data
+
+            if data.get("numero_ticket"):
+                queryset = queryset.filter(numero_ticket__icontains=data["numero_ticket"])
+
+            if data.get("titulo"):
+                queryset = queryset.filter(titulo__icontains=data["titulo"])
+
+            if data.get("area_soporte"):
+                queryset = queryset.filter(area_soporte=data["area_soporte"])
+
+            if data.get("estado"):
+                queryset = queryset.filter(estado=data["estado"])
+
+        return queryset
 
 
 @login_required
@@ -53,77 +55,40 @@ def ticket_delete(request, pk):
     return redirect('soporte:ticket_list')
 
 
-class TicketCreateView(LoginRequiredMixin, CreateView):
+class TicketCreateView(StandardCreateView):
     template_name = 'tickets/form.html'
     model = Ticket
     form_class = FormTicket
     success_url = reverse_lazy('soporte:ticket_list')
+    title = 'Nuevo Ticket'
+    module_name = MODULE_NAME
 
     def form_valid(self, form):
-        messages.success(self.request, 'Ticket Generado correctamente')
         get_funcionario = Funcionario.objects.filter(rut=self.request.user.username).first()
         if get_funcionario:
             form.instance.funcionario = User.objects.filter(username=get_funcionario.rut).first()
-        form.instance.establecimiento = self.request.user.establecimiento
 
         return super().form_valid(form)
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Hay errores en el formulario')
-        return super().form_invalid(form)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Nuevo Ticket'
-        context['list_url'] = self.success_url
-        context['action'] = 'add'
-        context['module_name'] = MODULE_NAME
-        return context
-
-
-class TicketsUpdateView(LoginRequiredMixin, UpdateView):
+class TicketsUpdateView(StandardUpdateView):
     template_name = 'tickets/form.html'
     model = Ticket
     form_class = FormTicket
     success_url = reverse_lazy('soporte:ticket_list')
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Ticket actualizado correctamente')
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, 'Hay errores en el formulario')
-        return super().form_invalid(form)
+    title = 'Editar Ticket'
+    module_name = MODULE_NAME
 
 
-class TicketEditorUpdateView(LoginRequiredMixin, UpdateView):
+class TicketEditorUpdateView(StandardUpdateView):
     template_name = 'tickets/form_editor.html'
     model = Ticket
     form_class = FormTicketEditor
     success_url = reverse_lazy('soporte:ticket_list')
+    title = 'Editor de Ticket'
+    module_name = MODULE_NAME
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
-
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Ticket actualizado correctamente (Editor)')
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, 'Hay errores en el formulario')
-        return super().form_invalid(form)

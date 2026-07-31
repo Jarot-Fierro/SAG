@@ -14,7 +14,7 @@ from core.filters.usuarios import FiltroUsuarios
 from core.forms.usuarios import RegistroForm, UsuarioForm
 from core.models import User
 from core.models.establecimientos import Establecimiento
-from core.standard.views import StandardCreateView
+from core.standard.views import StandardCreateView, StandardUpdateView, StandardListView
 
 
 def login_view(request):
@@ -216,16 +216,64 @@ class UsuarioCreateView(StandardCreateView):
         context['submit_label'] = 'Crear'
         return context
 
-# class UsuarioUpdateView(StandardUpdateView):
-#     model = ConfiguracionUsuario
-#     form_class = ConfiguracionUsuarioForm
-#     title = 'Editar Configuración de Usuario'
-#     success_url = reverse_lazy('core:correo_list')
-#
-#     def get_list_url(self):
-#         return reverse_lazy('core:correo_list')
-#
-#
+
+class UsuarioUpdateView(StandardUpdateView):
+    model = User
+    form_class = UsuarioForm
+    title = 'Editar Configuración de Usuario'
+    success_url = reverse_lazy('core:list_usuario')
+    template_name = 'usuarios/form_create_user.html'
+
+    def get_list_url(self):
+        return reverse_lazy('core:list_usuario')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.title
+        context['submit_label'] = 'Actualizar'
+        return context
+
+
 # @require_POST
 # def correo_desactivar(request, pk):
 #     return catalogo_desactivar(request, pk, ConfiguracionUsuario, 'core:correo_list')
+
+
+class UserListView(StandardListView):
+    model = User
+    filter_form_class = FiltroUsuarios
+    template_name = "usuarios/list_user.html"
+
+    title = "Usuarios"
+
+    list_url_name = "usuarios:list_usuario"
+    create_url_name = "usuarios:crear_usuario"
+    update_url_name = "usuarios:actualizar_usuario"
+    delete_url_name = "usuarios:update_user"
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related("establecimiento")
+
+        self.filter_form = self.filter_form_class(self.request.GET)
+
+        if self.filter_form.is_valid():
+            data = self.filter_form.cleaned_data
+
+            if data.get("username"):
+                queryset = queryset.filter(username__icontains=data["username"])
+
+            if data.get("first_name"):
+                queryset = queryset.filter(first_name__icontains=data["first_name"])
+
+            if data.get("last_name"):
+                queryset = queryset.filter(last_name__icontains=data["last_name"])
+
+            if data.get("email"):
+                queryset = queryset.filter(email__icontains=data["email"])
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["filter_form"] = self.filter_form
+        return context

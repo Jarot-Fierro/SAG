@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.utils import timezone
 
-from core.standard.models import StandardModel
+from core.standard.models import StandardModel, StandardModelEstablishment
 
 
 class TicketConfig(StandardModel):
@@ -18,9 +18,9 @@ class TicketConfig(StandardModel):
 
 
 class PerfilSoporte(StandardModel):
-    usuario = models.OneToOneField('core.User', on_delete=models.CASCADE, related_name='perfil_soporte', null=True,
-                                   blank=True)
-    usuario_soporte = models.BooleanField(default=True, verbose_name='¿Solicita Soporte?')
+    area_soporte = models.ManyToManyField('soporte.AreaSoporte', blank=True, verbose_name='Areas de Soporte')
+    usuario = models.OneToOneField('core.User', on_delete=models.CASCADE, verbose_name='Usuario',
+                                   related_name='perfil_soporte', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Perfil de Soporte'
@@ -30,7 +30,7 @@ class PerfilSoporte(StandardModel):
         return str(self.usuario)
 
 
-class TipoSoporte(StandardModel):
+class TipoSoporte(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
 
     UPPERCASE_FIELDS = ['nombre']
@@ -38,6 +38,19 @@ class TipoSoporte(StandardModel):
     class Meta:
         verbose_name = 'Tipo de Soporte'
         verbose_name_plural = 'Tipos de Soportes'
+
+    def __str__(self):
+        return self.nombre
+
+
+class AreaSoporte(StandardModelEstablishment):
+    nombre = models.CharField(max_length=100, verbose_name='Nombre del área de Soporte')
+
+    UPPERCASE_FIELDS = ['nombre']
+
+    class Meta:
+        verbose_name = 'Area para Soporte'
+        verbose_name_plural = 'Areas para Soportes'
 
     def __str__(self):
         return self.nombre
@@ -63,9 +76,8 @@ class Ticket(StandardModel):
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
-    area_soporte = models.CharField(max_length=200,
-                                    choices=[('MANTENCION', 'Mantencion'), ('INFORMATICA', 'Informatica')], null=True,
-                                    blank=True)
+    area_soporte = models.ForeignKey(AreaSoporte, on_delete=models.SET_NULL, null=True, blank=True,
+                                     verbose_name='¿A qué área pertenece este soporte?')
     tipo_soporte = models.ForeignKey(TipoSoporte, on_delete=models.SET_NULL, null=True, blank=True,
                                      related_name='tipo_soporte')
     solucion = models.TextField(null=True, blank=True)
