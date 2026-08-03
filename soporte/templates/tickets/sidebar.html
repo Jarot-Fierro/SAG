@@ -1,7 +1,7 @@
 <li class="nav-item">
     <a href="{% url 'soporte:ticket_list' %}" class="nav-link">
         <i class="nav-icon bi bi-list-ul"></i>
-        <p>Lista de Soportes</p>
+        <p>Lista de mis Soportes</p>
     </a>
 </li>
 
@@ -11,3 +11,12 @@
         <p>Nuevo Soporte</p>
     </a>
 </li>
+
+{% if request.user.perfil_soporte %}
+    <li class="nav-item">
+        <a href="{% url 'soporte:ticket_editor_list' %}" class="nav-link">
+            <i class="nav-icon bi bi-tools"></i>
+            <p>Gestión de Soportes</p>
+        </a>
+    </li>
+{% endif %}

@@ -53,7 +53,7 @@ class AreaSoporte(StandardModelEstablishment):
         verbose_name_plural = 'Areas para Soportes'
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} {self.establecimiento}"
 
 
 class Ticket(StandardModel):
@@ -77,7 +77,7 @@ class Ticket(StandardModel):
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
     area_soporte = models.ForeignKey(AreaSoporte, on_delete=models.SET_NULL, null=True, blank=True,
-                                     verbose_name='¿A qué área pertenece este soporte?')
+                                     verbose_name='Area de Soporte')
     tipo_soporte = models.ForeignKey(TipoSoporte, on_delete=models.SET_NULL, null=True, blank=True,
                                      related_name='tipo_soporte')
     solucion = models.TextField(null=True, blank=True)

@@ -57,7 +57,8 @@ def buscar_funcionario_api(request):
 
 @login_required
 def unidad_organizacional_grafico(request):
-    unidades_todas = UnidadOrganizacional.objects.filter(is_active=True)
+    unidades_todas = UnidadOrganizacional.objects.filter(is_active=True,
+                                                         establecimiento=request.user.establecimiento).order_by('id')
 
     # Identificamos las unidades principales (raíces de cada card)
     # Una unidad es raíz si no tiene padre O si es unidad_principal=True

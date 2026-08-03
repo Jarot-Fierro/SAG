@@ -10,7 +10,6 @@ class PerfilSoporteAdmin(StandardAdmin):
         'id',
         'usuario',
         'display_areas',
-        'is_active',
     )
 
     search_fields = (
@@ -25,6 +24,7 @@ class PerfilSoporteAdmin(StandardAdmin):
     )
 
     filter_horizontal = ('area_soporte',)
+    autocomplete_fields = ('usuario',)
 
     def display_areas(self, obj):
         return ", ".join([area.nombre for area in obj.area_soporte.all()])
@@ -62,7 +62,7 @@ class AreaSoporteAdmin(StandardAdmin):
     list_display = (
         'id',
         'nombre',
-        'is_active',
+        'establecimiento',
     )
 
     search_fields = (
@@ -88,12 +88,10 @@ class TicketAdmin(StandardAdmin):
         'id',
         'numero_ticket',
         'titulo',
+        'funcionario',
         'estado',
         'area_soporte',
-        'tipo_soporte',
         'establecimiento',
-        'asignado_a',
-        'fecha_cierre',
     )
 
     search_fields = (

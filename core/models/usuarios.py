@@ -56,3 +56,22 @@ class User(AbstractUser):
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
         ordering = ['first_name']
+
+
+class HistorialAcceso(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='historial_accesos')
+    establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_acceso = models.DateTimeField(auto_now_add=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    equipo = models.CharField(max_length=150, null=True, blank=True)
+    navegador = models.CharField(max_length=50, null=True, blank=True)
+    version_navegador = models.CharField(max_length=30, null=True, blank=True)
+    sistema_operativo = models.CharField(max_length=50, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Historial de Acceso'
+        verbose_name_plural = 'Historiales de Accesos'
+        ordering = ['-fecha_acceso']
+
+    def __str__(self):
+        return f"{self.usuario} - {self.fecha_acceso}"

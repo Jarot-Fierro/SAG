@@ -15,7 +15,6 @@ class StandardBaseView(LoginRequiredMixin):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
         return kwargs
 
     def get_queryset(self):
@@ -62,7 +61,6 @@ class StandardListView(StandardBaseView, ListView):
     def get_filter_form_kwargs(self):
         kwargs = {
             'data': self.request.GET or None,
-            'request': self.request,
         }
         return kwargs
 

@@ -105,6 +105,7 @@ class ConfiguracionCorreoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         # Si el objeto ya existe, intentamos cargar la contraseña actual descifrada
         if self.instance and self.instance.pk:

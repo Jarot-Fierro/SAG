@@ -13,7 +13,7 @@
     </a>
 {% endblock %}
 
-{% block title %}Mis Tickets{% endblock %}
+{% block title %}Gestión de Tickets{% endblock %}
 {% block content %}
     <div class="row mx-2">
         <div class="col-12">
@@ -53,7 +53,8 @@
                                 <th scope="col">N° Ticket</th>
                                 <th scope="col">Titulo</th>
                                 <th scope="col">Estado</th>
-                                <th scope="col">Área Soporte</th>
+                                <th scope="col">Funcionario</th>
+                                <th scope="col">Área</th>
                                 <th scope="col">Asignado a</th>
                                 <th scope="col">Fecha Creación</th>
                                 <th scope="col">Acciones</th>
@@ -91,6 +92,7 @@
                                         </span>
                                         {% endif %}
                                     </td>
+                                    <td>{{ ticket.funcionario|default:'-' }}</td>
                                     <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
                                     <td>{{ ticket.asignado_a|default:'-' }}</td>
                                     <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
@@ -107,7 +109,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-body-secondary py-4">
+                                    <td colspan="8" class="text-center text-body-secondary py-4">
                                         No se encontraron funcionarios para la búsqueda.
                                     </td>
                                 </tr>

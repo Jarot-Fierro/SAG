@@ -204,11 +204,11 @@ class UsuarioCreateView(StandardCreateView):
     model = User
     form_class = UsuarioForm
     title = 'Crear Configuración de Usuario'
-    success_url = reverse_lazy('core:list_usuario')
+    success_url = reverse_lazy('usuarios:list_usuario')
     template_name = 'usuarios/form_create_user.html'
 
     def get_list_url(self):
-        return reverse_lazy('core:list_usuario')
+        return reverse_lazy('usuarios:list_usuario')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -221,11 +221,11 @@ class UsuarioUpdateView(StandardUpdateView):
     model = User
     form_class = UsuarioForm
     title = 'Editar Configuración de Usuario'
-    success_url = reverse_lazy('core:list_usuario')
+    success_url = reverse_lazy('usuarios:list_usuario')
     template_name = 'usuarios/form_create_user.html'
 
     def get_list_url(self):
-        return reverse_lazy('core:list_usuario')
+        return reverse_lazy('usuarios:list_usuario')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

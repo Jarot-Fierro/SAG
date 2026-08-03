@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from import_export import resources
 
-from core.models.usuarios import User
+from core.models.usuarios import User, HistorialAcceso
 from core.standard.admin import StandardAdmin
 
 
@@ -71,3 +71,19 @@ class UserAdmin(BaseUserAdmin, StandardAdmin):
             )
         }),
     )
+
+
+@admin.register(HistorialAcceso)
+class HistorialAccesoAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'establecimiento', 'fecha_acceso', 'ip', 'equipo', 'navegador', 'sistema_operativo')
+    list_filter = ('fecha_acceso', 'equipo', 'navegador', 'sistema_operativo', 'establecimiento')
+    search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'ip')
+    readonly_fields = (
+        'usuario', 'establecimiento', 'fecha_acceso', 'ip', 'equipo', 'navegador', 'version_navegador',
+        'sistema_operativo')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
