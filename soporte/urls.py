@@ -13,4 +13,8 @@ urlpatterns = [
 
     # TICKETS MODO EDITOR
     path('soporte-tickets-editor/lista/', TicketEditorListView.as_view(), name='ticket_editor_list'),
+    path('soporte-detail/<int:pk>/', TicketDetailView.as_view(), name='ticket_detail'),
+    path('soporte-tomar/ticket/<int:pk>/', ticket_tomar, name='ticket_tomar'),
+    path('soporte-cerrar/ticket/<int:pk>/', ticket_cerrar, name='ticket_cerrar'),
+    path('soporte-tickets-inactivos/lista/', TicketEditorInactivosListView.as_view(), name='ticket_inactivos_list'),
 ]

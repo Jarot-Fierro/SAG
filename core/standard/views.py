@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView
 
 
 class StandardBaseView(LoginRequiredMixin):
@@ -121,6 +121,51 @@ class StandardUpdateView(StandardBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['action'] = 'edit'
         context['module_name'] = self.module_name
+        return context
+
+
+class StandardDetailView(StandardBaseView, DetailView):
+    """
+    Vista genérica para visualizar el detalle de un registro en un modal.
+    Extrae automáticamente los campos del modelo para su visualización.
+    """
+    template_name = 'mantenedores/detail_modal.html'
+    context_object_name = 'object'
+    title = ''
+    module_name = ''
+    exclude_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'history']
+
+    def get_detail_fields(self):
+        """
+        Genera automáticamente la lista de campos a mostrar basándose en la metadata del modelo.
+        """
+        obj = self.get_object()
+        fields_data = []
+        exclude = getattr(self, 'exclude_fields', [])
+
+        for field in obj._meta.fields:
+            if field.name in exclude:
+                continue
+
+            label = field.verbose_name
+            # Manejo de ChoiceField para mostrar el valor legible
+            if field.choices:
+                value = getattr(obj, f'get_{field.name}_display')()
+            else:
+                value = getattr(obj, field.name)
+
+            fields_data.append({
+                'label': label,
+                'value': value,
+                'name': field.name,
+                'type': field.get_internal_type()
+            })
+        return fields_data
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['module_name'] = self.module_name
+        context['detail_fields'] = self.get_detail_fields()
         return context
 
 

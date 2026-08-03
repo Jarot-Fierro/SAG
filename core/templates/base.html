@@ -87,6 +87,16 @@
 
     {% include 'core/components/footer.html' %}
 </div>
+
+<!-- Modal Genérico para StandardDetailView -->
+<div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="genericModalContent">
+            <!-- El contenido se cargará dinámicamente aquí -->
+        </div>
+    </div>
+</div>
+
 {% include 'core/components/subscomponents/javascripts.html' %}
 <script>
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {

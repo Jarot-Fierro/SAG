@@ -1,0 +1,39 @@
+<div class="modal-header">
+    <h5 class="modal-title">
+        {% block modal_title %}
+            {% if title %}{{ title }}{% else %}{{ object }}{% endif %}
+        {% endblock %}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    {% block modal_body %}
+        <div class="row">
+            {% for item in detail_fields %}
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold text-muted small d-block text-uppercase">{{ item.label }}</label>
+                    <div class="field-value">
+                        {% if item.value is True %}
+                            <span class="badge bg-success">Sí</span>
+                        {% elif item.value is False %}
+                            <span class="badge bg-danger">No</span>
+                        {% elif item.value == None or item.value == "" %}
+                            <span class="badge bg-danger">-SIN INFORMACIÓN-</span>
+                        {% else %}
+                            {{ item.value|linebreaksbr }}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endblock %}
+</div>
+
+<div class="modal-footer">
+    {% block modal_footer %}
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cerrar
+        </button>
+    {% endblock %}
+</div>

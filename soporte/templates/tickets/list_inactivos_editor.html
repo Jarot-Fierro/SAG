@@ -5,18 +5,11 @@
 {% endblock %}
 
 {% block buttons %}
-    <a href="{% url 'soporte:ticket_create' %}"
+    <a href="{% url 'soporte:ticket_editor_list' %}"
        class="btn btn-sm btn-primary"
-       title="Nuevo Registro">
-        <i class="bi bi-plus-circle me-1"></i>
-        Nuevo Registro
-    </a>
-
-    <a href="{% url 'soporte:ticket_inactivos_list' %}"
-       class="btn btn-sm btn-danger"
-       title="Tickets Cerrados">
-        <i class="bi bi-check2-circle me-1"></i>
-        Tickets Cerrados
+       title="Volver">
+        <i class="bi bi-arrow-left-circle me-1"></i>
+        Volver
     </a>
 {% endblock %}
 
@@ -64,7 +57,6 @@
                                 <th scope="col">Área</th>
                                 <th scope="col">Asignado a</th>
                                 <th scope="col">Fecha Creación</th>
-                                <th scope="col">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -72,75 +64,11 @@
                                 <tr>
                                     <td>{{ ticket.numero_ticket }}</td>
                                     <td>{{ ticket.titulo }}</td>
-
-                                    <td>
-                                        <select class="form-select form-select-sm estado-ticket"
-                                                data-ticket="{{ ticket.id }}">
-                                            {% for value, label in ticket.ESTADOS %}
-                                                <option value="{{ value }}"
-                                                        {% if ticket.estado == value %}selected{% endif %}>
-                                                    {{ label }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </td>
+                                    <td><span class="badge bg-danger">{{ ticket.estado|default:'-' }}</span></td>
                                     <td>{{ ticket.funcionario|default:'-' }}</td>
                                     <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
                                     <td>{{ ticket.asignado_a|default:'-' }}</td>
                                     <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        <!-- Ver detalle -->
-                                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ver Ticket">
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-primary"
-                                                    hx-get="{% url 'soporte:ticket_detail' ticket.pk %}"
-                                                    hx-target="#genericModalContent"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#genericModal">
-                                                <i class="bi bi-eye"></i>
-                                                <span class="d-none">Ver</span>
-                                            </button>
-                                        </span>
-
-                                        <!-- Tomar ticket -->
-                                        <form method="post" action="{% url 'soporte:ticket_tomar' ticket.id %}"
-                                              class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-success"
-                                                    title="Tomar Ticket"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top">
-                                                <i class="bi bi-person-check"></i>
-                                                <span class="d-none">Tomar</span>
-                                            </button>
-                                        </form>
-
-                                        <!-- Cerrar ticket -->
-                                        <form method="post" action="{% url 'soporte:ticket_cerrar' ticket.id %}"
-                                              class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-success"
-                                                    title="Cerrar Ticket"
-                                                    onclick="return confirm('¿Está seguro de cerrar este ticket?');"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top">
-                                                <i class="bi bi-check2-circle"></i>
-                                                <span class="d-none">Cerrar</span>
-                                            </button>
-                                        </form>
-
-                                        <!-- Editar -->
-                                        <a href="{% url update_url_name ticket.id %}"
-                                           class="btn btn-sm btn-outline-info"
-                                           title="Editar"
-                                           data-bs-toggle="tooltip"
-                                           data-bs-placement="top">
-                                            <i class="bi bi-pencil-square"></i>
-                                            <span class="d-none">Editar</span>
-                                        </a>
-                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr>
@@ -196,35 +124,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-{% block scripts %}
-    <script>
-        document.querySelectorAll(".estado-ticket").forEach(select => {
-
-            const valorAnterior = () => select.dataset.previous;
-
-            select.dataset.previous = select.value;
-
-            select.addEventListener("focus", function () {
-                this.dataset.previous = this.value;
-            });
-
-            select.addEventListener("change", function () {
-
-                const confirmado = confirm(
-                    "¿Está seguro de cambiar el estado del ticket?"
-                );
-
-                if (!confirmado) {
-                    this.value = this.dataset.previous;
-                    return;
-                }
-
-                // Aquí posteriormente harás el fetch o el HTMX
-                console.log("Actualizar ticket:", this.dataset.ticket, this.value);
-
-            });
-
-        });
-    </script>
 {% endblock %}

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 
-from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView
+from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView, StandardDetailView
 from soporte.filters.tickets import FiltroTicket
 from soporte.forms.forms_tickets import FormTicket
 from soporte.models import Ticket
@@ -59,15 +59,6 @@ class TicketListView(StandardListView):
         except TypeError:
             pass
         return kwargs
-
-
-@login_required
-def ticket_delete(request, pk):
-    ticket = get_object_or_404(Ticket, pk=pk)
-    ticket.is_active = False
-    ticket.save()
-    messages.success(request, 'Ticket desactivado correctamente')
-    return redirect('soporte:ticket_list')
 
 
 class TicketCreateView(StandardCreateView):
@@ -134,5 +125,108 @@ class TicketEditorListView(StandardListView):
 
             if data.get("estado"):
                 queryset = queryset.filter(estado=data["estado"])
+
+        return queryset
+
+
+class TicketDetailView(StandardDetailView):
+    model = Ticket
+
+    title = "Detalle del Ticket"
+    module_name = MODULE_NAME
+    back_url_name = "soporte:ticket_list"
+
+
+@login_required
+def ticket_delete(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket.is_active = False
+    ticket.save()
+    messages.success(request, 'Ticket desactivado correctamente')
+    return redirect('soporte:ticket_editor_list')
+
+
+@login_required
+def ticket_tomar(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket.asignado_a = request.user
+    ticket.save()
+    messages.success(request, 'Ticket asignado correctamente')
+    return redirect('soporte:ticket_editor_list')
+
+
+@login_required
+def ticket_cerrar(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket.estado = 'CERRADO'
+    ticket.is_active = False
+    ticket.save()
+    messages.success(request, 'Ticket cerrado correctamente')
+    return redirect('soporte:ticket_editor_list')
+
+
+class TicketEditorInactivosListView(StandardListView):
+    model = Ticket
+    filter_form_class = FiltroTicket
+    template_name = "tickets/list_inactivos_editor.html"
+
+    title = "Tickets"
+
+    list_url_name = "soporte:ticket_list"
+    create_url_name = "soporte:ticket_create"
+    update_url_name = "soporte:ticket_update"
+    delete_url_name = "soporte:ticket_update"
+
+    def get_queryset(self):
+        queryset = self.model.objects.all()
+
+        # Filtrar por establecimiento si no es superusuario
+        if (
+                hasattr(self.model, "establecimiento")
+                and not self.request.user.is_superuser
+        ):
+            queryset = queryset.filter(
+                establecimiento=self.request.user.establecimiento
+            )
+
+        # Mostrar únicamente los desactivados
+        queryset = queryset.filter(is_active=False)
+
+        try:
+            areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            queryset = queryset.filter(
+                area_soporte__in=areas_usuario
+            ).select_related(
+                "establecimiento",
+                "area_soporte",
+                "funcionario"
+            )
+        except AttributeError:
+            return queryset.none()
+
+        self.filter_form = self.get_filter_form()
+
+        if self.filter_form.is_valid():
+            data = self.filter_form.cleaned_data
+
+            if data.get("numero_ticket"):
+                queryset = queryset.filter(
+                    numero_ticket__icontains=data["numero_ticket"]
+                )
+
+            if data.get("titulo"):
+                queryset = queryset.filter(
+                    titulo__icontains=data["titulo"]
+                )
+
+            if data.get("area_soporte"):
+                queryset = queryset.filter(
+                    area_soporte=data["area_soporte"]
+                )
+
+            if data.get("estado"):
+                queryset = queryset.filter(
+                    estado=data["estado"]
+                )
 
         return queryset
