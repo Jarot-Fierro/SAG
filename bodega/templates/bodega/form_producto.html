@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Nueva Producto
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:producto_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
+                                    {{ form.codigo }}
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                                    {{ form.nombre }}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                                    {{ form.descripcion }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+                                    {{ form.categoria }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.marca.id_for_label }}">{{ form.marca.label }}</label>
+                                    {{ form.marca }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.unidad_medida.id_for_label }}">{{ form.unidad_medida.label }}</label>
+                                    {{ form.unidad_medida }}
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-check">
+                                        {{ form.activo }}
+                                        <label class="form-check-label fw-bold" for="{{ form.activo.id_for_label }}">
+                                            {{ form.activo.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

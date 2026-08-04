@@ -12,6 +12,7 @@ urlpatterns = [
     path('soporte/', include('soporte.urls')),
     path('horos/', include('horos.urls')),
     path('gestion/', include('gestion_tic.urls')),
+    path('bodega/', include('bodega.urls')),
 ]
 
 handler404 = 'core.views.errors.handler404'

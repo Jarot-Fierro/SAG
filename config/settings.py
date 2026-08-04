@@ -94,6 +94,8 @@ INSTALLED_APPS = [
     'gestion_tic.apps.GestionTicConfig',
     # HOROS
     'horos.apps.HorosConfig',
+    # BODEGA,
+    'bodega.apps.BodegaConfig',
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Nuevo Stock
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:stock_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.bodega.id_for_label }}">{{ form.bodega.label }}</label>
+                                    {{ form.bodega }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.producto.id_for_label }}">{{ form.producto.label }}</label>
+                                    {{ form.producto }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.stock_actual.id_for_label }}">{{ form.stock_actual.label }}</label>
+                                    {{ form.stock_actual }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.stock_minimo.id_for_label }}">{{ form.stock_minimo.label }}</label>
+                                    {{ form.stock_minimo }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.stock_maximo.id_for_label }}">{{ form.stock_maximo.label }}</label>
+                                    {{ form.stock_maximo }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.status_stock.id_for_label }}">{{ form.status_stock.label }}</label>
+                                    {{ form.status_stock }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.ubicacion.id_for_label }}">{{ form.ubicacion.label }}</label>
+                                    {{ form.ubicacion }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

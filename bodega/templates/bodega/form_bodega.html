@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Nueva Bodega
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:bodega_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                        {% for error in form.nombre.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                        {% for error in form.descripcion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="{{ form.categorias.id_for_label }}">{{ form.categorias.label }}</label>
+                                    {{ form.categorias }}
+                                    {% if form.categorias.errors %}
+                                        {% for error in form.categorias.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+
+{% block buttons %}
+    <a href="{% url 'bodega:stock_create' %}"
+       class="btn btn-sm btn-primary"
+       title="Nuevo Registro">
+        <i class="bi bi-plus-circle me-1"></i>
+        Nuevo Registro
+    </a>
+{% endblock %}
+
+{% block title %}Inventario de Stock{% endblock %}
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                    </span>
+                                    <input type="text" name="q" class="form-control" placeholder="Buscar..."
+                                           value="{{ q }}">
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{% url 'bodega:stock_list' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0" role="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Bodega</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Stock Actual</th>
+                                <th scope="col">Mínimo</th>
+                                <th scope="col">Máximo</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Ubicación</th>
+                                <th scope="col" class="text-center">Opciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for stock in page_obj %}
+                                <tr>
+                                    <td>{{ stock.bodega.nombre }}</td>
+                                    <td>{{ stock.producto.nombre }}</td>
+                                    <td>{{ stock.stock_actual }}</td>
+                                    <td>{{ stock.stock_minimo }}</td>
+                                    <td>{{ stock.stock_maximo }}</td>
+                                    <td>
+                                        {% if stock.status_stock == 'OK' %}
+                                            <span class="badge bg-success">{{ stock.status_stock }}</span>
+                                        {% elif stock.status_stock == 'REPOSICIÓN' %}
+                                            <span class="badge bg-warning text-dark">{{ stock.status_stock }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ stock.status_stock }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ stock.ubicacion|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'bodega:stock_update' stock.pk %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-body-secondary py-4">
+                                        No se encontró stock registrado.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        registros
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?{% query_transform page=i %}">
+                                            {{ i }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.next_page_number %}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
