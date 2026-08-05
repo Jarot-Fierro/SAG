@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load query_tags %}
-
+{% block sidebar %}
+    {% include 'bodega/sidebar.html' %}
+{% endblock %}
 {% block buttons %}
     <a href="{% url 'bodega:stock_create' %}"
        class="btn btn-sm btn-primary"

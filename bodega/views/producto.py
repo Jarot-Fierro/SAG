@@ -1,6 +1,8 @@
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 
 from bodega.forms.forms import FormProducto
+from bodega.models import Bodega
 from bodega.models.producto import Producto
 from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView
 
@@ -18,7 +20,33 @@ class ProductoListView(StandardListView):
     delete_url_name = "bodega:producto_delete"
 
     def get_queryset(self):
-        return super().get_queryset().select_related('categoria', 'marca', 'unidad_medida')
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related(
+                "categoria",
+                "marca",
+                "unidad_medida",
+            )
+        )
+
+        bodega_id = self.request.GET.get("bodega")
+
+        if bodega_id:
+            bodega = get_object_or_404(Bodega, pk=bodega_id)
+
+            queryset = queryset.filter(
+                categoria__in=bodega.categorias.all()
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        bodega_id = self.request.GET.get("bodega")
+        if bodega_id:
+            context['instance_bodega'] = Bodega.objects.filter(pk=bodega_id).first()
+        return context
 
 
 class ProductoCreateView(StandardCreateView):

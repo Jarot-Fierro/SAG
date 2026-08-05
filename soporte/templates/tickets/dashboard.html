@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block title %}Dashboard de Soporte{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Resumen por Áreas -->
+        {% for area_data in stats_areas %}
+            <div class="row mt-2">
+                <div class="col-12">
+                    <h4 class="mb-3">Área: {{ area_data.area }}</h4>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box text-bg-success">
+                        <div class="inner">
+                            <h3>{{ area_data.ABIERTO }}</h3>
+                            <p>Abiertos</p>
+                        </div>
+                        <div class="icon">
+                            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M3.75 5.25A2.25 2.25 0 016 3h12a2.25 2.25 0 012.25 2.25v2.03a2.25 2.25 0 000 4.44v2.03A2.25 2.25 0 0118 18H6a2.25 2.25 0 01-2.25-2.25v-2.03a2.25 2.25 0 000-4.44V5.25zM9 8.25a.75.75 0 000 1.5h6a.75.75 0 000-1.5H9zm0 3a.75.75 0 000 1.5h3a.75.75 0 000-1.5H9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box text-bg-warning">
+                        <div class="inner">
+                            <h3>{{ area_data.EN_PROCESO }}</h3>
+                            <p>En Proceso</p>
+                        </div>
+                        <div class="icon">
+                            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M3.75 5.25A2.25 2.25 0 016 3h12a2.25 2.25 0 012.25 2.25v2.03a2.25 2.25 0 000 4.44v2.03A2.25 2.25 0 0118 18H6a2.25 2.25 0 01-2.25-2.25v-2.03a2.25 2.25 0 000-4.44V5.25zM9 8.25a.75.75 0 000 1.5h6a.75.75 0 000-1.5H9zm0 3a.75.75 0 000 1.5h3a.75.75 0 000-1.5H9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box text-bg-info">
+                        <div class="inner">
+                            <h3>{{ area_data.CERRADO }}</h3>
+                            <p>Cerrados</p>
+                        </div>
+                        <div class="icon">
+                            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M3.75 5.25A2.25 2.25 0 016 3h12a2.25 2.25 0 012.25 2.25v2.03a2.25 2.25 0 000 4.44v2.03A2.25 2.25 0 0118 18H6a2.25 2.25 0 01-2.25-2.25v-2.03a2.25 2.25 0 000-4.44V5.25zM9 8.25a.75.75 0 000 1.5h6a.75.75 0 000-1.5H9zm0 3a.75.75 0 000 1.5h3a.75.75 0 000-1.5H9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box text-bg-danger">
+                        <div class="inner">
+                            <h3>{{ area_data.RECHAZADO }}</h3>
+                            <p>Rechazados</p>
+                        </div>
+                        <div class="icon">
+                            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24"
+                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M3.75 5.25A2.25 2.25 0 016 3h12a2.25 2.25 0 012.25 2.25v2.03a2.25 2.25 0 000 4.44v2.03A2.25 2.25 0 0118 18H6a2.25 2.25 0 01-2.25-2.25v-2.03a2.25 2.25 0 000-4.44V5.25zM9 8.25a.75.75 0 000 1.5h6a.75.75 0 000-1.5H9zm0 3a.75.75 0 000 1.5h3a.75.75 0 000-1.5H9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Gráfico de barras -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Soportes Cerrados por Usuario</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="bar-chart" style="height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bar_chart_options = {
+                series: [{
+                    name: 'Tickets Cerrados',
+                    data: [{% for item in bar_chart_data %}{{ item.cerrados }}{% if not forloop.last %}, {% endif %}{% endfor %}]
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 400
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 4,
+                        horizontal: true,
+                    }
+                },
+                dataLabels: {
+                    enabled: true
+                },
+                xaxis: {
+                    categories: [{% for item in bar_chart_data %}"{{ item.usuario }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+                },
+                colors: ['#0d6efd']
+            };
+
+            const bar_chart = new ApexCharts(document.querySelector("#bar-chart"), bar_chart_options);
+            bar_chart.render();
+        });
+    </script>
+{% endblock %}

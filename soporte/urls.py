@@ -5,6 +5,9 @@ from soporte.views.tickets import *
 app_name = 'soporte'
 
 urlpatterns = [
+    # DASHBOARD
+    path('soporte-tickets/dashboard/', TicketDashboardView.as_view(), name='ticket_dashboard'),
+
     # TICKETS
     path('soporte-tickets/lista/', TicketListView.as_view(), name='ticket_list'),
     path('soporte-tickets/crear/', TicketCreateView.as_view(), name='ticket_create'),
