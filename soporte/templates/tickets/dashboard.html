@@ -13,7 +13,7 @@
         {% for area_data in stats_areas %}
             <div class="row mt-2">
                 <div class="col-12">
-                    <h4 class="mb-3">Área: {{ area_data.area }}</h4>
+                    <h4 class="mb-3">Área: {{ area_data.area }} - {{ area_data.area_establecimiento }}</h4>
                 </div>
                 <div class="col-lg-3 col-6">
                     <div class="small-box text-bg-success">
@@ -78,15 +78,15 @@
             </div>
         {% endfor %}
 
-        <!-- Gráfico de barras -->
+        <!-- Gráfico de Columnas -->
         <div class="row mt-2">
             <div class="col-12">
                 <div class="card card-primary card-outline">
                     <div class="card-header">
-                        <h3 class="card-title">Soportes Cerrados por Usuario</h3>
+                        <h3 class="card-title">Soportes por Usuario</h3>
                     </div>
                     <div class="card-body">
-                        <div id="bar-chart" style="height: 200px;"></div>
+                        <div id="column-chart" style="min-height: 315px;"></div>
                     </div>
                 </div>
             </div>
@@ -99,32 +99,58 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const bar_chart_options = {
-                series: [{
-                    name: 'Tickets Cerrados',
-                    data: [{% for item in bar_chart_data %}{{ item.cerrados }}{% if not forloop.last %}, {% endif %}{% endfor %}]
-                }],
+            const barData = JSON.parse('{{ bar_chart_data_json|safe }}');
+            const column_chart_options = {
+                series: [
+                    {
+                        name: 'Abiertos',
+                        data: barData.map(item => item.abiertos)
+                    },
+                    {
+                        name: 'Cerrados',
+                        data: barData.map(item => item.cerrados)
+                    }
+                ],
                 chart: {
                     type: 'bar',
-                    height: 400
+                    height: 350,
+                    toolbar: {
+                        show: false
+                    }
                 },
                 plotOptions: {
                     bar: {
-                        borderRadius: 4,
-                        horizontal: true,
+                        horizontal: false,
+                        columnWidth: '55%',
+                        borderRadius: 5,
                     }
                 },
                 dataLabels: {
-                    enabled: true
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
                 },
                 xaxis: {
-                    categories: [{% for item in bar_chart_data %}"{{ item.usuario }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    categories: barData.map(item => item.usuario),
                 },
-                colors: ['#0d6efd']
+                fill: {
+                    opacity: 1
+                },
+                colors: ['#6f42c1', '#20c997'],
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + " tickets"
+                        }
+                    }
+                }
             };
 
-            const bar_chart = new ApexCharts(document.querySelector("#bar-chart"), bar_chart_options);
-            bar_chart.render();
+            const column_chart = new ApexCharts(document.querySelector("#column-chart"), column_chart_options);
+            column_chart.render();
         });
     </script>
 {% endblock %}

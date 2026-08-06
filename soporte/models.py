@@ -72,7 +72,7 @@ class Ticket(StandardModel):
                                    related_name='tickets_asignados')
 
     funcionario = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
-                                    related_name='funcionario')
+                                    related_name='tickets_solicitados')
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()

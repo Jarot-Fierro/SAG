@@ -56,6 +56,7 @@
                                 <th scope="col">Área Soporte</th>
                                 <th scope="col">Asignado a</th>
                                 <th scope="col">Fecha Creación</th>
+                                <th scope="col">Fecha Cierre</th>
                                 <th scope="col">Acciones</th>
                             </tr>
                             </thead>
@@ -78,7 +79,7 @@
                                             En Espera
                                         </span>
                                         {% elif ticket.estado == 'CERRADO' %}
-                                            <span class="badge bg-success">
+                                            <span class="badge bg-danger">
                                             Cerrado
                                         </span>
                                         {% elif ticket.estado == 'RECHAZADO' %}
@@ -94,15 +95,23 @@
                                     <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
                                     <td>{{ ticket.asignado_a|default:'-' }}</td>
                                     <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ ticket.fecha_cierre|default:"Sin Fecha" }}</td>
                                     <td>
-                                        <a href="{% url update_url_name ticket.id %}"
-                                           class="btn btn-sm btn-outline-primary"
-                                           title="Editar"
-                                           data-bs-toggle="tooltip"
-                                           data-bs-placement="top">
-                                            <i class="bi bi-pencil"></i>
-                                            <span class="d-none">Editar</span>
-                                        </a>
+                                        {% if ticket.estado == 'CERRADO' %}
+                                            <span class="badge bg-danger">
+                                            Cerrado
+                                        </span>
+                                        {% else %}
+                                            <a href="{% url update_url_name ticket.id %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Editar"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-none">Editar</span>
+                                            </a>
+                                        {% endif %}
+
                                     </td>
                                 </tr>
                             {% empty %}

@@ -37,6 +37,7 @@ class UserAdmin(BaseUserAdmin, StandardAdmin):
     filter_horizontal = ('modulos',)
     autocomplete_fields = (
         'establecimiento',
+        'funcionario',
     )
 
     fieldsets = (
@@ -48,7 +49,8 @@ class UserAdmin(BaseUserAdmin, StandardAdmin):
                 'last_name',
                 'email',
                 'establecimiento',
-                'modulos'
+                'modulos',
+                'funcionario',
             )
         }),
 

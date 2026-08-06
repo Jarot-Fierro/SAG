@@ -1,8 +1,7 @@
 from django import forms
-from django.urls import reverse_lazy
 
-from core.models import User
-from soporte.models import Ticket, AreaSoporte
+from core.models import User, Establecimiento
+from soporte.models import Ticket, AreaSoporte, TipoSoporte
 
 
 class FormTicket(forms.ModelForm):
@@ -54,41 +53,42 @@ class FormTicket(forms.ModelForm):
 
 
 class FormTicketEditor(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+
+    def __init__(self, *args, request=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.instance.pk:
-            self.fields['area_soporte'].initial = 'INFORMATICA'
+        if request:
+            self.fields["area_soporte"].queryset = AreaSoporte.objects.filter(
+                establecimiento=request.user.establecimiento
+            )
+            self.fields["tipo_soporte"].queryset = TipoSoporte.objects.filter(
+                establecimiento=request.user.establecimiento
+            )
 
-        # Filtrar asignado_a por el establecimiento del usuario logueado
-        if user and user.establecimiento:
-            self.fields['asignado_a'].queryset = User.objects.filter(
-                establecimiento=user.establecimiento,
-                is_active=True,
-                is_staff=True
-            ).order_by('username')
-        else:
-            self.fields['asignado_a'].queryset = User.objects.filter(
-                is_active=True,
-                is_staff=True
-            ).order_by('username')
-
-        # Para que ModelChoiceField acepte el valor enviado por Select2 (AJAX)
-        if 'funcionario' in self.data:
-            try:
-                funcionario_id = self.data.get('funcionario')
-                self.fields['funcionario'].queryset = User.objects.filter(id=funcionario_id)
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk and self.instance.funcionario:
-            self.fields['funcionario'].queryset = User.objects.filter(id=self.instance.funcionario.id)
+        if self.instance and self.instance.pk:
+            if self.instance.funcionario:
+                self.fields['funcionario'].queryset = User.objects.filter(pk=self.instance.funcionario.pk)
+                # Intentar obtener el departamento del funcionario si existe la propiedad o relación
+                if hasattr(self.instance.funcionario, 'departamento'):
+                    self.initial['departamento'] = self.instance.funcionario.departamento
+                elif hasattr(self.instance.funcionario, 'unidad_organizacional'):
+                    self.initial['departamento'] = self.instance.funcionario.unidad_organizacional
 
     numero_ticket = forms.CharField(
         label='N° Ticket',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'readonly': 'readonly'
+            'disabled': True
+        }),
+        required=False
+    )
+
+    establecimiento = forms.ModelChoiceField(
+        queryset=Establecimiento.objects.all(),
+        label='Establecimiento',
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'disabled': True
         }),
         required=False
     )
@@ -131,11 +131,12 @@ class FormTicketEditor(forms.ModelForm):
         required=True
     )
 
-    area_soporte = forms.ChoiceField(
-        label='Área de soporte',
-        choices=[('MANTENCION', 'Mantencion'), ('INFORMATICA', 'Informatica')],
+    area_soporte = forms.ModelChoiceField(
+        queryset=AreaSoporte.objects.all(),
+        label='Área del Soporte',
+        empty_label='Selecciona una opción',
         widget=forms.Select(attrs={
-            'class': 'form-control'
+            'class': 'form-control form-select'
         }),
         required=True
     )
@@ -143,20 +144,32 @@ class FormTicketEditor(forms.ModelForm):
     funcionario = forms.ModelChoiceField(
         label='Funcionario solicitante',
         queryset=User.objects.none(),
+        empty_label='Seleccione un funcionario',
         widget=forms.Select(attrs={
-            'class': 'form-control select2-ajax',
-            'data-ajax-url': reverse_lazy('usuarios:buscar_funcionario_ajax')
+            'class': 'form-control',
+            'disabled': True
         }),
         required=True
     )
 
     asignado_a = forms.ModelChoiceField(
         label='Asignado a',
+        empty_label='Seleccione a un responsable',
         queryset=User.objects.filter(is_active=True, is_staff=True).order_by('username'),
         widget=forms.Select(attrs={
-            'class': 'form-control',
+            'class': 'form-control form-select',
         }),
         required=True
+    )
+
+    tipo_soporte = forms.ModelChoiceField(
+        queryset=TipoSoporte.objects.all(),
+        label='Tipo de Soporte',
+        empty_label='Seleccione un tipo de soporte',
+        widget=forms.Select(attrs={
+            'class': 'form-control form-select'
+        }),
+        required=False
     )
 
     fecha_cierre = forms.DateTimeField(
@@ -173,18 +186,13 @@ class FormTicketEditor(forms.ModelForm):
         fields = [
             'numero_ticket',
             'establecimiento',
-            'asignado_a',
-            'estado',
             'titulo',
-            'descripcion',
-            'area_soporte',
-            'tipo_soporte',
-            'solucion',
-            'fecha_cierre',
             'funcionario',
+            'area_soporte',
+            'estado',
+            'asignado_a',
+            'tipo_soporte',
+            'fecha_cierre',
+            'descripcion',
+            'solucion',
         ]
-        widgets = {
-            'establecimiento': forms.Select(attrs={'class': 'form-control'}),
-            'asignado_a': forms.Select(attrs={'class': 'form-control'}),
-            'tipo_soporte': forms.Select(attrs={'class': 'form-control'}),
-        }

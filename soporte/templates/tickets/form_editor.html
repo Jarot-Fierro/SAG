@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block title %}
-    {{ title|default:'Formulario' }} - {{ request.user.departamento.nombre }}
+    {{ title|default:'Formulario' }}
 
 {% endblock %}
 
@@ -18,7 +18,7 @@
 
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-12">
 
                 <div class="card card-outline card-primary">
                     <div class="card-header">
@@ -52,17 +52,6 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.departamento.name }}">{{ form.departamento.label }}</label>
-                                    {{ form.departamento }}
-                                    {% if form.departamento.errors %}
-                                        {% for error in form.departamento.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.titulo.name }}">{{ form.titulo.label }}</label>
@@ -73,17 +62,21 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-                                <div class="col-md-4">
+
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
                                     {{ form.funcionario }}
+
                                     {% if form.funcionario.errors %}
                                         {% for error in form.funcionario.errors %}
                                             <div class="invalid-feedback d-block text-danger">{{ error }}</div>
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-                                <div class="col-md-2">
+
+
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
                                     {{ form.area_soporte }}
@@ -93,7 +86,12 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-                                <hr>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold" for="id_rol_organizacional">Departamento</label>
+                                    <input type="text"
+                                           value="{{ form.instance.funcionario.funcionario.unidad_organizacional.get_departamento }} - {{ form.instance.funcionario.funcionario.unidad_organizacional.nombre }}"
+                                           class="form-control" disabled="" id="id_rol_organizacional">
+                                </div>
 
                                 <div class="col-md-2">
                                     <label class="form-label fw-bold"

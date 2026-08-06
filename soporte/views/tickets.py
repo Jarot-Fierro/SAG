@@ -1,14 +1,17 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import TemplateView
 
 from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView, StandardDetailView
 from soporte.filters.tickets import FiltroTicket
-from soporte.forms.forms_tickets import FormTicket
+from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
 from soporte.models import Ticket, AreaSoporte, PerfilSoporte
 
 MODULE_NAME = 'Tickets'
@@ -27,7 +30,14 @@ class TicketListView(StandardListView):
     delete_url_name = "soporte:ticket_update"
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related("establecimiento", "area_soporte", "funcionario")
+        # Sobrescribimos para mostrar tanto activos como inactivos
+        queryset = Ticket.objects.all().select_related("establecimiento", "area_soporte", "funcionario")
+
+        # Aplicamos filtro de establecimiento similar a StandardBaseView
+        if not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+
+        self.filter_form = self.get_filter_form()
 
         if self.filter_form and self.filter_form.is_valid():
             data = self.filter_form.cleaned_data
@@ -72,15 +82,15 @@ class TicketCreateView(StandardCreateView):
     title = 'Nuevo Ticket'
     module_name = MODULE_NAME
 
-    def form_valid(self, form):
-        form.instance.funcionario = self.request.user
-
-        return super().form_valid(form)
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
+
+    def form_valid(self, form):
+        form.instance.funcionario = self.request.user
+        form.instance.establecimiento = self.request.user.establecimiento
+        return super().form_valid(form)
 
 
 class TicketsUpdateView(StandardUpdateView):
@@ -101,7 +111,7 @@ class TicketEditorListView(StandardListView):
 
     list_url_name = "soporte:ticket_list"
     create_url_name = "soporte:ticket_create"
-    update_url_name = "soporte:ticket_update"
+    update_url_name = "soporte:ticket_editor_update"
     delete_url_name = "soporte:ticket_update"
 
     def get_queryset(self):
@@ -161,10 +171,15 @@ def ticket_tomar(request, pk):
 @login_required
 def ticket_cerrar(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
-    ticket.estado = 'CERRADO'
-    ticket.is_active = False
-    ticket.save()
-    messages.success(request, 'Ticket cerrado correctamente')
+    if request.method == 'POST':
+        solucion = request.POST.get('solucion')
+        ticket.solucion = solucion
+        ticket.estado = 'CERRADO'
+        ticket.asignado_a = request.user
+        ticket.is_active = False
+        ticket.fecha_cierre = timezone.now()
+        ticket.save()
+        messages.success(request, 'Ticket cerrado correctamente')
     return redirect('soporte:ticket_editor_list')
 
 
@@ -230,6 +245,25 @@ class TicketEditorInactivosListView(StandardListView):
         return queryset
 
 
+class TicketsUpdateEditorView(StandardUpdateView):
+    template_name = 'tickets/form_editor.html'
+    model = Ticket
+    form_class = FormTicketEditor
+    success_url = reverse_lazy('soporte:ticket_editor_list')
+    title = 'Editar Ticket'
+    module_name = MODULE_NAME
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['instance_funcionario'] = self.object.funcionario
+        return context
+
+
 class TicketDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'tickets/dashboard.html'
 
@@ -264,6 +298,7 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
             stats = Ticket.objects.filter(area_soporte=area).values('estado').annotate(total=Count('id'))
             area_data = {
                 'area': area.nombre,
+                'area_establecimiento': area.establecimiento.nombre,
                 'ABIERTO': 0,
                 'EN_PROCESO': 0,
                 'CERRADO': 0,
@@ -276,20 +311,24 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
 
         context['stats_areas'] = stats_areas
 
-        # Gráfico de barras: Usuarios con perfil de soporte y sus tickets cerrados
+        # Gráfico de columnas: Usuarios con perfil de soporte y sus tickets por estado
         usuarios_soporte = PerfilSoporte.objects.filter(
             usuario__establecimiento=user.establecimiento,
             area_soporte__in=areas_usuario
+        ).annotate(
+            cerrados_count=Count('usuario__tickets_asignados', filter=Q(usuario__tickets_asignados__estado='CERRADO')),
+            abiertos_count=Count('usuario__tickets_asignados', filter=Q(usuario__tickets_asignados__estado='ABIERTO'))
         ).distinct()
 
-        bar_chart_data = []
-        for p in usuarios_soporte:
-            cerrados = Ticket.objects.filter(asignado_a=p.usuario, estado='CERRADO').count()
-            bar_chart_data.append({
+        bar_chart_data = [
+            {
                 'usuario': str(p.usuario),
-                'cerrados': cerrados
-            })
+                'cerrados': p.cerrados_count,
+                'abiertos': p.abiertos_count
+            } for p in usuarios_soporte
+        ]
 
         context['bar_chart_data'] = bar_chart_data
+        context['bar_chart_data_json'] = json.dumps(bar_chart_data)
 
         return context

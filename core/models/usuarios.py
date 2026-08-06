@@ -14,6 +14,14 @@ class User(AbstractUser):
                                         verbose_name='Establecimiento',
                                         help_text="El establecimiento debe ser consistente con el departamento seleccionado."
                                         )
+    funcionario = models.OneToOneField(
+        'core.Funcionario',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='usuario',
+        verbose_name='Funcionario',
+    )
     modulos = models.ManyToManyField(
         'core.Modulo',
         blank=True
