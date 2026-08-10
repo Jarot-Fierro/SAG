@@ -4,11 +4,11 @@
     {% include 'bodega/sidebar.html' %}
 {% endblock %}
 {% block title %}
-    Nuevo Stock
+    {{ title }}
 {% endblock %}
 
 {% block buttons %}
-    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:stock_list' %}">
+    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:stock_list' %}?bodega={{ instance_bodega.pk }}">
         <i class="fas fa-arrow-left"></i> Volver
     </a>
 {% endblock %}
@@ -32,39 +32,81 @@
 
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.bodega.id_for_label }}">{{ form.bodega.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.bodega.id_for_label }}">
+                                        {{ form.bodega.label }}
+                                    </label>
                                     {{ form.bodega }}
+                                    {% if form.bodega.errors %}
+                                        {% for error in form.bodega.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.producto.id_for_label }}">{{ form.producto.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.producto.id_for_label }}">
+                                        {{ form.producto.label }}
+                                    </label>
                                     {{ form.producto }}
+                                    {% if form.producto.errors %}
+                                        {% for error in form.producto.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.stock_actual.id_for_label }}">{{ form.stock_actual.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.stock_actual.id_for_label }}">
+                                        {{ form.stock_actual.label }}
+                                    </label>
                                     {{ form.stock_actual }}
+                                    {% if form.stock.errors %}
+                                        {% for error in form.stock.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.stock_minimo.id_for_label }}">{{ form.stock_minimo.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.stock_minimo.id_for_label }}">
+                                        {{ form.stock_minimo.label }}
+                                    </label>
                                     {{ form.stock_minimo }}
+                                    {% if form.stock_minimo.errors %}
+                                        {% for error in form.stock_minimo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.stock_maximo.id_for_label }}">{{ form.stock_maximo.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.stock_maximo.id_for_label }}">
+                                        {{ form.stock_maximo.label }}
+                                    </label>
                                     {{ form.stock_maximo }}
+                                    {% if form.stock_maximo.errors %}
+                                        {% for error in form.stock_maximo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.status_stock.id_for_label }}">{{ form.status_stock.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.status_stock.id_for_label }}">
+                                        {{ form.status_stock.label }}
+                                    </label>
                                     {{ form.status_stock }}
+                                    {% if form.status_stock.errors %}
+                                        {% for error in form.status_stock.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold"
-                                           for="{{ form.ubicacion.id_for_label }}">{{ form.ubicacion.label }}</label>
+                                    <label class="form-label fw-bold" for="{{ form.ubicacion.id_for_label }}">
+                                        {{ form.ubicacion.label }}
+                                    </label>
                                     {{ form.ubicacion }}
+                                    {% if form.ubicacion.errors %}
+                                        {% for error in form.ubicacion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

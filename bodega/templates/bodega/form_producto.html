@@ -4,11 +4,11 @@
     {% include 'bodega/sidebar.html' %}
 {% endblock %}
 {% block title %}
-    Nueva Producto
+    {{ title }}
 {% endblock %}
 
 {% block buttons %}
-    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:producto_list' %}">
+    <a class="btn btn-secondary btn-sm" href="{% url 'bodega:producto_list' %}?bodega={{ instance_bodega.id }}">
         <i class="fas fa-arrow-left"></i> Volver
     </a>
 {% endblock %}
@@ -35,31 +35,61 @@
                                     <label class="form-label fw-bold"
                                            for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
                                     {{ form.codigo }}
+                                    {% if form.codigo.errors %}
+                                        {% for error in form.codigo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-8">
                                     <label class="form-label fw-bold"
                                            for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
                                     {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                        {% for error in form.nombre.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold"
                                            for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
                                     {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                        {% for error in form.descripcion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold"
                                            for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
                                     {{ form.categoria }}
+                                    {% if form.categoria.errors %}
+                                        {% for error in form.categoria.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold"
                                            for="{{ form.marca.id_for_label }}">{{ form.marca.label }}</label>
                                     {{ form.marca }}
+                                    {% if form.marca.errors %}
+                                        {% for error in form.marca.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold"
                                            for="{{ form.unidad_medida.id_for_label }}">{{ form.unidad_medida.label }}</label>
                                     {{ form.unidad_medida }}
+                                    {% if form.medida.errors %}
+                                        {% for error in form.medida.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-check">

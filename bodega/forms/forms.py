@@ -30,6 +30,16 @@ class FormBodega(forms.ModelForm):
 
 
 class FormProducto(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.bodega = kwargs.pop('bodega', None)
+        super().__init__(*args, **kwargs)
+
+        if self.bodega:
+            self.fields['categoria'].queryset = CategoriaProducto.objects.filter(
+                bodegas=self.bodega
+            )
+
     codigo = forms.CharField(
         label='Código',
         required=False,
@@ -78,6 +88,34 @@ class FormProducto(forms.ModelForm):
 
 
 class FormStock(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.bodega = kwargs.pop('bodega', None)
+
+        super().__init__(*args, **kwargs)
+
+        if self.bodega:
+            # Mostrar solamente la bodega seleccionada
+            self.fields['bodega'].queryset = Bodega.objects.filter(
+                pk=self.bodega
+            )
+
+            # Obtener la bodega
+            bodega = Bodega.objects.filter(
+                pk=self.bodega
+            ).first()
+
+            if bodega:
+                # Obtener productos cuya categoría pertenece
+                # a las categorías asignadas a esta bodega
+                self.fields['producto'].queryset = Producto.objects.filter(
+                    categoria__in=bodega.categorias.all()
+                ).select_related(
+                    'categoria',
+                    'marca',
+                    'unidad_medida'
+                )
+
     bodega = forms.ModelChoiceField(
         queryset=Bodega.objects.all(),
         label='Bodega',
@@ -110,7 +148,7 @@ class FormStock(forms.ModelForm):
     )
     stock_maximo = forms.DecimalField(
         label='Stock Máximo',
-        required=True,
+        required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
     )
     ubicacion = forms.CharField(

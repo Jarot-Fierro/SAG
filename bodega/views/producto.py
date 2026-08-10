@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse
+from django.utils.decorators import method_decorator
 
+from bodega.decorators import perfil_bodega_required
 from bodega.forms.forms import FormProducto
 from bodega.models import Bodega
 from bodega.models.producto import Producto
@@ -9,6 +11,7 @@ from core.standard.views import StandardListView, StandardCreateView, StandardUp
 MODULE_NAME = 'Producto'
 
 
+@method_decorator(perfil_bodega_required, name="dispatch")
 class ProductoListView(StandardListView):
     model = Producto
     template_name = "bodega/list_producto.html"
@@ -53,15 +56,57 @@ class ProductoCreateView(StandardCreateView):
     model = Producto
     form_class = FormProducto
     template_name = 'bodega/form_producto.html'
-    success_url = reverse_lazy('bodega:producto_list')
     title = 'Nuevo Producto'
     module_name = MODULE_NAME
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        kwargs['bodega'] = self.request.GET.get('bodega')
+        return kwargs
+
+    def get_success_url(self):
+        bodega_id = self.request.GET.get('bodega')
+        return f"{reverse('bodega:producto_list')}?bodega={bodega_id}"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        bodega_id = self.request.GET.get('bodega')
+
+        if bodega_id:
+            context['instance_bodega'] = Bodega.objects.filter(
+                pk=bodega_id
+            ).first()
+
+        return context
 
 
 class ProductosUpdateView(StandardUpdateView):
     model = Producto
     form_class = FormProducto
     template_name = 'bodega/form_producto.html'
-    success_url = reverse_lazy('bodega:producto_list')
     title = 'Editar Producto'
     module_name = MODULE_NAME
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        kwargs['bodega'] = self.request.GET.get('bodega')
+        return kwargs
+
+    def get_success_url(self):
+        bodega_id = self.request.GET.get('bodega')
+        return f"{reverse('bodega:producto_list')}?bodega={bodega_id}"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        bodega_id = self.request.GET.get('bodega')
+
+        if bodega_id:
+            context['instance_bodega'] = Bodega.objects.filter(
+                pk=bodega_id
+            ).first()
+
+        return context

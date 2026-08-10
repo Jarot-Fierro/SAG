@@ -99,7 +99,9 @@
 
 {% include 'core/components/subscomponents/javascripts.html' %}
 <script>
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    document.querySelectorAll(
+        '[data-bs-toggle="tooltip"], .tooltip-button'
+    ).forEach(function (el) {
         new bootstrap.Tooltip(el);
     });
 </script>

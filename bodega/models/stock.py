@@ -32,22 +32,22 @@ class Stock(StandardModel):
         blank=True
     )
 
-    stock_actual = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
+    stock_actual = models.PositiveIntegerField(
+        default=0,
+        null=True,
+        blank=True
     )
 
-    stock_minimo = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
+    stock_minimo = models.PositiveIntegerField(
+        default=0,
+        null=True,
+        blank=True
     )
 
-    stock_maximo = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
+    stock_maximo = models.PositiveIntegerField(
+        default=0,
+        null=True,
+        blank=True
     )
 
     ubicacion = models.CharField(

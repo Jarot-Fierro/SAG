@@ -72,18 +72,46 @@
                                 <tr>
                                     <td>{{ ticket.numero_ticket }}</td>
                                     <td>{{ ticket.titulo }}</td>
-
                                     <td>
-                                        <select class="form-select form-select-sm estado-ticket"
-                                                data-ticket="{{ ticket.id }}">
-                                            {% for value, label in ticket.ESTADOS %}
-                                                <option value="{{ value }}"
-                                                        {% if ticket.estado == value %}selected{% endif %}>
-                                                    {{ label }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        {% if ticket.estado == 'ABIERTO' %}
+                                            <span class="badge bg-primary">
+                                            Abierto
+                                        </span>
+                                        {% elif ticket.estado == 'EN_PROCESO' %}
+                                            <span class="badge bg-warning text-dark">
+                                            En Proceso
+                                        </span>
+                                        {% elif ticket.estado == 'ESPERA' %}
+                                            <span class="badge bg-info text-dark">
+                                            En Espera
+                                        </span>
+                                        {% elif ticket.estado == 'CERRADO' %}
+                                            <span class="badge bg-danger">
+                                            Cerrado
+                                        </span>
+                                        {% elif ticket.estado == 'RECHAZADO' %}
+                                            <span class="badge bg-danger">
+                                            Rechazado
+                                        </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                            {{ ticket.get_estado_display }}
+                                        </span>
+                                        {% endif %}
                                     </td>
+
+                                    {#                                    <td>#}
+                                    {#                                    {{ ticket.estado }}#}
+                                    {#                                        <select class="form-select form-select-sm estado-ticket"#}
+                                    {#                                                data-ticket="{{ ticket.id }}">#}
+                                    {#                                            {% for value, label in ticket.ESTADOS %}#}
+                                    {#                                                <option value="{{ value }}"#}
+                                    {#                                                        {% if ticket.estado == value %}selected{% endif %}>#}
+                                    {#                                                    {{ label }}#}
+                                    {#                                                </option>#}
+                                    {#                                            {% endfor %}#}
+                                    {#                                        </select>#}
+                                    {#                                    </td>#}
                                     <td>{{ ticket.funcionario|default:'-' }}</td>
                                     <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
                                     <td>{{ ticket.asignado_a|default:'-' }}</td>

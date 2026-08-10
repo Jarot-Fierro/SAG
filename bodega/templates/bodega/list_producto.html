@@ -4,7 +4,7 @@
     {% include 'bodega/sidebar.html' %}
 {% endblock %}
 {% block buttons %}
-    <a href="{% url 'bodega:producto_create' %}"
+    <a href="{% url 'bodega:producto_create' %}?bodega={{ instance_bodega.id }}"
        class="btn btn-sm btn-primary"
        title="Nuevo Registro">
         <i class="bi bi-plus-circle me-1"></i>
@@ -21,7 +21,7 @@
                     <div class="row g-2 align-items-center">
                         <div class="col-12">
                             <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
-
+                                <input type="hidden" name="bodega" value="{{ instance_bodega.pk }}">
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">
                                         <i class="bi bi-search" aria-hidden="true"></i>
@@ -33,7 +33,8 @@
                                         <i class="bi bi-funnel-fill me-1"></i>
                                         Filtrar
                                     </button>
-                                    <a href="{% url 'bodega:producto_list' %}" class="btn btn-secondary">
+                                    <a href="{% url 'bodega:producto_list' %}?bodega={{ instance_bodega.pk }}"
+                                       class="btn btn-secondary">
                                         <i class="bi bi-arrow-clockwise me-1"></i>
                                         Limpiar
                                     </a>
@@ -53,7 +54,7 @@
                                 <th scope="col">Marca</th>
                                 <th scope="col">Unidad</th>
                                 <th scope="col">Estado</th>
-                                <th scope="col" class="text-center">Opciones</th>
+                                <th scope="col" class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -72,7 +73,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{% url 'bodega:producto_update' producto.pk %}"
+                                        <a href="{% url 'bodega:producto_update' producto.pk %}?bodega={{ instance_bodega.pk }}"
                                            class="btn btn-sm btn-outline-primary"
                                            title="Editar">
                                             <i class="bi bi-pencil"></i>

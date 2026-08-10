@@ -1,8 +1,8 @@
 from django.urls import path
 
-from bodega.views.bodega import BodegaListView, BodegaCreateView, BodegasUpdateView
-from bodega.views.producto import ProductoListView, ProductoCreateView, ProductosUpdateView
-from bodega.views.stock import StockListView, StockCreateView, StocksUpdateView
+from bodega.views.bodega import *
+from bodega.views.producto import *
+from bodega.views.stock import *
 
 app_name = 'bodega'
 
@@ -21,4 +21,7 @@ urlpatterns = [
     path('stock/', StockListView.as_view(), name='stock_list'),
     path('stock/nuevo/', StockCreateView.as_view(), name='stock_create'),
     path('stock/<int:pk>/editar/', StocksUpdateView.as_view(), name='stock_update'),
+
+    #     Operaciones de Stock
+    path('stock-add/', add_stock, name='add_stock'),
 ]

@@ -81,6 +81,7 @@ class MovimientoInventarioAdmin(StandardAdmin):
     search_fields = ('inventario__producto__nombre', 'observacion',)
     list_filter = ('tipo', 'fecha', 'establecimiento', 'is_active',)
     list_display_links = ('inventario',)
+    autocomplete_fields = ('usuario',)
 
 
 @admin.register(PerfilBodega)

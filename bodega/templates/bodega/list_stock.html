@@ -4,7 +4,7 @@
     {% include 'bodega/sidebar.html' %}
 {% endblock %}
 {% block buttons %}
-    <a href="{% url 'bodega:stock_create' %}"
+    <a href="{% url 'bodega:stock_create' %}?bodega={{ instance_bodega.pk }}"
        class="btn btn-sm btn-primary"
        title="Nuevo Registro">
         <i class="bi bi-plus-circle me-1"></i>
@@ -21,7 +21,7 @@
                     <div class="row g-2 align-items-center">
                         <div class="col-12">
                             <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
-
+                                <input type="hidden" name="bodega" value="{{ instance_bodega.pk }}">
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">
                                         <i class="bi bi-search" aria-hidden="true"></i>
@@ -33,7 +33,8 @@
                                         <i class="bi bi-funnel-fill me-1"></i>
                                         Filtrar
                                     </button>
-                                    <a href="{% url 'bodega:stock_list' %}" class="btn btn-secondary">
+                                    <a href="{% url 'bodega:stock_list' %}?bodega={{ instance_bodega.pk }}"
+                                       class="btn btn-secondary">
                                         <i class="bi bi-arrow-clockwise me-1"></i>
                                         Limpiar
                                     </a>
@@ -54,7 +55,7 @@
                                 <th scope="col">Máximo</th>
                                 <th scope="col">Estado</th>
                                 <th scope="col">Ubicación</th>
-                                <th scope="col" class="text-center">Opciones</th>
+                                <th scope="col" class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -76,11 +77,52 @@
                                     </td>
                                     <td>{{ stock.ubicacion|default:"-" }}</td>
                                     <td class="text-center">
-                                        <a href="{% url 'bodega:stock_update' stock.pk %}"
+
+                                        <!-- Editar -->
+                                        <a href="{% url 'bodega:stock_update' stock.pk %}?bodega={{ instance_bodega.pk }}"
                                            class="btn btn-sm btn-outline-primary"
-                                           title="Editar">
+                                           title="Editar"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-success tooltip-button"
+                                                title="Entrada"
+                                                data-stock-id="{{ stock.pk }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEntrada">
+                                            <i class="bi bi-box-arrow-in-down"></i>
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger tooltip-button"
+                                                title="Salida"
+                                                data-stock-id="{{ stock.pk }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalSalida">
+                                            <i class="bi bi-box-arrow-up"></i>
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-warning tooltip-button"
+                                                title="Ajuste"
+                                                data-stock-id="{{ stock.pk }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalAjuste">
+                                            <i class="bi bi-sliders"></i>
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-info tooltip-button"
+                                                title="Transferencia"
+                                                data-stock-id="{{ stock.pk }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalTransferencia">
+                                            <i class="bi bi-arrow-left-right"></i>
+                                        </button>
+
                                     </td>
                                 </tr>
                             {% empty %}
@@ -137,4 +179,127 @@
             </div>
         </div>
     </div>
+
+
+    {#    ENTRADA   #}
+    <div class="modal fade" id="modalEntrada" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Entrada de Stock
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- información y formulario -->
+                    <form action="{% url 'bodega:add_stock' %}" method="post">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="stock_id" id="entrada_stock_id">
+
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold" for="id_cantidad_add">
+                                        Introduzca la cantidad de stock a agregar
+                                        <strong class="text-success"> (+)</strong>
+                                        <span class="required-indicator sr-only"> (required)</span>
+                                    </label>
+                                    <input type="number"
+                                           name="cantidad"
+                                           class="form-control form-control-sm"
+                                           min="1"
+                                           step="1"
+                                           required
+                                           id="id_cantidad"
+                                           placeholder="Introduzca una cantidad">
+
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Guardar</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {#    SALIDA   #}
+    <div class="modal fade" id="modalSalida" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Salida de Stock
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- información y formulario -->
+                    <form action="" method="post">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="stock_id" id="salida_stock_id">
+
+                        <div class="card-body">
+                            <div class="row g-3">
+
+                                <div class="col-12">
+
+                                    <label class="form-label fw-bold" for="id_stock_actual">
+                                        Introduzca la cantidad de stock a quitar
+                                        <strong class="text-danger">(-)</strong>
+                                    </label>
+
+                                    <input type="number"
+                                           name="cantidad"
+                                           class="form-control form-control-sm"
+                                           min="1"
+                                           required
+                                           id="id_stock_actual"
+                                           placeholder="Introduzca una cantidad">
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-2">
+                            Guardar
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        document.getElementById('modalEntrada').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            const stockId = button.getAttribute('data-stock-id');
+
+            document.getElementById('entrada_stock_id').value = stockId;
+        });
+    </script>
 {% endblock %}

@@ -1,6 +1,7 @@
 {% if messages %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
@@ -15,12 +16,11 @@
 
             {% for message in messages %}
                 Toast.fire({
-                    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}
-                        warning{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}
-                        info{% endif %}",
+                    icon: "{{ message.tags }}",
                     title: "{{ message|escapejs }}"
                 });
             {% endfor %}
+
         });
     </script>
 {% endif %}
