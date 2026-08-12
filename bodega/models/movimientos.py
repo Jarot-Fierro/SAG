@@ -29,10 +29,7 @@ class MovimientoInventario(StandardModelEstablishment):
         choices=TIPO_CHOICES
     )
 
-    cantidad = models.DecimalField(
-        max_digits=12,
-        decimal_places=2
-    )
+    cantidad = models.PositiveIntegerField()
 
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,

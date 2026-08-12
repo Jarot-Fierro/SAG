@@ -136,17 +136,17 @@ class FormStock(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control form-control-sm'})
     )
-    stock_actual = forms.DecimalField(
+    stock_actual = forms.IntegerField(
         label='Stock Actual',
         required=True,
         widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
     )
-    stock_minimo = forms.DecimalField(
+    stock_minimo = forms.IntegerField(
         label='Stock Mínimo',
         required=True,
         widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
     )
-    stock_maximo = forms.DecimalField(
+    stock_maximo = forms.IntegerField(
         label='Stock Máximo',
         required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
@@ -160,3 +160,90 @@ class FormStock(forms.ModelForm):
     class Meta:
         model = Stock
         fields = ['bodega', 'producto', 'status_stock', 'stock_actual', 'stock_minimo', 'stock_maximo', 'ubicacion']
+
+
+class FormEntradaStock(forms.Form):
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label="Cantidad a ingresar",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    observacion = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+
+
+class FormSalidaStock(forms.Form):
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label="Cantidad a retirar",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    observacion = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+
+
+class FormAjusteStock(forms.Form):
+    TIPO_AJUSTE = [
+        ('AUMENTAR', 'Aumentar'),
+        ('DISMINUIR', 'Disminuir'),
+    ]
+    tipo_ajuste = forms.ChoiceField(
+        choices=TIPO_AJUSTE,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label="Cantidad",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    observacion = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+
+
+class FormTransferenciaStock(forms.Form):
+    bodega_destino = forms.ModelChoiceField(
+        queryset=Bodega.objects.none(),
+        label="Bodega destino",
+        empty_label="Seleccione una bodega",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label="Cantidad a transferir",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    observacion = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+    )
+
+    def __init__(self, *args, **kwargs):
+        stock = kwargs.pop('stock', None)
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if stock and user:
+            # Filtros:
+            # 1. Diferente de la origen
+            # 2. Permisos del usuario (PerfilBodega)
+            # 3. Categoría del producto
+            qs = Bodega.objects.exclude(pk=stock.bodega.pk)
+
+            # Filtro por categoría del producto
+            qs = qs.filter(categorias=stock.producto.categoria)
+
+            # Filtro por perfil de bodega del usuario
+            if hasattr(user, 'perfil_bodega'):
+                qs = qs.filter(pk__in=user.perfil_bodega.bodegas.all())
+            else:
+                # Si el usuario no tiene perfil de bodega, quizás no debería ver ninguna?
+                # O quizás ve todas las permitidas por defecto?
+                # La instrucción dice: "estén disponibles según la lógica de permisos/perfil de bodega del usuario"
+                qs = qs.none()
+
+            self.fields['bodega_destino'].queryset = qs

@@ -27,4 +27,11 @@
             <p>Stock</p>
         </a>
     </li>
+
+    <li class="nav-item">
+        <a href="{% url 'bodega:movimiento_list' %}?bodega={{ instance_bodega.id }}" class="nav-link">
+            <i class="nav-icon bi bi-journal-text"></i>
+            <p>Movimientos Stock</p>
+        </a>
+    </li>
 {% endif %}

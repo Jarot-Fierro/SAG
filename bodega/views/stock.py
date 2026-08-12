@@ -1,8 +1,15 @@
+from django.contrib import messages
+from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
-from bodega.forms.forms import FormStock
+from bodega.forms.forms import (
+    FormStock, FormEntradaStock, FormSalidaStock,
+    FormAjusteStock, FormTransferenciaStock
+)
 from bodega.models import Bodega
+from bodega.models.movimientos import MovimientoInventario
 from bodega.models.stock import Stock
 from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView
 
@@ -90,15 +97,183 @@ class StocksUpdateView(StandardUpdateView):
         return context
 
 
-def add_stock(request):
-    if request.method == 'POST':
-        stock_id = request.POST.get('stock_id')
-        cantidad = request.POST.get('cantidad')
-        stock = get_object_or_404(Stock, pk=stock_id)
+@transaction.atomic
+def stock_entrada(request, pk):
+    stock = get_object_or_404(Stock.objects.select_for_update(), pk=pk)
+    form = FormEntradaStock(request.POST)
+    if form.is_valid():
+        cantidad = form.cleaned_data['cantidad']
+        observacion = form.cleaned_data['observacion']
 
-        print('ID Stock:', stock_id)
-        print('Stock:', stock)
-        print('ID Stock en busqueda:', stock.id)
-        print('Cantidad:', cantidad)
+        stock.stock_actual += cantidad
+        stock.save()
 
-    return redirect('bodega:stock_list')
+        MovimientoInventario.objects.create(
+            inventario=stock,
+            tipo=MovimientoInventario.ENTRADA,
+            cantidad=cantidad,
+            usuario=request.user,
+            observacion=observacion,
+            establecimiento=request.user.establecimiento,
+            created_by=request.user
+        )
+        messages.success(request, "Stock ingresado correctamente.")
+    else:
+        messages.error(request, "Error al procesar la entrada de stock.")
+    return redirect(f"{reverse('bodega:stock_list')}?bodega={stock.bodega.pk}")
+
+
+@transaction.atomic
+def stock_salida(request, pk):
+    stock = get_object_or_404(Stock.objects.select_for_update(), pk=pk)
+    form = FormSalidaStock(request.POST)
+    if form.is_valid():
+        cantidad = form.cleaned_data['cantidad']
+        observacion = form.cleaned_data['observacion']
+
+        if stock.stock_actual < cantidad:
+            messages.error(request, "No hay stock suficiente para realizar esta operación.")
+        else:
+            stock.stock_actual -= cantidad
+            stock.save()
+
+            MovimientoInventario.objects.create(
+                inventario=stock,
+                tipo=MovimientoInventario.SALIDA,
+                cantidad=cantidad,
+                usuario=request.user,
+                observacion=observacion,
+                establecimiento=request.user.establecimiento,
+                created_by=request.user
+            )
+            messages.success(request, "Salida registrada correctamente.")
+    else:
+        messages.error(request, "Error al procesar la salida de stock.")
+    return redirect(f"{reverse('bodega:stock_list')}?bodega={stock.bodega.pk}")
+
+
+@transaction.atomic
+def stock_ajuste(request, pk):
+    stock = get_object_or_404(Stock.objects.select_for_update(), pk=pk)
+    form = FormAjusteStock(request.POST)
+    if form.is_valid():
+        tipo_ajuste = form.cleaned_data['tipo_ajuste']
+        cantidad = form.cleaned_data['cantidad']
+        observacion = form.cleaned_data['observacion']
+
+        if tipo_ajuste == 'AUMENTAR':
+            stock.stock_actual += cantidad
+            stock.save()
+            MovimientoInventario.objects.create(
+                inventario=stock,
+                tipo=MovimientoInventario.AJUSTE,
+                cantidad=cantidad,
+                usuario=request.user,
+                observacion=f"Aumento: {observacion}",
+                establecimiento=request.user.establecimiento,
+                created_by=request.user
+            )
+            messages.success(request, "Ajuste de stock realizado correctamente.")
+        else:  # DISMINUIR
+            if stock.stock_actual < cantidad:
+                messages.error(request, "No hay stock suficiente para realizar esta operación.")
+            else:
+                stock.stock_actual -= cantidad
+                stock.save()
+                MovimientoInventario.objects.create(
+                    inventario=stock,
+                    tipo=MovimientoInventario.AJUSTE,
+                    cantidad=cantidad,
+                    usuario=request.user,
+                    observacion=f"Disminución: {observacion}",
+                    establecimiento=request.user.establecimiento,
+                    created_by=request.user
+                )
+                messages.success(request, "Ajuste de stock realizado correctamente.")
+    else:
+        messages.error(request, "Error al procesar el ajuste de stock.")
+    return redirect(f"{reverse('bodega:stock_list')}?bodega={stock.bodega.pk}")
+
+
+@transaction.atomic
+def stock_transferencia(request, pk):
+    stock_origen = get_object_or_404(Stock.objects.select_for_update(), pk=pk)
+    form = FormTransferenciaStock(request.POST, stock=stock_origen, user=request.user)
+    if form.is_valid():
+        bodega_destino = form.cleaned_data['bodega_destino']
+        cantidad = form.cleaned_data['cantidad']
+        observacion = form.cleaned_data['observacion']
+
+        if stock_origen.stock_actual < cantidad:
+            messages.error(request, "No hay stock suficiente para realizar esta operación.")
+        else:
+            # Descontar origen
+            stock_origen.stock_actual -= cantidad
+            stock_origen.save()
+
+            # Registrar movimiento origen
+            MovimientoInventario.objects.create(
+                inventario=stock_origen,
+                tipo=MovimientoInventario.TRANSFERENCIA,
+                cantidad=cantidad,
+                usuario=request.user,
+                observacion=f"Transferencia hacia {bodega_destino.nombre}. {observacion}",
+                establecimiento=request.user.establecimiento,
+                created_by=request.user
+            )
+
+            # Incrementar destino
+            stock_destino, created = Stock.objects.get_or_create(
+                bodega=bodega_destino,
+                producto=stock_origen.producto,
+                defaults={
+                    'stock_actual': 0,
+                    'stock_minimo': 0,
+                    'stock_maximo': 0,
+                    'created_by': request.user
+                }
+            )
+            # Volver a obtener con bloqueo si no fue creado
+            if not created:
+                stock_destino = Stock.objects.select_for_update().get(pk=stock_destino.pk)
+
+            stock_destino.stock_actual += cantidad
+            stock_destino.save()
+
+            # Registrar movimiento destino
+            MovimientoInventario.objects.create(
+                inventario=stock_destino,
+                tipo=MovimientoInventario.TRANSFERENCIA,
+                cantidad=cantidad,
+                usuario=request.user,
+                observacion=f"Transferencia desde {stock_origen.bodega.nombre}. {observacion}",
+                establecimiento=request.user.establecimiento,
+                created_by=request.user
+            )
+
+            messages.success(request, "Transferencia realizada correctamente.")
+    else:
+        error_msg = form.errors.as_text()
+        messages.error(request, f"Error al procesar la transferencia: {error_msg}")
+
+    return redirect(f"{reverse('bodega:stock_list')}?bodega={stock_origen.bodega.pk}")
+
+
+def api_get_bodegas_destino(request, pk):
+    stock = get_object_or_404(Stock, pk=pk)
+    user = request.user
+
+    # Bodegas que NO son la origen
+    qs = Bodega.objects.exclude(pk=stock.bodega.pk)
+
+    # Bodegas que aceptan la categoría del producto
+    qs = qs.filter(categorias=stock.producto.categoria)
+
+    # Bodegas asignadas al usuario
+    if hasattr(user, 'perfil_bodega'):
+        qs = qs.filter(pk__in=user.perfil_bodega.bodegas.all())
+    else:
+        qs = qs.none()
+
+    data = [{'id': b.id, 'nombre': b.nombre} for b in qs]
+    return JsonResponse(data, safe=False)

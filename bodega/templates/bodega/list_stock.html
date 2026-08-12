@@ -91,6 +91,9 @@
                                                 class="btn btn-sm btn-outline-success tooltip-button"
                                                 title="Entrada"
                                                 data-stock-id="{{ stock.pk }}"
+                                                data-producto="{{ stock.producto.nombre }}"
+                                                data-bodega="{{ stock.bodega.nombre }}"
+                                                data-stock-actual="{{ stock.stock_actual }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalEntrada">
                                             <i class="bi bi-box-arrow-in-down"></i>
@@ -100,6 +103,9 @@
                                                 class="btn btn-sm btn-outline-danger tooltip-button"
                                                 title="Salida"
                                                 data-stock-id="{{ stock.pk }}"
+                                                data-producto="{{ stock.producto.nombre }}"
+                                                data-bodega="{{ stock.bodega.nombre }}"
+                                                data-stock-actual="{{ stock.stock_actual }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalSalida">
                                             <i class="bi bi-box-arrow-up"></i>
@@ -109,6 +115,9 @@
                                                 class="btn btn-sm btn-outline-warning tooltip-button"
                                                 title="Ajuste"
                                                 data-stock-id="{{ stock.pk }}"
+                                                data-producto="{{ stock.producto.nombre }}"
+                                                data-bodega="{{ stock.bodega.nombre }}"
+                                                data-stock-actual="{{ stock.stock_actual }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalAjuste">
                                             <i class="bi bi-sliders"></i>
@@ -118,6 +127,9 @@
                                                 class="btn btn-sm btn-outline-info tooltip-button"
                                                 title="Transferencia"
                                                 data-stock-id="{{ stock.pk }}"
+                                                data-producto="{{ stock.producto.nombre }}"
+                                                data-bodega="{{ stock.bodega.nombre }}"
+                                                data-stock-actual="{{ stock.stock_actual }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalTransferencia">
                                             <i class="bi bi-arrow-left-right"></i>
@@ -181,111 +193,206 @@
     </div>
 
 
-    {#    ENTRADA   #}
+    {#    MODALES DE OPERACIÓN   #}
+
+    <!-- ENTRADA -->
     <div class="modal fade" id="modalEntrada" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        Entrada de Stock
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                    </button>
-                </div>
-
-                <div class="modal-body">
-
-                    <!-- información y formulario -->
-                    <form action="{% url 'bodega:add_stock' %}" method="post">
-                        {% csrf_token %}
-
-                        <input type="hidden" name="stock_id" id="entrada_stock_id">
-
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label fw-bold" for="id_cantidad_add">
-                                        Introduzca la cantidad de stock a agregar
-                                        <strong class="text-success"> (+)</strong>
-                                        <span class="required-indicator sr-only"> (required)</span>
-                                    </label>
-                                    <input type="number"
-                                           name="cantidad"
-                                           class="form-control form-control-sm"
-                                           min="1"
-                                           step="1"
-                                           required
-                                           id="id_cantidad"
-                                           placeholder="Introduzca una cantidad">
-
-                                </div>
+                <form action="" method="post" id="formEntrada">
+                    {% csrf_token %}
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-box-arrow-in-down me-2"></i>Entrada de Stock</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Producto:</label>
+                            <div id="info_producto_entrada" class="form-control-plaintext"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Bodega:</label>
+                                <div id="info_bodega_entrada" class="form-control-plaintext"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Stock Actual:</label>
+                                <div id="info_stock_actual_entrada" class="form-control-plaintext"></div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary mt-2">Guardar</button>
-                    </form>
-                </div>
-
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cantidad a ingresar:</label>
+                            <input type="number" name="cantidad" class="form-control" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observación:</label>
+                            <textarea name="observacion" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Confirmar Entrada</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    {#    SALIDA   #}
+    <!-- SALIDA -->
     <div class="modal fade" id="modalSalida" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        Salida de Stock
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                    </button>
-                </div>
-
-                <div class="modal-body">
-
-                    <!-- información y formulario -->
-                    <form action="" method="post">
-                        {% csrf_token %}
-
-                        <input type="hidden" name="stock_id" id="salida_stock_id">
-
-                        <div class="card-body">
-                            <div class="row g-3">
-
-                                <div class="col-12">
-
-                                    <label class="form-label fw-bold" for="id_stock_actual">
-                                        Introduzca la cantidad de stock a quitar
-                                        <strong class="text-danger">(-)</strong>
-                                    </label>
-
-                                    <input type="number"
-                                           name="cantidad"
-                                           class="form-control form-control-sm"
-                                           min="1"
-                                           required
-                                           id="id_stock_actual"
-                                           placeholder="Introduzca una cantidad">
-
-                                </div>
-
+                <form action="" method="post" id="formSalida">
+                    {% csrf_token %}
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title"><i class="bi bi-box-arrow-up me-2"></i>Salida de Stock</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Producto:</label>
+                            <div id="info_producto_salida" class="form-control-plaintext"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Bodega:</label>
+                                <div id="info_bodega_salida" class="form-control-plaintext"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Stock Disponible:</label>
+                                <div id="info_stock_actual_salida" class="form-control-plaintext"></div>
                             </div>
                         </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cantidad a retirar:</label>
+                            <input type="number" name="cantidad" class="form-control" min="1" required
+                                   id="input_cantidad_salida">
+                            <div class="form-text text-danger" id="error_stock_salida" style="display:none;">La cantidad
+                                no puede superar el stock disponible.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observación:</label>
+                            <textarea name="observacion" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Salida</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                        <button type="submit" class="btn btn-primary mt-2">
-                            Guardar
-                        </button>
-                    </form>
-                </div>
+    <!-- AJUSTE -->
+    <div class="modal fade" id="modalAjuste" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="" method="post" id="formAjuste">
+                    {% csrf_token %}
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title"><i class="bi bi-sliders me-2"></i>Ajuste de Stock</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Producto:</label>
+                            <div id="info_producto_ajuste" class="form-control-plaintext"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Bodega:</label>
+                                <div id="info_bodega_ajuste" class="form-control-plaintext"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Stock Actual:</label>
+                                <div id="info_stock_actual_ajuste" class="form-control-plaintext"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de ajuste:</label>
+                            <select name="tipo_ajuste" class="form-select" required id="select_tipo_ajuste">
+                                <option value="AUMENTAR">Aumentar</option>
+                                <option value="DISMINUIR">Disminuir</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cantidad:</label>
+                            <input type="number" name="cantidad" class="form-control" min="1" required
+                                   id="input_cantidad_ajuste">
+                            <div class="form-text text-danger" id="error_stock_ajuste" style="display:none;">La cantidad
+                                no puede superar el stock disponible en disminuciones.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observación:</label>
+                            <textarea name="observacion" class="form-control" rows="3" required
+                                      placeholder="Motivo del ajuste..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Aplicar Ajuste</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <!-- TRANSFERENCIA -->
+    <div class="modal fade" id="modalTransferencia" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="" method="post" id="formTransferencia">
+                    {% csrf_token %}
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Transferencia de Stock</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Producto:</label>
+                            <div id="info_producto_transferencia" class="form-control-plaintext"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Bodega Origen:</label>
+                                <div id="info_bodega_transferencia" class="form-control-plaintext"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Stock Disponible:</label>
+                                <div id="info_stock_actual_transferencia" class="form-control-plaintext"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Bodega Destino:</label>
+                            <select name="bodega_destino" class="form-select" required id="select_bodega_destino">
+                                <option value="">Cargando bodegas...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cantidad a transferir:</label>
+                            <input type="number" name="cantidad" class="form-control" min="1" required
+                                   id="input_cantidad_transferencia">
+                            <div class="form-text text-danger" id="error_stock_transferencia" style="display:none;">La
+                                cantidad no puede superar el stock disponible.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observación:</label>
+                            <textarea name="observacion" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-info text-white">Transferir</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -294,12 +401,94 @@
 
 {% block scripts %}
     <script>
-        document.getElementById('modalEntrada').addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
+        document.addEventListener('DOMContentLoaded', function () {
+            const modals = ['modalEntrada', 'modalSalida', 'modalAjuste', 'modalTransferencia'];
 
-            const stockId = button.getAttribute('data-stock-id');
+            modals.forEach(modalId => {
+                const modalEl = document.getElementById(modalId);
+                if (!modalEl) return;
 
-            document.getElementById('entrada_stock_id').value = stockId;
+                modalEl.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const stockId = button.getAttribute('data-stock-id');
+                    const producto = button.getAttribute('data-producto');
+                    const bodega = button.getAttribute('data-bodega');
+                    const stockActual = parseInt(button.getAttribute('data-stock-actual'));
+
+                    const type = modalId.replace('modal', '').toLowerCase();
+
+                    // Set form action
+                    const form = document.getElementById('form' + modalId.replace('modal', ''));
+                    form.action = `/bodega/stock/${stockId}/${type}/`;
+
+                    // Set info
+                    document.getElementById('info_producto_' + type).textContent = producto;
+                    document.getElementById('info_bodega_' + type).textContent = bodega;
+                    document.getElementById('info_stock_actual_' + type).textContent = stockActual;
+
+                    // Special handling for Transferencia
+                    if (modalId === 'modalTransferencia') {
+                        const selectDestino = document.getElementById('select_bodega_destino');
+                        selectDestino.innerHTML = '<option value="">Cargando bodegas...</option>';
+
+                        fetch(`/bodega/api/stock/${stockId}/bodegas-destino/`)
+                            .then(response => response.json())
+                            .then(data => {
+                                selectDestino.innerHTML = '<option value="">Seleccione una bodega</option>';
+                                data.forEach(b => {
+                                    const opt = document.createElement('option');
+                                    opt.value = b.id;
+                                    opt.textContent = b.nombre;
+                                    selectDestino.appendChild(opt);
+                                });
+                                if (data.length === 0) {
+                                    selectDestino.innerHTML = '<option value="">No hay bodegas disponibles para este producto</option>';
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error fetching bodegas:', err);
+                                selectDestino.innerHTML = '<option value="">Error al cargar bodegas</option>';
+                            });
+                    }
+
+                    // Clear errors and inputs
+                    const qtyInput = form.querySelector('input[name="cantidad"]');
+                    if (qtyInput) qtyInput.value = '';
+                    const obsTextarea = form.querySelector('textarea[name="observacion"]');
+                    if (obsTextarea) obsTextarea.value = '';
+
+                    const errorDiv = document.getElementById('error_stock_' + type);
+                    if (errorDiv) errorDiv.style.display = 'none';
+                });
+            });
+
+            // Validation for negative stock
+            ['salida', 'ajuste', 'transferencia'].forEach(type => {
+                const form = document.getElementById('form' + type.charAt(0).toUpperCase() + type.slice(1));
+                if (!form) return;
+
+                form.addEventListener('submit', function (e) {
+                    const qtyInput = form.querySelector('input[name="cantidad"]');
+                    const stockActualEl = document.getElementById('info_stock_actual_' + type);
+                    if (!stockActualEl) return;
+
+                    const stockActual = parseInt(stockActualEl.textContent);
+                    const cantidad = parseInt(qtyInput.value);
+
+                    let isDecrease = true;
+                    if (type === 'ajuste') {
+                        const tipoAjuste = document.getElementById('select_tipo_ajuste').value;
+                        isDecrease = (tipoAjuste === 'DISMINUIR');
+                    }
+
+                    if (isDecrease && cantidad > stockActual) {
+                        e.preventDefault();
+                        const errorDiv = document.getElementById('error_stock_' + type);
+                        if (errorDiv) errorDiv.style.display = 'block';
+                        qtyInput.focus();
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

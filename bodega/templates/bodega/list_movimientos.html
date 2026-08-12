@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+{% block sidebar %}
+    {% include 'bodega/sidebar.html' %}
+{% endblock %}
+{% block buttons %}
+{% endblock %}
+
+{% block title %}Movimientos de Stock{% endblock %}
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+                                <input type="hidden" name="bodega" value="{{ instance_bodega.pk }}">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                    </span>
+                                    <input type="text" name="q" class="form-control" placeholder="Buscar..."
+                                           value="{{ q }}">
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{% url 'bodega:movimiento_list' %}?bodega={{ instance_bodega.pk }}"
+                                       class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0" role="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Tipo</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Usuario</th>
+                                <th scope="col">Observación</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for movimiento in page_obj %}
+                                <tr>
+                                    <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ movimiento.inventario.producto.nombre }}</td>
+                                    <td>
+                                        {% if movimiento.tipo == 'ENTRADA' %}
+                                            <span class="badge bg-success">Entrada</span>
+                                        {% elif movimiento.tipo == 'SALIDA' %}
+                                            <span class="badge bg-danger">Salida</span>
+                                        {% elif movimiento.tipo == 'AJUSTE' %}
+                                            <span class="badge bg-warning text-dark">Ajuste</span>
+                                        {% elif movimiento.tipo == 'TRANSFERENCIA' %}
+                                            <span class="badge bg-info text-white">Transferencia</span>
+                                        {% else %}
+                                            {{ movimiento.tipo }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">
+                                        {% if movimiento.tipo == 'ENTRADA' or 'Aumento' in movimiento.observacion or 'desde' in movimiento.observacion %}
+                                            <span class="text-success">+{{ movimiento.cantidad }}</span>
+                                        {% elif movimiento.tipo == 'SALIDA' or 'Disminución' in movimiento.observacion or 'hacia' in movimiento.observacion %}
+                                            <span class="text-danger">-{{ movimiento.cantidad }}</span>
+                                        {% else %}
+                                            {{ movimiento.cantidad }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ movimiento.usuario.get_full_name|default:movimiento.usuario.username }}</td>
+                                    <td>{{ movimiento.observacion }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-body-secondary py-4">
+                                        No se encontraron movimientos registrados.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        registros
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?{% query_transform page=i %}">
+                                            {{ i }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.next_page_number %}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

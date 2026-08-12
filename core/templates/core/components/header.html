@@ -14,13 +14,13 @@
                     Intranet
                 </a>
             </li>
-            <li class="nav-item d-none d-md-block">
-                <a href="{% url 'intranet:organigrama' %}" class="nav-link">
-                    <i class="bi bi-diagram-3 me-1"></i>
-                    Organigrama
-                </a>
-            </li>
             {% if user.is_authenticated and user.is_superuser %}
+                <li class="nav-item d-none d-md-block">
+                    <a href="{% url 'intranet:organigrama' %}" class="nav-link">
+                        <i class="bi bi-diagram-3 me-1"></i>
+                        Organigrama
+                    </a>
+                </li>
                 <li class="nav-item d-none d-md-block">
                     <a href="{% url 'admin:index' %}" class="nav-link">
                         <i class="bi bi-gear-fill me-1"></i>
