@@ -31,7 +31,7 @@ def activo_list(request):
 def activo_create(request):
     tipo_id = request.GET.get('tipo')
     tipo_activo = None
-    url_list = reverse('gestion_tic:activo_list')
+    url_list = f"{reverse('gestion_tic:activo_list')}?tipo={tipo_id}"
     if tipo_id:
         tipo_activo = get_object_or_404(TipoActivo, id=tipo_id)
         url_list = reverse('gestion_tic:activo_list') + f'?tipo={tipo_id}'
