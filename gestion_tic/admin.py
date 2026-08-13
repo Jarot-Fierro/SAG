@@ -118,7 +118,7 @@ class CampoTipoActivoAdmin(TicStandardAdmin):
 
 @admin.register(TipoMovimiento)
 class TipoMovimientoAdmin(TicStandardAdmin):
-    list_display = ('nombre', 'color', 'icono', 'is_active')
+    list_display = ('nombre',)
     search_fields = ('nombre',)
 
 

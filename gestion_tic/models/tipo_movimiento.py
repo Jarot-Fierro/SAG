@@ -20,16 +20,6 @@ class TipoMovimiento(StandardModelEstablishment):
         max_length=100,
     )
 
-    color = models.CharField(
-        max_length=20,
-        blank=True
-    )
-
-    icono = models.CharField(
-        max_length=50,
-        blank=True
-    )
-
     class Meta:
         ordering = ["nombre"]
 
