@@ -35,7 +35,10 @@ class Anexo(StandardModelEstablishment):
     )
 
     def __str__(self):
-        return self.anexo
+        if self.anexo:
+            return self.anexo or self.anexo_publico
+        else:
+            return f"Usuario sin Anexo ID:{self.id}"
 
     class Meta:
         verbose_name = 'Anexo'
