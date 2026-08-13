@@ -5,7 +5,7 @@ from core.standard.models import StandardModel, StandardModelEstablishment
 
 
 class Anexo(StandardModelEstablishment):
-    anexo = models.CharField(max_length=6, verbose_name="Anexo", null=True, blank=True, unique=True)
+    anexo = models.CharField(max_length=6, verbose_name="Anexo", null=True, blank=True)
     anexo_publico = models.CharField(max_length=20, blank=True, null=True, verbose_name="Anexo Público")
     numero_telefonico = models.CharField(max_length=20, blank=True, null=True,
                                          verbose_name="Número Telefónico Institucional")
