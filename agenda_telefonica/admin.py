@@ -19,8 +19,9 @@ class AnexoAdmin(StandardAdmin):
     )
     search_fields = (
         'anexo',
-        'funcionario',
-        'establecimiento',
+        'establecimiento__nombre',
+        'funcionario__rut',
+        'funcionario__nombres',
     )
     autocomplete_fields = ('funcionario',)
 

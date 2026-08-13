@@ -58,22 +58,24 @@ class AnexoFuncionarioForm(forms.ModelForm):
     def clean_anexo(self):
         anexo = self.cleaned_data.get('anexo')
 
-        if anexo:
-            anexo = str(anexo)
+        if not anexo:
+            return None
 
-            if not anexo.isdigit():
-                raise ValidationError("El anexo solo puede contener números.")
+        anexo = str(anexo)
 
-            if len(anexo) != 6:
-                raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+        if not anexo.isdigit():
+            raise ValidationError("El anexo solo puede contener números.")
 
-            # Verificar si ya existe un anexo con este número
-            anexo_query = Anexo.objects.filter(anexo=anexo)
-            if self.instance and self.instance.pk:
-                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+        if len(anexo) != 6:
+            raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
 
-            if anexo_query.exists():
-                raise ValidationError("Ya existe un registro con este número de anexo.")
+        # Verificar si ya existe un anexo con este número
+        anexo_query = Anexo.objects.filter(anexo=anexo)
+        if self.instance and self.instance.pk:
+            anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+        if anexo_query.exists():
+            raise ValidationError("Ya existe un registro con este número de anexo.")
 
         return anexo
 
@@ -132,6 +134,8 @@ class AnexoFuncionarioForm(forms.ModelForm):
             self.fields['rol_organizacional'].initial = f.rol_organizacional
 
 
+# ESTE ES MI FORMULARIO DE LA CREACIÓN DE ANEXO PARA MI AGENDA
+# ESTÁ CONFORMADA POR MI VISTA anexos_view CON LA RUTA http://10.8.85.141/agenda/anexos/nuevo/
 class AnexoFuncionarioCompletoForm(forms.ModelForm):
     rut = forms.CharField(
         max_length=12,
@@ -232,20 +236,22 @@ class AnexoFuncionarioCompletoForm(forms.ModelForm):
 
     def clean_anexo(self):
         anexo = self.cleaned_data.get("anexo")
-        if anexo:
-            anexo = str(anexo)
-            if not anexo.isdigit():
-                raise ValidationError("El anexo solo puede contener números.")
-            if len(anexo) != 6:
-                raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+        if not anexo:
+            return None
 
-            # Verificar si ya existe un anexo con este número
-            anexo_query = Anexo.objects.filter(anexo=anexo)
-            if self.instance and self.instance.pk:
-                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+        anexo = str(anexo)
+        if not anexo.isdigit():
+            raise ValidationError("El anexo solo puede contener números.")
+        if len(anexo) != 6:
+            raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
 
-            if anexo_query.exists():
-                raise ValidationError("Ya existe un registro con este número de anexo.")
+        # Verificar si ya existe un anexo con este número
+        anexo_query = Anexo.objects.filter(anexo=anexo)
+        if self.instance and self.instance.pk:
+            anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+        if anexo_query.exists():
+            raise ValidationError("Ya existe un registro con este número de anexo.")
 
         return anexo
 
@@ -310,6 +316,12 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
         queryset=UnidadOrganizacional.objects.all(),
         label="Unidad Organizacional",
     )
+    anexo = forms.CharField(
+        max_length=6,
+        label="Anexo",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Anexo"}),
+    )
 
     class Meta:
         model = Anexo
@@ -321,20 +333,22 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
 
     def clean_anexo(self):
         anexo = self.cleaned_data.get('anexo')
-        if anexo:
-            anexo = str(anexo)
-            if not anexo.isdigit():
-                raise ValidationError("El anexo solo puede contener números.")
-            if len(anexo) != 6:
-                raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
+        if not anexo:
+            return None
 
-            # Verificar si ya existe un anexo con este número
-            anexo_query = Anexo.objects.filter(anexo=anexo)
-            if self.instance and self.instance.pk:
-                anexo_query = anexo_query.exclude(pk=self.instance.pk)
+        anexo = str(anexo)
+        if not anexo.isdigit():
+            raise ValidationError("El anexo solo puede contener números.")
+        if len(anexo) != 6:
+            raise ValidationError("El anexo debe tener exactamente 6 dígitos.")
 
-            if anexo_query.exists():
-                raise ValidationError("Ya existe un registro con este número de anexo.")
+        # Verificar si ya existe un anexo con este número
+        anexo_query = Anexo.objects.filter(anexo=anexo)
+        if self.instance and self.instance.pk:
+            anexo_query = anexo_query.exclude(pk=self.instance.pk)
+
+        if anexo_query.exists():
+            raise ValidationError("Ya existe un registro con este número de anexo.")
 
         return anexo
 

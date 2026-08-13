@@ -1,9 +1,15 @@
 from django import forms
 
 from core.models.configuracion_correo import ConfiguracionCorreo
+from core.models.establecimientos import Establecimiento
 
 
 class ConfiguracionCorreoForm(forms.ModelForm):
+    establecimiento = forms.ModelChoiceField(
+        label='Establecimiento',
+        queryset=Establecimiento.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
     nombre_remitente = forms.CharField(
         label='Nombre del Remitente',
         widget=forms.TextInput(
@@ -92,6 +98,7 @@ class ConfiguracionCorreoForm(forms.ModelForm):
     class Meta:
         model = ConfiguracionCorreo
         fields = [
+            'establecimiento',
             'nombre_remitente',
             'email_remitente',
             'smtp_host',
