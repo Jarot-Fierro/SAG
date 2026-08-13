@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load query_tags %}
 {% block sidebar %}
     {% include 'anexos/components/menu_sidebar.html' %}
 {% endblock %}
@@ -137,7 +138,7 @@
                             {% if page_obj.has_previous %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
                                        aria-label="Anterior">«</a>
                                 </li>
                             {% endif %}
@@ -148,7 +149,7 @@
                                 {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
                                     <li class="page-item">
                                         <a class="page-link"
-                                           href="?page={{ i }}{% if q %}&q={{ q }}{% endif %}">{{ i }}</a>
+                                           href="?{% query_transform page=i %}">{{ i }}</a>
                                     </li>
                                 {% endif %}
                             {% endfor %}
@@ -156,7 +157,7 @@
                             {% if page_obj.has_next %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       href="?{% query_transform page=page_obj.next_page_number %}"
                                        aria-label="Siguiente">»</a>
                                 </li>
                             {% endif %}
