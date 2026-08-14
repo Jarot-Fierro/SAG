@@ -21,7 +21,7 @@ class ActivoCaracteristica(StandardModelEstablishment):
 
     campo = models.ForeignKey(
         CampoTipoActivo,
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE
     )
 
     valor = models.TextField(

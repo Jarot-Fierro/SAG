@@ -1,8 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from ..models.catalogo import Contrato, Ips, JefeTic, Modelo, \
-    Propietario, Marca
+from ..models.catalogo import Contrato, Ips, JefeTic, Modelo
+from ..models.catalogo import Propietario, Marca
 
 
 def validate_exists(value, exists):

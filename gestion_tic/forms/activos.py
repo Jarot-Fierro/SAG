@@ -11,7 +11,7 @@ class ActivoForm(forms.ModelForm):
         model = Activo
         fields = [
             'codigo_barra', 'tipo',
-            'marca', 'modelo', 'serie', 'observacion', 'de_baja'
+            'marca', 'modelo', 'serie', 'contrato', 'observacion', 'de_baja'
         ]
         widgets = {
             'codigo_barra': forms.TextInput(attrs={'class': 'form-control'}),
@@ -19,6 +19,7 @@ class ActivoForm(forms.ModelForm):
             'marca': forms.Select(attrs={'class': 'form-select select2'}),
             'modelo': forms.Select(attrs={'class': 'form-select select2'}),
             'serie': forms.TextInput(attrs={'class': 'form-control'}),
+            'contrato': forms.Select(attrs={'class': 'form-select select2'}),
             'observacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'de_baja': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

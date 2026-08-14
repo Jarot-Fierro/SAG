@@ -77,6 +77,14 @@
                                             <div class="text-danger small">{{ form.modelo.errors.0 }}</div>
                                         {% endif %}
                                     </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-bold">{{ form.contrato.label }}</label>
+                                        {{ form.contrato }}
+                                        {% if form.contrato.errors %}
+                                            <div class="text-danger small">{{ form.contrato.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
 
                                     <div class="col-md-10">
                                         <label class="form-label fw-bold">{{ form.observacion.label }}</label>

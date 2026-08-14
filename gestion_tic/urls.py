@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import catalogo, tipo_activo, campos_tipo_activos, activos, movimientos_activo, pdfs
+from .views import opciones_campo_tipo_activo
 
 app_name = 'gestion_tic'
 
@@ -60,4 +61,14 @@ urlpatterns = [
     path('busqueda-activo/', movimientos_activo.movimientos_busqueda, name='movimientos_busqueda'),
 
     path('activos-asignados/', activos.activo_list_asignado, name='activo_list_asignado'),
+
+    # Opciones para loc campos agregados
+    path('opciones-campo-activo/', opciones_campo_tipo_activo.OpcionCampoTipoActivoListView.as_view(),
+         name='opcion_campo_list'),
+    path('opciones-campo-activo/nuevo/', opciones_campo_tipo_activo.OpcionCampoTipoActivoCreateView.as_view(),
+         name='opcion_campo_create'),
+    path('opciones-campo-activo/editar/<int:pk>/',
+         opciones_campo_tipo_activo.OpcionCampoTipoActivosUpdateView.as_view(),
+         name='opcion_campo_update'),
+
 ]

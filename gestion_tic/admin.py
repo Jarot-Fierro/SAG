@@ -108,6 +108,18 @@ class OpcionCampoTipoActivoInline(admin.TabularInline):
     extra = 1
 
 
+@admin.register(OpcionCampoTipoActivo)
+class OpcionCampoTipoActivoAdmin(TicStandardAdmin):
+    list_display = ('nombre', 'campo', 'establecimiento', 'is_active')
+    search_fields = ('nombre', 'campo__nombre')
+
+
+@admin.register(ActivoCaracteristica)
+class ActivoCaracteristicaAdmin(TicStandardAdmin):
+    list_display = ('activo', 'campo', 'valor', 'establecimiento', 'is_active')
+    search_fields = ('activo__nombre', 'campo__nombre')
+
+
 @admin.register(CampoTipoActivo)
 class CampoTipoActivoAdmin(TicStandardAdmin):
     list_display = ('nombre', 'tipo_activo', 'tipo_campo', 'orden')

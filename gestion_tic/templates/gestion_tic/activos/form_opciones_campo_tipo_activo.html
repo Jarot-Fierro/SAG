@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.campo.label }}</label>
+                                    {{ form.campo }}
+                                    {% if form.campo.errors %}
+                                        <div class="text-danger small">{{ form.campo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.nombre.label }}</label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                        <div class="text-danger small">{{ form.nombre.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">{{ form.orden.label }}</label>
+                                    {{ form.orden }}
+                                    {% if form.orden.errors %}
+                                        <div class="text-danger small">{{ form.orden.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <a href="{% url 'gestion_tic:opcion_campo_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
+    </script>
+{% endblock %}

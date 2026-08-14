@@ -29,6 +29,7 @@
                                     <th>Tipo</th>
                                     <th>Marca / Modelo</th>
                                     <th>Serie</th>
+                                    <th>IP</th>
                                     <th>Funcionario</th>
                                     <th>Departamento/Unidad</th>
                                     <th class="text-center">Acciones</th>
@@ -42,6 +43,7 @@
                                         <td>{{ movimiento.activo.marca.nombre|default:"-" }}
                                             / {{ movimiento.activo.modelo.nombre|default:"-" }}</td>
                                         <td>{{ movimiento.activo.serie|default:"-" }}</td>
+                                        <td>{{ movimiento.ip|default:"-" }}</td>
                                         <td>
                                             {% if movimiento.funcionario.nombre %}
                                                 {{ movimiento.funcionario.nombre }}

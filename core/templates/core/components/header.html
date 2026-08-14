@@ -14,6 +14,12 @@
                     Intranet
                 </a>
             </li>
+            {#            <li class="nav-item d-none d-md-block">#}
+            {#                <a href="https://www.contraloria.cl/portalweb/web/cgr/" class="nav-link">#}
+            {#                    <i class="bi bi-house-door me-1"></i>#}
+            {#                    CONTRALORIA.CL#}
+            {#                </a>#}
+            {#            </li>#}
             {% if user.is_authenticated and user.is_superuser %}
                 <li class="nav-item d-none d-md-block">
                     <a href="{% url 'intranet:organigrama' %}" class="nav-link">
