@@ -38,6 +38,14 @@ class StockListView(StandardListView):
         bodega_id = self.request.GET.get("bodega")
         if bodega_id:
             context['instance_bodega'] = Bodega.objects.filter(pk=bodega_id).first()
+
+        # URLs para operaciones de stock (JS)
+        context['url_stock_operacion'] = reverse('bodega:stock_entrada', kwargs={'pk': 0}).replace('0',
+                                                                                                   '__pk__').replace(
+            'entrada', '__type__')
+        context['url_api_bodegas_destino'] = reverse('bodega:api_get_bodegas_destino', kwargs={'pk': 0}).replace('0',
+                                                                                                                 '__pk__')
+
         return context
 
 

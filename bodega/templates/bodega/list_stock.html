@@ -419,7 +419,8 @@
 
                     // Set form action
                     const form = document.getElementById('form' + modalId.replace('modal', ''));
-                    form.action = `/bodega/stock/${stockId}/${type}/`;
+                    const urlAction = "{{ url_stock_operacion }}".replace('__pk__', stockId).replace('__type__', type);
+                    form.action = urlAction;
 
                     // Set info
                     document.getElementById('info_producto_' + type).textContent = producto;
@@ -431,7 +432,9 @@
                         const selectDestino = document.getElementById('select_bodega_destino');
                         selectDestino.innerHTML = '<option value="">Cargando bodegas...</option>';
 
-                        fetch(`/bodega/api/stock/${stockId}/bodegas-destino/`)
+                        const urlApi = "{{ url_api_bodegas_destino }}".replace('__pk__', stockId);
+
+                        fetch(urlApi)
                             .then(response => response.json())
                             .then(data => {
                                 selectDestino.innerHTML = '<option value="">Seleccione una bodega</option>';
