@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="javascript:history.back()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.orden_visita.name }}">{{ form.orden_visita.label }}</label>
+                                    {{ form.orden_visita }}
+                                    {% if form.orden_visita.errors %}
+                                        {% for error in form.orden_visita.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.lugar_destino.name }}">{{ form.lugar_destino.label }}</label>
+                                    {{ form.lugar_destino }}
+                                    {% if form.lugar_destino.errors %}
+                                        {% for error in form.lugar_destino.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.descripcion_actividad_lugar.name }}">{{ form.descripcion_actividad_lugar.label }}</label>
+                                    {{ form.descripcion_actividad_lugar }}
+                                    {% if form.descripcion_actividad_lugar.errors %}
+                                        {% for error in form.descripcion_actividad_lugar.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_llegada.name }}">{{ form.fecha_llegada.label }}</label>
+                                    {{ form.fecha_llegada }}
+                                    {% if form.fecha_llegada.errors %}
+                                        {% for error in form.fecha_llegada.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_salida.name }}">{{ form.fecha_salida.label }}</label>
+                                    {{ form.fecha_salida }}
+                                    {% if form.fecha_salida.errors %}
+                                        {% for error in form.fecha_salida.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.medio_transporte_tramo.name }}">{{ form.medio_transporte_tramo.label }}</label>
+                                    {{ form.medio_transporte_tramo }}
+                                    {% if form.medio_transporte_tramo.errors %}
+                                        {% for error in form.medio_transporte_tramo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">Derecho Tarifario en este Destino / Tramo:</label>
+                                    <div class="p-3 bg-light rounded border">
+                                        <div class="form-check mb-2">
+                                            {{ form.pernocta_en_lugar }}
+                                            <label class="form-check-label fw-bold"
+                                                   for="id_{{ form.pernocta_en_lugar.name }}">
+                                                {{ form.pernocta_en_lugar.label }}
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            {{ form.aplica_alimentacion_50 }}
+                                            <label class="form-check-label fw-bold"
+                                                   for="id_{{ form.aplica_alimentacion_50.name }}">
+                                                {{ form.aplica_alimentacion_50.label }}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.aplica_faena }}
+                                            <label class="form-check-label fw-bold"
+                                                   for="id_{{ form.aplica_faena.name }}">
+                                                {{ form.aplica_faena.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Tramo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

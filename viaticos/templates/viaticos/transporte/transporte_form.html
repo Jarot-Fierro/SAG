@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:transporte_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solicitud.name }}">{{ form.solicitud.label }}</label>
+                                    {{ form.solicitud }}
+                                    {% if form.solicitud.errors %}
+                                        {% for error in form.solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_gasto.name }}">{{ form.tipo_gasto.label }}</label>
+                                    {{ form.tipo_gasto }}
+                                    {% if form.tipo_gasto.errors %}
+                                        {% for error in form.tipo_gasto.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">1. Trayecto y Fechas</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.origen.name }}">{{ form.origen.label }}</label>
+                                    {{ form.origen }}
+                                    {% if form.origen.errors %}
+                                        {% for error in form.origen.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.destino.name }}">{{ form.destino.label }}</label>
+                                    {{ form.destino }}
+                                    {% if form.destino.errors %}
+                                        {% for error in form.destino.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_ida.name }}">{{ form.fecha_ida.label }}</label>
+                                    {{ form.fecha_ida }}
+                                    {% if form.fecha_ida.errors %}
+                                        {% for error in form.fecha_ida.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_regreso.name }}">{{ form.fecha_regreso.label }}</label>
+                                    {{ form.fecha_regreso }}
+                                    {% if form.fecha_regreso.errors %}
+                                        {% for error in form.fecha_regreso.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">2. Datos Específicos de Pasajes o
+                                Combustible</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.aerolinea.name }}">{{ form.aerolinea.label }}</label>
+                                    {{ form.aerolinea }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.codigo_reserva_pnr.name }}">{{ form.codigo_reserva_pnr.label }}</label>
+                                    {{ form.codigo_reserva_pnr }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_billete.name }}">{{ form.numero_billete.label }}</label>
+                                    {{ form.numero_billete }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_vale_bencina.name }}">{{ form.numero_vale_bencina.label }}</label>
+                                    {{ form.numero_vale_bencina }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_combustible.name }}">{{ form.tipo_combustible.label }}</label>
+                                    {{ form.tipo_combustible }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.kilometros_recorridos.name }}">{{ form.kilometros_recorridos.label }}</label>
+                                    {{ form.kilometros_recorridos }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.precio_por_litro.name }}">{{ form.precio_por_litro.label }}</label>
+                                    {{ form.precio_por_litro }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">3. Montos y Financiamiento</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.monto_cotizado.name }}">{{ form.monto_cotizado.label }}</label>
+                                    {{ form.monto_cotizado }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-success"
+                                           for="id_{{ form.monto_real_ejecutado.name }}">{{ form.monto_real_ejecutado.label }}</label>
+                                    {{ form.monto_real_ejecutado }}
+                                </div>
+                                <div class="col-md-4 d-flex align-items-center mt-4">
+                                    <div class="form-check">
+                                        {{ form.pagado_directo_proveedor }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.pagado_directo_proveedor.name }}">
+                                            {{ form.pagado_directo_proveedor.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Gasto de Transporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

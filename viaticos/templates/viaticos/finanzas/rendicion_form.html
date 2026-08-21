@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:rendicion_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solicitud.name }}">{{ form.solicitud.label }}</label>
+                                    {{ form.solicitud }}
+                                    {% if form.solicitud.errors %}
+                                        {% for error in form.solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_rendicion.name }}">{{ form.fecha_rendicion.label }}</label>
+                                    {{ form.fecha_rendicion }}
+                                    {% if form.fecha_rendicion.errors %}
+                                        {% for error in form.fecha_rendicion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">1. Liquidación y Cuadratura de Gastos</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.total_anticipo_recibido.name }}">{{ form.total_anticipo_recibido.label }}</label>
+                                    {{ form.total_anticipo_recibido }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-primary"
+                                           for="id_{{ form.total_gastos_rendidos.name }}">{{ form.total_gastos_rendidos.label }}</label>
+                                    {{ form.total_gastos_rendidos }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-danger"
+                                           for="id_{{ form.monto_a_devolver_institucion.name }}">{{ form.monto_a_devolver_institucion.label }}</label>
+                                    {{ form.monto_a_devolver_institucion }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-success"
+                                           for="id_{{ form.monto_a_reembolsar_funcionario.name }}">{{ form.monto_a_reembolsar_funcionario.label }}</label>
+                                    {{ form.monto_a_reembolsar_funcionario }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">2. Informe Ejecutivo y Aprobación</h5>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.informe_cometido_cumplido.name }}">{{ form.informe_cometido_cumplido.label }}</label>
+                                    {{ form.informe_cometido_cumplido }}
+                                    {% if form.informe_cometido_cumplido.errors %}
+                                        {% for error in form.informe_cometido_cumplido.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-check p-3 bg-light rounded border">
+                                        {{ form.rendicion_aprobada }}
+                                        <label class="form-check-label fw-bold text-success"
+                                               for="id_{{ form.rendicion_aprobada.name }}">
+                                            {{ form.rendicion_aprobada.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Rendición
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

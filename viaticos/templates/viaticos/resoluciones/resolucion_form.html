@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:resolucion_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solicitud.name }}">{{ form.solicitud.label }}</label>
+                                    {{ form.solicitud }}
+                                    {% if form.solicitud.errors %}
+                                        {% for error in form.solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_resolucion.name }}">{{ form.numero_resolucion.label }}</label>
+                                    {{ form.numero_resolucion }}
+                                    {% if form.numero_resolucion.errors %}
+                                        {% for error in form.numero_resolucion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.ano_resolucion.name }}">{{ form.ano_resolucion.label }}</label>
+                                    {{ form.ano_resolucion }}
+                                    {% if form.ano_resolucion.errors %}
+                                        {% for error in form.ano_resolucion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_emision.name }}">{{ form.fecha_emision.label }}</label>
+                                    {{ form.fecha_emision }}
+                                    {% if form.fecha_emision.errors %}
+                                        {% for error in form.fecha_emision.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.firmante_nombre.name }}">{{ form.firmante_nombre.label }}</label>
+                                    {{ form.firmante_nombre }}
+                                    {% if form.firmante_nombre.errors %}
+                                        {% for error in form.firmante_nombre.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.firmante_cargo.name }}">{{ form.firmante_cargo.label }}</label>
+                                    {{ form.firmante_cargo }}
+                                    {% if form.firmante_cargo.errors %}
+                                        {% for error in form.firmante_cargo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.vistos.name }}">{{ form.vistos.label }}</label>
+                                    {{ form.vistos }}
+                                    <small class="text-muted">Mantenga presionado Ctrl (o Cmd) para seleccionar
+                                        múltiples vistos legales.</small>
+                                    {% if form.vistos.errors %}
+                                        {% for error in form.vistos.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.considerandos.name }}">{{ form.considerandos.label }}</label>
+                                    {{ form.considerandos }}
+                                    {% if form.considerandos.errors %}
+                                        {% for error in form.considerandos.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.texto_resuelve.name }}">{{ form.texto_resuelve.label }}</label>
+                                    {{ form.texto_resuelve }}
+                                    {% if form.texto_resuelve.errors %}
+                                        {% for error in form.texto_resuelve.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.documento_pdf_firmado.name }}">{{ form.documento_pdf_firmado.label }}</label>
+                                    {{ form.documento_pdf_firmado }}
+                                    {% if form.documento_pdf_firmado.errors %}
+                                        {% for error in form.documento_pdf_firmado.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Resolución Exenta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

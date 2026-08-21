@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy, NoReverseMatch
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
 
@@ -12,6 +12,11 @@ class StandardBaseView(LoginRequiredMixin):
     success_url = None
     module_name = 'Mantenedor'
     title = 'Mantenedor'
+    list_url_name = None
+    create_url_name = None
+    update_url_name = None
+    delete_url_name = None
+    detail_url_name = None
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -34,21 +39,72 @@ class StandardBaseView(LoginRequiredMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.title
+        context['module_name'] = getattr(self, 'module_name', self.title)
+        context['list_url_name'] = getattr(self, 'list_url_name', None)
+        context['create_url_name'] = getattr(self, 'create_url_name', None)
+        context['update_url_name'] = getattr(self, 'update_url_name', None)
+        context['delete_url_name'] = getattr(self, 'delete_url_name', None)
+        context['detail_url_name'] = getattr(self, 'detail_url_name', None)
         context['list_url'] = self.get_list_url()
         context['create_url'] = self.get_create_url()
+        context['update_url'] = self.get_update_url()
+        context['delete_url'] = self.get_delete_url()
+        context['detail_url'] = self.get_detail_url()
         return context
 
     def get_list_url(self):
         url_name = getattr(self, 'list_url_name', None)
         if url_name:
-            return reverse_lazy(url_name)
-        return ''
+            try:
+                return reverse(url_name)
+            except (NoReverseMatch, Exception):
+                return '#'
+        return '#'
 
     def get_create_url(self):
         url_name = getattr(self, 'create_url_name', None)
         if url_name:
-            return reverse_lazy(url_name)
-        return ''
+            try:
+                return reverse(url_name)
+            except (NoReverseMatch, Exception):
+                return '#'
+        return '#'
+
+    def get_update_url(self, obj=None):
+        url_name = getattr(self, 'update_url_name', None)
+        if url_name:
+            try:
+                if obj is not None:
+                    pk = getattr(obj, 'pk', obj)
+                    return reverse(url_name, args=[pk])
+                return reverse(url_name)
+            except (NoReverseMatch, Exception):
+                return '#'
+        return '#'
+
+    def get_delete_url(self, obj=None):
+        url_name = getattr(self, 'delete_url_name', None)
+        if url_name:
+            try:
+                if obj is not None:
+                    pk = getattr(obj, 'pk', obj)
+                    return reverse(url_name, args=[pk])
+                return reverse(url_name)
+            except (NoReverseMatch, Exception):
+                return '#'
+        return '#'
+
+    def get_detail_url(self, obj=None):
+        url_name = getattr(self, 'detail_url_name', None)
+        if url_name:
+            try:
+                if obj is not None:
+                    pk = getattr(obj, 'pk', obj)
+                    return reverse(url_name, args=[pk])
+                return reverse(url_name)
+            except (NoReverseMatch, Exception):
+                return '#'
+        return '#'
 
 
 class StandardListView(StandardBaseView, ListView):
@@ -84,10 +140,18 @@ class StandardListView(StandardBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['update_url_name'] = self.update_url_name
-        context['delete_url_name'] = self.delete_url_name
-        context['q'] = self.request.GET.get('q', '')
         context['filter_form'] = getattr(self, 'filter_form', self.get_filter_form())
+        context['list_url_name'] = getattr(self, 'list_url_name', None)
+        context['create_url_name'] = getattr(self, 'create_url_name', None)
+        context['update_url_name'] = getattr(self, 'update_url_name', None)
+        context['delete_url_name'] = getattr(self, 'delete_url_name', None)
+        context['detail_url_name'] = getattr(self, 'detail_url_name', None)
+        context['list_url'] = self.get_list_url()
+        context['create_url'] = self.get_create_url()
+        context['update_url'] = self.get_update_url()
+        context['delete_url'] = self.get_delete_url()
+        context['detail_url'] = self.get_detail_url()
+        context['q'] = self.request.GET.get('q', '')
         return context
 
 
@@ -105,7 +169,7 @@ class StandardCreateView(StandardBaseView, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['action'] = 'add'
-        context['module_name'] = self.module_name
+        context['module_name'] = getattr(self, 'module_name', self.title)
         return context
 
 
@@ -120,7 +184,7 @@ class StandardUpdateView(StandardBaseView, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['action'] = 'edit'
-        context['module_name'] = self.module_name
+        context['module_name'] = getattr(self, 'module_name', self.title)
         return context
 
 

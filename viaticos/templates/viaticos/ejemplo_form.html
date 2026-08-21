@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block title %}
+    Nuevo Ticket
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'soporte:ticket_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                {# Primera fila: Título y Área de Soporte #}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.titulo.name }}">{{ form.titulo.label }}</label>
+                                    {{ form.titulo }}
+                                    {% if form.titulo.errors %}
+                                        {% for error in form.titulo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.area_soporte.name }}">{{ form.area_soporte.label }}</label>
+                                    {{ form.area_soporte }}
+                                    {% if form.area_soporte.errors %}
+                                        {% for error in form.area_soporte.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                {# Cuarta fila: Descripción #}
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.descripcion.name }}">{{ form.descripcion.label }}</label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                        {% for error in form.descripcion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}
+    Dashboard - Sistema de Cometidos y Viáticos ({{ current_year }})
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'viaticos:solicitud_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+    </a>
+    <a href="{% url 'viaticos:bandeja_firmas' %}" class="btn btn-warning btn-sm text-dark">
+        <i class="bi bi-check2-square me-1"></i> Bandeja de Firmas ({{ pendientes_firma }})
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid px-4 py-3">
+
+        {# Tarjetas de Métricas #}
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body d-flex align-items-center justify-content-between p-3">
+                        <div>
+                            <div class="text-white-50 small text-uppercase fw-bold">Total Solicitudes</div>
+                            <div class="fs-3 fw-bold">{{ total_solicitudes }}</div>
+                            <div class="small">Año {{ current_year }}</div>
+                        </div>
+                        <div class="fs-1 opacity-50"><i class="bi bi-briefcase"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-warning text-dark">
+                    <div class="card-body d-flex align-items-center justify-content-between p-3">
+                        <div>
+                            <div class="text-black-50 small text-uppercase fw-bold">Pendientes de Firma</div>
+                            <div class="fs-3 fw-bold">{{ pendientes_firma }}</div>
+                            <div class="small text-danger fw-bold">
+                                {% if urgentes %}{{ urgentes }} Urgentes{% else %}Al día{% endif %}</div>
+                        </div>
+                        <div class="fs-1 opacity-50"><i class="bi bi-hourglass-split"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-success text-white">
+                    <div class="card-body d-flex align-items-center justify-content-between p-3">
+                        <div>
+                            <div class="text-white-50 small text-uppercase fw-bold">Monto Viáticos Pagados</div>
+                            <div class="fs-3 fw-bold">${{ total_pagado_viaticos|floatformat:0 }}</div>
+                            <div class="small">{{ pagados }} solicitudes pagadas</div>
+                        </div>
+                        <div class="fs-1 opacity-50"><i class="bi bi-cash-stack"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-info text-white">
+                    <div class="card-body d-flex align-items-center justify-content-between p-3">
+                        <div>
+                            <div class="text-white-50 small text-uppercase fw-bold">Monto Pasajes y Vales</div>
+                            <div class="fs-3 fw-bold">${{ total_gastos_pasajes|floatformat:0 }}</div>
+                            <div class="small">{{ rendidos }} rendiciones cerradas</div>
+                        </div>
+                        <div class="fs-1 opacity-50"><i class="bi bi-ticket-perforated"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {# Últimas Solicitudes #}
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Últimas Solicitudes
+                            Registradas</h5>
+                        <a href="{% url 'viaticos:solicitud_list' %}" class="btn btn-outline-primary btn-sm">Ver
+                            todas</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>Funcionario</th>
+                                    <th>Fechas</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for s in ultimas_solicitudes %}
+                                    <tr>
+                                        <td class="fw-bold">#{{ s.folio }}/{{ s.ano }}</td>
+                                        <td>{{ s.funcionario }}</td>
+                                        <td><small>{{ s.fecha_inicio|date:"d/m" }}
+                                            al {{ s.fecha_termino|date:"d/m/Y" }}</small></td>
+                                        <td>
+                                            {% if s.estado == 'BORRADOR' %}
+                                                <span class="badge bg-secondary">Borrador</span>
+                                            {% elif s.estado == 'ENVIADO_JEFATURA' %}
+                                                <span class="badge bg-primary">Enviado Jefatura</span>
+                                            {% elif s.estado == 'PAGADO' %}
+                                                <span class="badge bg-success">Pagado</span>
+                                            {% elif s.estado == 'RECHAZADO' %}
+                                                <span class="badge bg-danger">Rechazado</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">{{ s.get_estado_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'viaticos:solicitud_detail' s.id %}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">No hay solicitudes
+                                            registradas este año.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Últimas Firmas y Flujo #}
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pen me-2"></i>Últimas Aprobaciones y Firmas
+                        </h5>
+                        <a href="{% url 'viaticos:historial_firmas' %}" class="btn btn-outline-primary btn-sm">Ver
+                            historial</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for f in ultimas_firmas %}
+                                <li class="list-group-item p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold">Solicitud #{{ f.solicitud.folio }}</span>
+                                        <span class="badge {% if f.accion == 'APROBADO' %}bg-success{% elif f.accion == 'RECHAZADO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ f.get_accion_display }}
+                                </span>
+                                    </div>
+                                    <div class="small text-muted mb-1">
+                                        <i class="bi bi-person me-1"></i>{{ f.usuario_firmante }} ({{ f.en_calidad_de }})
+                                    </div>
+                                    <div class="small text-secondary d-flex justify-content-between">
+                                        <span>Etapa: {{ f.get_etapa_display }}</span>
+                                        <span>{{ f.fecha_hora_accion|date:"d/m H:i" }}</span>
+                                    </div>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-center py-4 text-muted">No hay firmas registradas
+                                    recientemente.
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

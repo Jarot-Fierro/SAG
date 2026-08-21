@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:egreso_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solicitud.name }}">{{ form.solicitud.label }}</label>
+                                    {{ form.solicitud }}
+                                    {% if form.solicitud.errors %}
+                                        {% for error in form.solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_egreso.name }}">{{ form.numero_egreso.label }}</label>
+                                    {{ form.numero_egreso }}
+                                    {% if form.numero_egreso.errors %}
+                                        {% for error in form.numero_egreso.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.ano_egreso.name }}">{{ form.ano_egreso.label }}</label>
+                                    {{ form.ano_egreso }}
+                                    {% if form.ano_egreso.errors %}
+                                        {% for error in form.ano_egreso.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.medio_pago.name }}">{{ form.medio_pago.label }}</label>
+                                    {{ form.medio_pago }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-success"
+                                           for="id_{{ form.monto_total_pagado.name }}">{{ form.monto_total_pagado.label }}</label>
+                                    {{ form.monto_total_pagado }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_pago.name }}">{{ form.fecha_pago.label }}</label>
+                                    {{ form.fecha_pago }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">1. Beneficiario y Cuenta Destino</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.rut_beneficiario.name }}">{{ form.rut_beneficiario.label }}</label>
+                                    {{ form.rut_beneficiario }}
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.nombre_beneficiario.name }}">{{ form.nombre_beneficiario.label }}</label>
+                                    {{ form.nombre_beneficiario }}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.cuenta_destino.name }}">{{ form.cuenta_destino.label }}</label>
+                                    {{ form.cuenta_destino }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">2. Comprobante Bancario y Glosa</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.id_transferencia_bancaria.name }}">{{ form.id_transferencia_bancaria.label }}</label>
+                                    {{ form.id_transferencia_bancaria }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_cheque.name }}">{{ form.numero_cheque.label }}</label>
+                                    {{ form.numero_cheque }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.banco_origen.name }}">{{ form.banco_origen.label }}</label>
+                                    {{ form.banco_origen }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.cuenta_origen.name }}">{{ form.cuenta_origen.label }}</label>
+                                    {{ form.cuenta_origen }}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.glosa_contable.name }}">{{ form.glosa_contable.label }}</label>
+                                    {{ form.glosa_contable }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Egreso y Pago
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

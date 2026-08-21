@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'viaticos:solicitud_create' %}" class="btn btn-sm btn-primary" title="Nueva Solicitud">
+        <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+    </a>
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+                                <div class="input-group input-group-sm">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search" aria-hidden="true"></i>
+                                </span>
+                                    {{ filter_form.folio }}
+                                    {{ filter_form.ano }}
+                                    {{ filter_form.tipo_solicitud }}
+                                    {{ filter_form.estado }}
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i> Filtrar
+                                    </button>
+                                    <a href="{% url list_url_name %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0" role="table">
+                            <thead class="table-light">
+                            <tr>
+                                <th scope="col">Folio</th>
+                                <th scope="col">Tipo Solicitud</th>
+                                <th scope="col">Motivo</th>
+                                <th scope="col">Fechas Comisión</th>
+                                <th scope="col">Días</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col" class="text-center">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for obj in page_obj %}
+                                <tr>
+                                    <td class="fw-bold">#{{ obj.folio }}/{{ obj.ano }}</td>
+                                    <td><small class="badge bg-secondary">{{ obj.get_tipo_solicitud_display }}</small>
+                                    </td>
+                                    <td>{{ obj.motivo_viaje|truncatechars:60 }}</td>
+                                    <td>{{ obj.fecha_inicio|date:"d/m/Y" }} al {{ obj.fecha_termino|date:"d/m/Y" }}</td>
+                                    <td class="fw-bold text-center">{{ obj.total_dias }}</td>
+                                    <td>
+                                        {% if obj.estado == 'BORRADOR' %}
+                                            <span class="badge bg-secondary">Borrador</span>
+                                        {% elif obj.estado == 'ENVIADO_JEFATURA' %}
+                                            <span class="badge bg-primary">Enviado Jefatura</span>
+                                        {% elif obj.estado == 'PAGADO' %}
+                                            <span class="badge bg-success">Pagado</span>
+                                        {% elif obj.estado == 'RENDIDO' %}
+                                            <span class="badge bg-success">Rendido</span>
+                                        {% elif obj.estado == 'DEVUELTO' %}
+                                            <span class="badge bg-warning text-dark">Devuelto para Corrección</span>
+                                        {% elif obj.estado == 'RECHAZADO' %}
+                                            <span class="badge bg-danger">Rechazado</span>
+                                        {% else %}
+                                            <span class="badge bg-info text-dark">{{ obj.get_estado_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'viaticos:solicitud_detail' obj.id %}"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Ver Detalle"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if obj.estado == 'BORRADOR' or obj.estado == 'DEVUELTO' %}
+                                            <a href="{% url 'viaticos:solicitud_update' obj.id %}"
+                                               class="btn btn-sm btn-outline-primary ms-1"
+                                               title="Editar"
+                                               data-bs-toggle="tooltip">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'viaticos:solicitud_enviar_jefatura' obj.id %}"
+                                               class="btn btn-sm btn-success ms-1"
+                                               title="Enviar a Jefatura"
+                                               data-bs-toggle="tooltip"
+                                               onclick="return confirm('¿Está seguro de enviar esta solicitud a revisión de Jefatura?');">
+                                                <i class="bi bi-send"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-body-secondary py-4">
+                                        No tienes solicitudes de cometidos o viáticos registradas.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        solicitudes
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link"
+                                                             href="?{% query_transform page=i %}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

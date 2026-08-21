@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="javascript:history.back()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_documento.name }}">{{ form.tipo_documento.label }}</label>
+                                    {{ form.tipo_documento }}
+                                    {% if form.tipo_documento.errors %}
+                                        {% for error in form.tipo_documento.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.numero_documento.name }}">{{ form.numero_documento.label }}</label>
+                                    {{ form.numero_documento }}
+                                    {% if form.numero_documento.errors %}
+                                        {% for error in form.numero_documento.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.proveedor_razon_social.name }}">{{ form.proveedor_razon_social.label }}</label>
+                                    {{ form.proveedor_razon_social }}
+                                    {% if form.proveedor_razon_social.errors %}
+                                        {% for error in form.proveedor_razon_social.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-success"
+                                           for="id_{{ form.monto_documento.name }}">{{ form.monto_documento.label }}</label>
+                                    {{ form.monto_documento }}
+                                    {% if form.monto_documento.errors %}
+                                        {% for error in form.monto_documento.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.comprobante_digital.name }}">{{ form.comprobante_digital.label }}</label>
+                                    {{ form.comprobante_digital }}
+                                    {% if form.comprobante_digital.errors %}
+                                        {% for error in form.comprobante_digital.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Comprobante
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

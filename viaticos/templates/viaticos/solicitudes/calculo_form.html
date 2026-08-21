@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="javascript:history.back()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-9">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'edit' }}">
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold"
+                                       for="id_{{ form.escala_aplicada.name }}">{{ form.escala_aplicada.label }}</label>
+                                {{ form.escala_aplicada }}
+                                {% if form.escala_aplicada.errors %}
+                                    {% for error in form.escala_aplicada.errors %}
+                                        <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">1. Desglose 100% (Pernocta)</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.dias_100.name }}">{{ form.dias_100.label }}</label>
+                                    {{ form.dias_100 }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.monto_unitario_100.name }}">{{ form.monto_unitario_100.label }}</label>
+                                    {{ form.monto_unitario_100 }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.total_monto_100.name }}">{{ form.total_monto_100.label }}</label>
+                                    {{ form.total_monto_100 }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">2. Desglose 50% (Alimentación /
+                                Parcial)</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.dias_50.name }}">{{ form.dias_50.label }}</label>
+                                    {{ form.dias_50 }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.monto_unitario_50.name }}">{{ form.monto_unitario_50.label }}</label>
+                                    {{ form.monto_unitario_50 }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.total_monto_50.name }}">{{ form.total_monto_50.label }}</label>
+                                    {{ form.total_monto_50 }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">3. Desglose Faena</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.dias_faena.name }}">{{ form.dias_faena.label }}</label>
+                                    {{ form.dias_faena }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.monto_unitario_faena.name }}">{{ form.monto_unitario_faena.label }}</label>
+                                    {{ form.monto_unitario_faena }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.total_monto_faena.name }}">{{ form.total_monto_faena.label }}</label>
+                                    {{ form.total_monto_faena }}
+                                </div>
+                            </div>
+
+                            <h5 class="text-primary border-bottom pb-2 mb-3">4. Totales y Saldo</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-primary"
+                                           for="id_{{ form.total_bruto_viatico.name }}">{{ form.total_bruto_viatico.label }}</label>
+                                    {{ form.total_bruto_viatico }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.monto_anticipo_entregado.name }}">{{ form.monto_anticipo_entregado.label }}</label>
+                                    {{ form.monto_anticipo_entregado }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-success"
+                                           for="id_{{ form.saldo_a_pagar.name }}">{{ form.saldo_a_pagar.label }}</label>
+                                    {{ form.saldo_a_pagar }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Liquidación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

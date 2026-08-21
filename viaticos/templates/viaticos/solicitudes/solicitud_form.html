@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:solicitud_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver a Lista
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_solicitud.name }}">{{ form.tipo_solicitud.label }}</label>
+                                    {{ form.tipo_solicitud }}
+                                    {% if form.tipo_solicitud.errors %}
+                                        {% for error in form.tipo_solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.funcionario.name }}">
+                                        {{ form.funcionario.label }}
+                                    </label>
+
+                                    {{ form.funcionario }}
+
+                                    {% if form.funcionario.errors %}
+                                        {% for error in form.funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+
+                                <div id="contenedor-unidad-organizacional" class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.unidad_organizacional.name }}">
+                                        {{ form.unidad_organizacional.label }}
+                                    </label>
+
+                                    {{ form.unidad_organizacional }}
+
+                                    {% if form.unidad_organizacional.errors %}
+                                        {% for error in form.unidad_organizacional.errors %}
+                                            <div class="invalid-feedback d-block text-danger">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.cargo_desempenado.name }}">{{ form.cargo_desempenado.label }}</label>
+                                    {{ form.cargo_desempenado }}
+                                    {% if form.cargo_desempenado.errors %}
+                                        {% for error in form.cargo_desempenado.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.grado_funcionario.name }}">{{ form.grado_funcionario.label }}</label>
+                                    {{ form.grado_funcionario }}
+                                    {% if form.grado_funcionario.errors %}
+                                        {% for error in form.grado_funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.motivo_viaje.name }}">{{ form.motivo_viaje.label }}</label>
+                                    {{ form.motivo_viaje }}
+                                    {% if form.motivo_viaje.errors %}
+                                        {% for error in form.motivo_viaje.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_inicio.name }}">{{ form.fecha_inicio.label }}</label>
+                                    {{ form.fecha_inicio }}
+                                    {% if form.fecha_inicio.errors %}
+                                        {% for error in form.fecha_inicio.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_termino.name }}">{{ form.fecha_termino.label }}</label>
+                                    {{ form.fecha_termino }}
+                                    {% if form.fecha_termino.errors %}
+                                        {% for error in form.fecha_termino.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.hora_salida.name }}">{{ form.hora_salida.label }}</label>
+                                    {{ form.hora_salida }}
+                                    {% if form.hora_salida.errors %}
+                                        {% for error in form.hora_salida.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.hora_llegada.name }}">{{ form.hora_llegada.label }}</label>
+                                    {{ form.hora_llegada }}
+                                    {% if form.hora_llegada.errors %}
+                                        {% for error in form.hora_llegada.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.total_dias.name }}">{{ form.total_dias.label }}</label>
+                                    {{ form.total_dias }}
+                                    {% if form.total_dias.errors %}
+                                        {% for error in form.total_dias.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        {{ form.es_proyecto }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.es_proyecto.name }}">{{ form.es_proyecto.label }}</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        {{ form.es_urgente }}
+                                        <label class="form-check-label fw-bold text-danger"
+                                               for="id_{{ form.es_urgente.name }}">{{ form.es_urgente.label }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-check mb-2">
+                                        {{ form.tiene_derecho_pasaje }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.tiene_derecho_pasaje.name }}">{{ form.tiene_derecho_pasaje.label }}</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        {{ form.requiere_vehiculo_institucional }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.requiere_vehiculo_institucional.name }}">{{ form.requiere_vehiculo_institucional.label }}</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        {{ form.requiere_vales_bencina }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.requiere_vales_bencina.name }}">{{ form.requiere_vales_bencina.label }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.nombre_codigo_proyecto.name }}">{{ form.nombre_codigo_proyecto.label }}</label>
+                                    {{ form.nombre_codigo_proyecto }}
+                                    {% if form.nombre_codigo_proyecto.errors %}
+                                        {% for error in form.nombre_codigo_proyecto.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

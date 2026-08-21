@@ -1,8 +1,22 @@
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 
 from config import settings
+
+
+def recibe_ip(request):
+    print("\n" + "=" * 80)
+    print("NUEVA VISITA")
+
+    for clave, valor in request.META.items():
+        print(f"{clave}: {valor}")
+
+    print("=" * 80 + "\n")
+
+    return HttpResponse("No eres Bienvenido")
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,6 +27,8 @@ urlpatterns = [
     path('horos/', include('horos.urls')),
     path('gestion/', include('gestion_tic.urls')),
     path('bodega/', include('bodega.urls')),
+    path('viaticos/', include('viaticos.urls')),
+    path('recibe/', recibe_ip),
 ]
 
 handler404 = 'core.views.errors.handler404'

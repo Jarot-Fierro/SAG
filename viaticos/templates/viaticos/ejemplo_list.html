@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'soporte:ticket_create' %}"
+       class="btn btn-sm btn-primary"
+       title="Nuevo Registro">
+        <i class="bi bi-plus-circle me-1"></i>
+        Nuevo Registro
+    </a>
+{% endblock %}
+
+{% block title %}Mis Tickets{% endblock %}
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12">
+                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                    </span>
+                                    {{ filter_form.numero_ticket }}
+                                    {{ filter_form.titulo }}
+                                    {{ filter_form.area_soporte }}
+                                    {{ filter_form.estado }}
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-funnel-fill me-1"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{% url 'soporte:ticket_list' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle m-0" role="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">N° Ticket</th>
+                                <th scope="col">Titulo</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Área Soporte</th>
+                                <th scope="col">Asignado a</th>
+                                <th scope="col">Fecha Creación</th>
+                                <th scope="col">Fecha Cierre</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for ticket in page_obj %}
+                                <tr>
+                                    <td>{{ ticket.numero_ticket }}</td>
+                                    <td>{{ ticket.titulo }}</td>
+                                    <td>
+                                        {% if ticket.estado == 'ABIERTO' %}
+                                            <span class="badge bg-primary">
+                                            Abierto
+                                        </span>
+                                        {% elif ticket.estado == 'EN_PROCESO' %}
+                                            <span class="badge bg-warning text-dark">
+                                            En Proceso
+                                        </span>
+                                        {% elif ticket.estado == 'ESPERA' %}
+                                            <span class="badge bg-info text-dark">
+                                            En Espera
+                                        </span>
+                                        {% elif ticket.estado == 'CERRADO' %}
+                                            <span class="badge bg-danger">
+                                            Cerrado
+                                        </span>
+                                        {% elif ticket.estado == 'RECHAZADO' %}
+                                            <span class="badge bg-danger">
+                                            Rechazado
+                                        </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                            {{ ticket.get_estado_display }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
+                                    <td>{{ ticket.asignado_a|default:'-' }}</td>
+                                    <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ ticket.fecha_cierre|default:"Sin Fecha" }}</td>
+                                    <td>
+                                        {% if ticket.estado == 'CERRADO' %}
+                                            <span class="badge bg-danger">
+                                            Cerrado
+                                        </span>
+                                        {% else %}
+                                            <a href="{% url update_url_name ticket.id %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Editar"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-none">Editar</span>
+                                            </a>
+                                        {% endif %}
+
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-body-secondary py-4">
+                                        No se encontraron funcionarios para la búsqueda.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-start pt-1 fs-7 text-body-secondary">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                        funcionarios
+                    </div>
+                    {% if is_paginated %}
+                        <ul class="pagination pagination-sm m-0 float-end">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
+                                       aria-label="Anterior">«</a>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?{% query_transform page=i %}">
+                                            {{ i }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?{% query_transform page=page_obj.next_page_number %}"
+                                       aria-label="Siguiente">»</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

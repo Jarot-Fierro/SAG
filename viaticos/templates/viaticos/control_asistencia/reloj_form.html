@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:reloj_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
+                                    {{ form.funcionario }}
+                                    {% if form.funcionario.errors %}
+                                        {% for error in form.funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.solicitud.name }}">{{ form.solicitud.label }}</label>
+                                    {{ form.solicitud }}
+                                    {% if form.solicitud.errors %}
+                                        {% for error in form.solicitud.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_inicio_ausencia.name }}">{{ form.fecha_inicio_ausencia.label }}</label>
+                                    {{ form.fecha_inicio_ausencia }}
+                                    {% if form.fecha_inicio_ausencia.errors %}
+                                        {% for error in form.fecha_inicio_ausencia.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_termino_ausencia.name }}">{{ form.fecha_termino_ausencia.label }}</label>
+                                    {{ form.fecha_termino_ausencia }}
+                                    {% if form.fecha_termino_ausencia.errors %}
+                                        {% for error in form.fecha_termino_ausencia.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.tipo_ausentismo.name }}">{{ form.tipo_ausentismo.label }}</label>
+                                    {{ form.tipo_ausentismo }}
+                                    {% if form.tipo_ausentismo.errors %}
+                                        {% for error in form.tipo_ausentismo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.dias_justificados.name }}">{{ form.dias_justificados.label }}</label>
+                                    {{ form.dias_justificados }}
+                                    {% if form.dias_justificados.errors %}
+                                        {% for error in form.dias_justificados.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-check p-3 bg-light rounded border">
+                                        {{ form.sincronizado_reloj }}
+                                        <label class="form-check-label fw-bold"
+                                               for="id_{{ form.sincronizado_reloj.name }}">
+                                            {{ form.sincronizado_reloj.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.observacion_corte.name }}">{{ form.observacion_corte.label }}</label>
+                                    {{ form.observacion_corte }}
+                                    {% if form.observacion_corte.errors %}
+                                        {% for error in form.observacion_corte.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Corte de Asistencia
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

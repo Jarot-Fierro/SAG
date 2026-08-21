@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:solicitud_detail' solicitud.id %}">
+        <i class="fas fa-arrow-left"></i> Volver a Solicitud
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                {# Resumen de la Solicitud que se está firmando #}
+                <div class="card bg-light border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-1">Solicitud #{{ solicitud.folio }}/{{ solicitud.ano }}
+                            - {{ solicitud.funcionario }}</h5>
+                        <div class="small text-muted mb-2">Unidad: {{ solicitud.unidad_organizacional }} |
+                            Periodo: {{ solicitud.fecha_inicio|date:"d/m/Y" }}
+                            al {{ solicitud.fecha_termino|date:"d/m/Y" }} ({{ solicitud.total_dias }} días)
+                        </div>
+                        <div class="p-2 bg-white rounded border small">
+                            <strong>Motivo:</strong> {{ solicitud.motivo_viaje }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.etapa.name }}">{{ form.etapa.label }}</label>
+                                    {{ form.etapa }}
+                                    {% if form.etapa.errors %}
+                                        {% for error in form.etapa.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.accion.name }}">{{ form.accion.label }}</label>
+                                    {{ form.accion }}
+                                    {% if form.accion.errors %}
+                                        {% for error in form.accion.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.en_calidad_de.name }}">{{ form.en_calidad_de.label }}</label>
+                                    {{ form.en_calidad_de }}
+                                    {% if form.en_calidad_de.errors %}
+                                        {% for error in form.en_calidad_de.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-4 d-flex align-items-center mt-4">
+                                    <div class="form-check">
+                                        {{ form.es_subrogante }}
+                                        <label class="form-check-label fw-bold" for="id_{{ form.es_subrogante.name }}">
+                                            {{ form.es_subrogante.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-check p-3 bg-light rounded border">
+                                        {{ form.firmado_con_fea }}
+                                        <label class="form-check-label fw-bold text-primary"
+                                               for="id_{{ form.firmado_con_fea.name }}">
+                                            <i class="bi bi-shield-check me-1"></i> {{ form.firmado_con_fea.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.observaciones.name }}">{{ form.observaciones.label }}</label>
+                                    {{ form.observaciones }}
+                                    {% if form.observaciones.errors %}
+                                        {% for error in form.observaciones.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary"
+                                    onclick="return confirm('¿Confirma el registro y firma de esta acción?');">
+                                <i class="fas fa-signature me-1"></i> Registrar Firma / Resolución
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

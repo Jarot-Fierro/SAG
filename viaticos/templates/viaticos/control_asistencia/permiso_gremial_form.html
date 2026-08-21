@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:permiso_gremial_list' %}">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+
+                    <form method="post" novalidate>
+                        <div class="card-body">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <input type="hidden" name="action" value="{{ action|default:'add' }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.folio_gremial.name }}">{{ form.folio_gremial.label }}</label>
+                                    {{ form.folio_gremial }}
+                                    {% if form.folio_gremial.errors %}
+                                        {% for error in form.folio_gremial.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.ano.name }}">{{ form.ano.label }}</label>
+                                    {{ form.ano }}
+                                    {% if form.ano.errors %}
+                                        {% for error in form.ano.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.funcionario.name }}">{{ form.funcionario.label }}</label>
+                                    {{ form.funcionario }}
+                                    {% if form.funcionario.errors %}
+                                        {% for error in form.funcionario.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.cargo_en_gremio.name }}">{{ form.cargo_en_gremio.label }}</label>
+                                    {{ form.cargo_en_gremio }}
+                                    {% if form.cargo_en_gremio.errors %}
+                                        {% for error in form.cargo_en_gremio.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.lugar_actividad.name }}">{{ form.lugar_actividad.label }}</label>
+                                    {{ form.lugar_actividad }}
+                                    {% if form.lugar_actividad.errors %}
+                                        {% for error in form.lugar_actividad.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_desde.name }}">{{ form.fecha_desde.label }}</label>
+                                    {{ form.fecha_desde }}
+                                    {% if form.fecha_desde.errors %}
+                                        {% for error in form.fecha_desde.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.fecha_hasta.name }}">{{ form.fecha_hasta.label }}</label>
+                                    {{ form.fecha_hasta }}
+                                    {% if form.fecha_hasta.errors %}
+                                        {% for error in form.fecha_hasta.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.motivo.name }}">{{ form.motivo.label }}</label>
+                                    {{ form.motivo }}
+                                    {% if form.motivo.errors %}
+                                        {% for error in form.motivo.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6 d-flex align-items-center mt-4">
+                                    <div class="form-check">
+                                        {{ form.aprobado }}
+                                        <label class="form-check-label fw-bold text-success"
+                                               for="id_{{ form.aprobado.name }}">
+                                            {{ form.aprobado.label }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold"
+                                           for="id_{{ form.aprobado_por.name }}">{{ form.aprobado_por.label }}</label>
+                                    {{ form.aprobado_por }}
+                                    {% if form.aprobado_por.errors %}
+                                        {% for error in form.aprobado_por.errors %}
+                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Permiso Gremial
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

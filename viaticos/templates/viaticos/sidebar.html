@@ -1,0 +1,154 @@
+<li class="nav-item">
+    <a href="{% url 'viaticos:dashboard' %}" class="nav-link">
+        <i class="nav-icon bi bi-speedometer2"></i>
+        <p>Dashboard</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="nav-icon bi bi-briefcase-fill"></i>
+        <p>
+            Cometidos y Viáticos
+            <i class="nav-arrow bi bi-chevron-right"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'viaticos:solicitud_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Todas las Solicitudes</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:mis_solicitudes_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Mis Solicitudes</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:solicitud_create' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Nueva Solicitud</p>
+            </a>
+        </li>
+    </ul>
+</li>
+
+<li class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="nav-icon bi bi-check2-square"></i>
+        <p>
+            Firmas y Flujo
+            <i class="nav-arrow bi bi-chevron-right"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'viaticos:bandeja_firmas' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Bandeja de Pendientes</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:historial_firmas' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Historial de Firmas</p>
+            </a>
+        </li>
+    </ul>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'viaticos:transporte_list' %}" class="nav-link">
+        <i class="nav-icon bi bi-truck"></i>
+        <p>Transporte y Pasajes</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'viaticos:resolucion_list' %}" class="nav-link">
+        <i class="nav-icon bi bi-file-earmark-text"></i>
+        <p>Resoluciones Exentas</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="nav-icon bi bi-cash-coin"></i>
+        <p>
+            Finanzas y Rendición
+            <i class="nav-arrow bi bi-chevron-right"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'viaticos:egreso_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Egresos y Pagos</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:rendicion_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Rendiciones de Cuentas</p>
+            </a>
+        </li>
+    </ul>
+</li>
+
+<li class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="nav-icon bi bi-clock-history"></i>
+        <p>
+            Control Asistencia
+            <i class="nav-arrow bi bi-chevron-right"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'viaticos:reloj_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Reloj Control</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:permiso_gremial_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Permisos Gremiales</p>
+            </a>
+        </li>
+    </ul>
+</li>
+
+<hr>
+
+<li class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="nav-icon bi bi-gear-fill"></i>
+        <p>
+            Catálogos y Tarifas
+            <i class="nav-arrow bi bi-chevron-right"></i>
+        </p>
+    </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'viaticos:lugar_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Lugares de Destino</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:escala_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Escalas de Viáticos</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'viaticos:visto_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Vistos Legales</p>
+            </a>
+        </li>
+    </ul>
+</li>

@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    {% include 'viaticos/sidebar.html' %}
+{% endblock %}
+
+{% block title %}
+    Cometido / Viático #{{ solicitud.folio }}/{{ solicitud.ano }} - {{ solicitud.funcionario }}
+{% endblock %}
+
+{% block buttons %}
+    <a class="btn btn-secondary btn-sm" href="{% url 'viaticos:solicitud_list' %}">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+    </a>
+    {% if solicitud.estado == 'BORRADOR' or solicitud.estado == 'DEVUELTO' %}
+        <a class="btn btn-outline-primary btn-sm ms-1" href="{% url 'viaticos:solicitud_update' solicitud.id %}">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+        <a class="btn btn-success btn-sm ms-1" href="{% url 'viaticos:solicitud_enviar_jefatura' solicitud.id %}"
+           onclick="return confirm('¿Está seguro de enviar esta solicitud a revisión de Jefatura?');">
+            <i class="bi bi-send me-1"></i> Enviar a Jefatura
+        </a>
+    {% endif %}
+    {% if solicitud.estado != 'BORRADOR' and solicitud.estado != 'PAGADO' and solicitud.estado != 'RENDIDO' and solicitud.estado != 'RECHAZADO' and solicitud.estado != 'ANULADO' %}
+        <a class="btn btn-warning btn-sm text-dark ms-1" href="{% url 'viaticos:aprobacion_create' solicitud.id %}">
+            <i class="bi bi-pen me-1"></i> Revisar / Firmar
+        </a>
+    {% endif %}
+    {% if solicitud.estado == 'RESOLUCION_EMITIDA' or solicitud.estado == 'APROBADO_RRHH' %}
+        {% if not resolucion %}
+            <a class="btn btn-info btn-sm text-dark ms-1"
+               href="{% url 'viaticos:resolucion_create' %}?solicitud={{ solicitud.id }}">
+                <i class="bi bi-file-earmark-text me-1"></i> Emitir Resolución
+            </a>
+        {% endif %}
+    {% endif %}
+    {% if solicitud.estado == 'EN_PAGO' or solicitud.estado == 'RESOLUCION_EMITIDA' %}
+        <a class="btn btn-success btn-sm ms-1" href="{% url 'viaticos:egreso_create' %}?solicitud={{ solicitud.id }}">
+            <i class="bi bi-cash-coin me-1"></i> Registrar Pago
+        </a>
+    {% endif %}
+    {% if solicitud.estado == 'PAGADO' and not rendicion %}
+        <a class="btn btn-primary btn-sm ms-1"
+           href="{% url 'viaticos:rendicion_create' %}?solicitud={{ solicitud.id }}">
+            <i class="bi bi-receipt me-1"></i> Rendir Cuentas
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid px-4 py-3">
+
+        {# Encabezado / Card Principal #}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div>
+                        <h4 class="fw-bold mb-0">
+                            Folio #{{ solicitud.folio }}/{{ solicitud.ano }}
+                            - {{ solicitud.get_tipo_solicitud_display }}
+                        </h4>
+                        <span class="text-muted small">Establecimiento: {{ solicitud.establecimiento.nombre|default:"SAG Regional" }}</span>
+                    </div>
+                    <div>
+                        {% if solicitud.estado == 'BORRADOR' %}
+                            <span class="badge bg-secondary fs-6">Borrador</span>
+                        {% elif solicitud.estado == 'ENVIADO_JEFATURA' %}
+                            <span class="badge bg-primary fs-6">Enviado a Jefatura</span>
+                        {% elif solicitud.estado == 'APROBADO_JEFE' %}
+                            <span class="badge bg-info text-dark fs-6">Aprobado por Jefe Directo</span>
+                        {% elif solicitud.estado == 'EN_REVISION_SSGG' %}
+                            <span class="badge bg-warning text-dark fs-6">En Revisión SSGG</span>
+                        {% elif solicitud.estado == 'EN_REVISION_RRHH' %}
+                            <span class="badge bg-warning text-dark fs-6">En Control Personal/RRHH</span>
+                        {% elif solicitud.estado == 'RESOLUCION_EMITIDA' %}
+                            <span class="badge bg-info text-dark fs-6">Resolución Exenta Emitida</span>
+                        {% elif solicitud.estado == 'EN_PAGO' %}
+                            <span class="badge bg-info text-dark fs-6">En Trámite de Pago (Finanzas)</span>
+                        {% elif solicitud.estado == 'PAGADO' %}
+                            <span class="badge bg-success fs-6">Pagado / Fondos Girados</span>
+                        {% elif solicitud.estado == 'RENDIDO' %}
+                            <span class="badge bg-success fs-6">Cometido Rendido y Cerrado</span>
+                        {% elif solicitud.estado == 'DEVUELTO' %}
+                            <span class="badge bg-warning text-dark fs-6">Devuelto para Corrección</span>
+                        {% elif solicitud.estado == 'RECHAZADO' %}
+                            <span class="badge bg-danger fs-6">Rechazado</span>
+                        {% elif solicitud.estado == 'ANULADO' %}
+                            <span class="badge bg-dark fs-6">Anulado</span>
+                        {% endif %}
+
+                        {% if solicitud.es_urgente %}
+                            <span class="badge bg-danger fs-6 ms-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if solicitud.motivo_rechazo_devolucion %}
+                    <div class="alert alert-warning d-flex align-items-center mb-3">
+                        <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
+                        <div>
+                            <strong>Observaciones de Devolución /
+                                Rechazo:</strong> {{ solicitud.motivo_rechazo_devolucion }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-muted small">Funcionario Solicitante</div>
+                        <div class="fw-bold">{{ solicitud.funcionario }}</div>
+                        <small class="text-secondary">{{ solicitud.cargo_desempenado|default:"-" }}
+                            (Grado: {{ solicitud.grado_funcionario|default:"-" }})</small>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="text-muted small">Unidad Organizacional</div>
+                        <div class="fw-bold">{{ solicitud.unidad_organizacional }}</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="text-muted small">Periodo de Comisión</div>
+                        <div class="fw-bold">{{ solicitud.fecha_inicio|date:"d/m/Y" }}
+                            al {{ solicitud.fecha_termino|date:"d/m/Y" }}</div>
+                        <small class="text-secondary">{{ solicitud.total_dias }} días
+                            ({{ solicitud.hora_salida|time:"H:i" }} a {{ solicitud.hora_llegada|time:"H:i" }})</small>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="text-muted small">Financiamiento / Proyecto</div>
+                        <div class="fw-bold">{% if solicitud.es_proyecto %}Fondos de Proyecto{% else %}Presupuesto
+                            Ordinario{% endif %}</div>
+                        <small class="text-secondary">{{ solicitud.nombre_codigo_proyecto|default:"-" }}</small>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="text-muted small">Motivo / Justificación</div>
+                    <div class="p-2 bg-light rounded border">{{ solicitud.motivo_viaje }}</div>
+                </div>
+            </div>
+        </div>
+
+        {# Pestañas Modulares #}
+        <ul class="nav nav-tabs nav-fill mb-3" id="viaticoTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="itinerario-tab" data-bs-toggle="tab"
+                        data-bs-target="#itinerario" type="button" role="tab">
+                    <i class="bi bi-geo-alt me-1"></i> Itinerario y Tramos ({{ itinerarios.count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="calculo-tab" data-bs-toggle="tab" data-bs-target="#calculo"
+                        type="button" role="tab">
+                    <i class="bi bi-calculator me-1"></i> Liquidación Viático
+                    (${{ calculo.total_bruto_viatico|default:0|floatformat:0 }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="transporte-tab" data-bs-toggle="tab" data-bs-target="#transporte"
+                        type="button" role="tab">
+                    <i class="bi bi-truck me-1"></i> Transporte y Pasajes ({{ gastos_transporte.count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="firmas-tab" data-bs-toggle="tab" data-bs-target="#firmas"
+                        type="button" role="tab">
+                    <i class="bi bi-pen me-1"></i> Firmas y Auditoría ({{ aprobaciones.count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="resolucion-tab" data-bs-toggle="tab" data-bs-target="#resolucion"
+                        type="button" role="tab">
+                    <i class="bi bi-file-earmark-text me-1"></i> Resolución Exenta
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="finanzas-tab" data-bs-toggle="tab" data-bs-target="#finanzas"
+                        type="button" role="tab">
+                    <i class="bi bi-cash-coin me-1"></i> Pago y Rendición
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="viaticoTabContent">
+
+            {# TAB 1: ITINERARIO 1:N #}
+            <div class="tab-pane fade show active" id="itinerario" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Recorrido e Itinerario Multidestino</h5>
+                        {% if solicitud.estado == 'BORRADOR' or solicitud.estado == 'DEVUELTO' %}
+                            <a href="{% url 'viaticos:itinerario_create' solicitud.id %}"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i> Agregar Tramo / Parada
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Destino / Localidad</th>
+                                    <th>Actividad</th>
+                                    <th>Fechas en Tramo</th>
+                                    <th>Transporte</th>
+                                    <th>Derecho a Tarifa</th>
+                                    {% if solicitud.estado == 'BORRADOR' or solicitud.estado == 'DEVUELTO' %}
+                                        <th class="text-center">Acciones</th>
+                                    {% endif %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for it in itinerarios %}
+                                    <tr>
+                                        <td class="fw-bold">{{ it.orden_visita }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ it.lugar_destino.nombre }}</div>
+                                            <small class="text-muted">{{ it.lugar_destino.comuna|default:it.lugar_destino.region }}</small>
+                                        </td>
+                                        <td>{{ it.descripcion_actividad_lugar }}</td>
+                                        <td><small>{{ it.fecha_llegada|date:"d/m/Y" }}
+                                            al {{ it.fecha_salida|date:"d/m/Y" }}</small></td>
+                                        <td><small
+                                                class="badge bg-secondary">{{ it.get_medio_transporte_tramo_display }}</small>
+                                        </td>
+                                        <td>
+                                            {% if it.pernocta_en_lugar %}
+                                                <span class="badge bg-primary">100% Pernocta</span>
+                                            {% endif %}
+                                            {% if it.aplica_alimentacion_50 %}
+                                                <span class="badge bg-success">50% Alimentación</span>
+                                            {% endif %}
+                                            {% if it.aplica_faena %}
+                                                <span class="badge bg-info text-dark">Faena</span>
+                                            {% endif %}
+                                        </td>
+                                        {% if solicitud.estado == 'BORRADOR' or solicitud.estado == 'DEVUELTO' %}
+                                            <td class="text-center">
+                                                <a href="{% url 'viaticos:itinerario_update' it.id %}"
+                                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'viaticos:itinerario_delete' it.id %}"
+                                                   class="btn btn-sm btn-outline-danger ms-1" title="Eliminar"
+                                                   onclick="return confirm('¿Eliminar tramo?');">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            No se han agregado tramos de itinerario a esta solicitud.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# TAB 2: CÁLCULO FINANCIERO #}
+            <div class="tab-pane fade" id="calculo" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Desglose de Liquidación y Tarifas</h5>
+                        {% if calculo %}
+                            <a href="{% url 'viaticos:calculo_update' calculo.id %}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i> Editar Liquidación
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if calculo %}
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="card bg-light border-0 p-3 text-center">
+                                        <h6 class="text-muted">100% Pernocta</h6>
+                                        <h4>{{ calculo.dias_100 }} días &times;
+                                            ${{ calculo.monto_unitario_100|floatformat:0 }}</h4>
+                                        <div class="fs-5 fw-bold text-primary">
+                                            ${{ calculo.total_monto_100|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light border-0 p-3 text-center">
+                                        <h6 class="text-muted">50% Alimentación</h6>
+                                        <h4>{{ calculo.dias_50 }} días &times;
+                                            ${{ calculo.monto_unitario_50|floatformat:0 }}</h4>
+                                        <div class="fs-5 fw-bold text-success">
+                                            ${{ calculo.total_monto_50|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light border-0 p-3 text-center">
+                                        <h6 class="text-muted">Faena</h6>
+                                        <h4>{{ calculo.dias_faena }} días &times;
+                                            ${{ calculo.monto_unitario_faena|floatformat:0 }}</h4>
+                                        <div class="fs-5 fw-bold text-info">
+                                            ${{ calculo.total_monto_faena|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-muted small">Escala Tarifaria Aplicada:
+                                                <strong>{{ calculo.escala_aplicada }}</strong></div>
+                                            <div class="text-muted small">Anticipo Entregado:
+                                                <strong>${{ calculo.monto_anticipo_entregado|floatformat:0 }}</strong>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="text-uppercase small text-muted">Saldo Final a Pagar:</div>
+                                            <div class="fs-2 fw-bold text-primary">
+                                                ${{ calculo.saldo_a_pagar|floatformat:0 }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                No se ha registrado cálculo de viático para esta solicitud (cometido simple o
+                                pendiente).
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# TAB 3: TRANSPORTE Y PASAJES #}
+            <div class="tab-pane fade" id="transporte" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Gastos de Transporte, Pasajes y Combustible</h5>
+                        <a href="{% url 'viaticos:transporte_create' %}?solicitud={{ solicitud.id }}"
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Asignar Pasaje / Vale
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Ruta (Origen - Destino)</th>
+                                    <th>Fechas</th>
+                                    <th>Detalles / Vales</th>
+                                    <th>Monto Cotizado</th>
+                                    <th>Monto Real</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for g in gastos_transporte %}
+                                    <tr>
+                                        <td><span class="badge bg-secondary">{{ g.get_tipo_gasto_display }}</span></td>
+                                        <td class="fw-bold">{{ g.origen }} &rarr; {{ g.destino }}</td>
+                                        <td><small>{{ g.fecha_ida|date:"d/m/Y" }}{% if g.fecha_regreso %} al
+                                            {{ g.fecha_regreso|date:"d/m/Y" }}{% endif %}</small></td>
+                                        <td>
+                                            {% if g.aerolinea %}<small>Aéreo: {{ g.aerolinea }}
+                                                (Ticket: {{ g.numero_billete|default:"-" }})</small><br>{% endif %}
+                                            {% if g.numero_vale_bencina %}
+                                                <small>Vale: {{ g.numero_vale_bencina }}</small>{% endif %}
+                                        </td>
+                                        <td>${{ g.monto_cotizado|floatformat:0 }}</td>
+                                        <td class="fw-bold text-success">
+                                            ${{ g.monto_real_ejecutado|floatformat:0 }}</td>
+                                        <td class="text-center">
+                                            <a href="{% url 'viaticos:transporte_update' g.id %}"
+                                               class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'viaticos:transporte_delete' g.id %}"
+                                               class="btn btn-sm btn-outline-danger ms-1" title="Eliminar"
+                                               onclick="return confirm('¿Eliminar gasto de transporte?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">No hay registros de
+                                            transporte o pasajes asociados.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# TAB 4: HISTORIAL DE FIRMAS #}
+            <div class="tab-pane fade" id="firmas" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Bitácora Oficial de Aprobaciones y Firmas</h5>
+                        {% if solicitud.estado != 'BORRADOR' and solicitud.estado != 'PAGADO' and solicitud.estado != 'RENDIDO' and solicitud.estado != 'RECHAZADO' and solicitud.estado != 'ANULADO' %}
+                            <a href="{% url 'viaticos:aprobacion_create' solicitud.id %}"
+                               class="btn btn-sm btn-warning text-dark">
+                                <i class="bi bi-pen me-1"></i> Registrar Firma / Visto Bueno
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Fecha y Hora</th>
+                                    <th>Etapa del Flujo</th>
+                                    <th>Usuario Firmante</th>
+                                    <th>Calidad / Cargo</th>
+                                    <th>Acción</th>
+                                    <th>Observaciones</th>
+                                    <th>FEA / IP</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for a in aprobaciones %}
+                                    <tr>
+                                        <td><small>{{ a.fecha_hora_accion|date:"d/m/Y H:i:s" }}</small></td>
+                                        <td class="fw-bold">{{ a.get_etapa_display }}</td>
+                                        <td>{{ a.usuario_firmante }}</td>
+                                        <td>{{ a.en_calidad_de }}{% if a.es_subrogante %}
+                                            <span class="badge bg-secondary">Subrogante</span>{% endif %}</td>
+                                        <td>
+                                            {% if a.accion == 'APROBADO' or a.accion == 'SUBROGADO' %}
+                                                <span class="badge bg-success">{{ a.get_accion_display }}</span>
+                                            {% elif a.accion == 'DEVUELTO' %}
+                                                <span class="badge bg-warning text-dark">{{ a.get_accion_display }}</span>
+                                            {% elif a.accion == 'RECHAZADO' %}
+                                                <span class="badge bg-danger">{{ a.get_accion_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ a.observaciones|default:"Sin observaciones" }}</small></td>
+                                        <td>
+                                            {% if a.firmado_con_fea %}
+                                                <span class="badge bg-primary">FEA Digital</span>{% else %}
+                                                <span class="badge bg-light text-dark">Firma Simple</span>{% endif %}
+                                            <br><small class="text-muted">{{ a.ip_registro|default:"-" }}</small>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">No se registran firmas o
+                                            aprobaciones aún.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# TAB 5: RESOLUCIÓN EXENTA #}
+            <div class="tab-pane fade" id="resolucion" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">Formalización por Resolución Exenta</h5>
+                        {% if not resolucion %}
+                            <a href="{% url 'viaticos:resolucion_create' %}?solicitud={{ solicitud.id }}"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-file-earmark-plus me-1"></i> Emitir Resolución
+                            </a>
+                        {% else %}
+                            <a href="{% url 'viaticos:resolucion_update' resolucion.id %}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i> Editar Resolución
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if resolucion %}
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="text-muted small">Número y Año:</div>
+                                    <div class="fs-5 fw-bold">Res. Exenta
+                                        N° {{ resolucion.numero_resolucion }}/{{ resolucion.ano_resolucion }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-muted small">Fecha de Emisión:</div>
+                                    <div class="fw-bold">{{ resolucion.fecha_emision|date:"d/m/Y" }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-muted small">Firmante Legal:</div>
+                                    <div class="fw-bold">{{ resolucion.firmante_nombre }}</div>
+                                    <small class="text-muted">{{ resolucion.firmante_cargo }}</small>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <h6>Considerandos:</h6>
+                                    <p class="p-2 bg-light rounded small">{{ resolucion.considerandos }}</p>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <h6>Cuerpo del Resuelve:</h6>
+                                    <p class="p-2 bg-light rounded small">{{ resolucion.texto_resuelve|linebreaks }}</p>
+                                </div>
+
+                                {% if resolucion.documento_pdf_firmado %}
+                                    <div class="col-md-12">
+                                        <a href="{{ resolucion.documento_pdf_firmado.url }}"
+                                           class="btn btn-outline-danger" target="_blank">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i> Descargar Documento PDF Firmado
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted">No se ha formalizado resolución para este
+                                cometido.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# TAB 6: PAGO Y RENDICIÓN #}
+            <div class="tab-pane fade" id="finanzas" role="tabpanel">
+                <div class="row g-4">
+                    {# Subsección Egresos #}
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold">Egresos y Giros Financieros</h5>
+                                <a href="{% url 'viaticos:egreso_create' %}?solicitud={{ solicitud.id }}"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-plus-circle me-1"></i> Registrar Pago
+                                </a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>N° Egreso</th>
+                                            <th>Medio</th>
+                                            <th>Monto</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for e in egresos %}
+                                            <tr>
+                                                <td class="fw-bold">#{{ e.numero_egreso }}/{{ e.ano_egreso }}</td>
+                                                <td><small>{{ e.get_medio_pago_display }}</small></td>
+                                                <td class="fw-bold text-success">
+                                                    ${{ e.monto_total_pagado|floatformat:0 }}</td>
+                                                <td>{{ e.fecha_pago|date:"d/m/Y" }}</td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center py-3 text-muted">No hay egresos
+                                                    registrados.
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Subsección Rendición de Cuentas #}
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold">Rendición de Gastos del Funcionario</h5>
+                                {% if not rendicion %}
+                                    <a href="{% url 'viaticos:rendicion_create' %}?solicitud={{ solicitud.id }}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-receipt me-1"></i> Crear Rendición
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'viaticos:rendicion_update' rendicion.id %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil me-1"></i> Editar
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                {% if rendicion %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Fecha Rendición: <strong>{{ rendicion.fecha_rendicion|date:"d/m/Y" }}</strong></span>
+                                        <span>Aprobada: {% if rendicion.rendicion_aprobada %}
+                                            <span class="badge bg-success">Sí</span>{% else %}
+                                            <span class="badge bg-warning text-dark">Pendiente</span>{% endif %}</span>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-3">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <small class="text-muted">Gastos Rendidos</small>
+                                                <div class="fw-bold text-primary">
+                                                    ${{ rendicion.total_gastos_rendidos|floatformat:0 }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Reintegro / Reembolso</small>
+                                                <div class="fw-bold text-danger">
+                                                    {% if rendicion.monto_a_devolver_institucion > 0 %}
+                                                        Devuelve: $
+                                                        {{ rendicion.monto_a_devolver_institucion|floatformat:0 }}
+                                                    {% elif rendicion.monto_a_reembolsar_funcionario > 0 %}
+                                                        Reembolso: $
+                                                        {{ rendicion.monto_a_reembolsar_funcionario|floatformat:0 }}
+                                                    {% else %}
+                                                        $0 (Cuadrado)
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h6>Informe Cumplido:</h6>
+                                    <p class="small text-muted">{{ rendicion.informe_cometido_cumplido }}</p>
+
+                                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                        <h6 class="mb-0">Comprobantes Adjuntos
+                                            ({{ rendicion.detalles_gasto.count }})</h6>
+                                        <a href="{% url 'viaticos:detalle_gasto_create' rendicion.id %}"
+                                           class="btn btn-xs btn-outline-primary">
+                                            <i class="bi bi-plus"></i> Adjuntar Boleta
+                                        </a>
+                                    </div>
+                                    <ul class="list-group list-group-flush mt-2">
+                                        {% for d in rendicion.detalles_gasto.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1">
+                                                <div>
+                                                    <small class="fw-bold">{{ d.tipo_documento }} {{ d.numero_documento }}</small>
+                                                    <small class="text-muted d-block">{{ d.proveedor_razon_social }}</small>
+                                                </div>
+                                                <span class="badge bg-light text-dark">${{ d.monto_documento|floatformat:0 }}</span>
+                                            </li>
+                                        {% empty %}
+                                            <li class="list-group-item text-center py-2 text-muted small">Sin
+                                                comprobantes adjuntos
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="text-center py-4 text-muted">Aún no se rinde cuenta para este
+                                        cometido.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}
