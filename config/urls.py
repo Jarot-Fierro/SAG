@@ -1,3 +1,5 @@
+import socket
+
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
@@ -7,12 +9,19 @@ from config import settings
 
 
 def recibe_ip(request):
+    ip = request.META.get("REMOTE_ADDR")
+
+    try:
+        nombre_equipo = socket.gethostbyaddr(ip)[0]
+    except socket.herror:
+        nombre_equipo = "No identificado"
+
     print("\n" + "=" * 80)
     print("NUEVA VISITA")
-
-    for clave, valor in request.META.items():
-        print(f"{clave}: {valor}")
-
+    print(f"IP origen: {ip}")
+    print(f"Nombre DNS: {nombre_equipo}")
+    print(f"Ruta: {request.path}")
+    print(f"User-Agent: {request.META.get('HTTP_USER_AGENT')}")
     print("=" * 80 + "\n")
 
     return HttpResponse("No eres Bienvenido")

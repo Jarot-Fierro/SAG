@@ -156,8 +156,11 @@ class FormJefeTic(forms.ModelForm):
         choices=[
             ('JEFE DPTO TIC', 'JEFE DPTO TIC'),
             ('JEFE(S) DPTO TIC', 'JEFE(S) DPTO TIC'),
+            ('SUBROGANTE DPTO TIC', 'SUBROGANTE DPTO TIC'),
             ('JEFE DPTO MNT', 'JEFE DPTO MNT'),
-            ('JEFE(S) DPTO MNT', 'JEFE(S) DPTO MNT')
+            ('JEFE(S) DPTO MNT', 'JEFE(S) DPTO MNT'),
+            ('SUBROGANTE DPTO MNT', 'SUBROGANTE DPTO MNT'),
+
         ],
         widget=forms.Select(
             attrs={

@@ -3,6 +3,7 @@ from django.db import models
 from core.models.funcionario import Funcionario
 from core.models.unidad_organizacional import UnidadOrganizacional
 from core.standard.models import StandardModelEstablishment
+from . import JefeTic
 from .activo import Activo
 from .catalogo import Ips
 from .tipo_movimiento import TipoMovimiento
@@ -49,6 +50,13 @@ class MovimientoActivo(StandardModelEstablishment):
 
     unidad_organizacional = models.ForeignKey(
         UnidadOrganizacional,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    jefe_firmante = models.ForeignKey(
+        JefeTic,
         on_delete=models.SET_NULL,
         null=True,
         blank=True

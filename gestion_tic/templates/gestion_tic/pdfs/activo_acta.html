@@ -167,7 +167,7 @@
         <div class="col-6 text-center">
             <div class="signature-line">
                 {% if ultimo_movimiento.funcionario.cargo %}
-                    {{ ultimo_movimiento.funcionario.cargo }}<br>
+                    {{ ultimo_movimiento.funcionario.cargo|upper }}<br>
                 {% endif %}
                 {% if ultimo_movimiento.funcionario %}
                     {{ ultimo_movimiento.funcionario|upper }}
@@ -178,11 +178,11 @@
         </div>
         <div class="col-6 text-center">
             <div class="signature-line">
-                {% if jefe_tic.posicion %}
-                    {{ jefe_tic.posicion }}<br>
+                {% if ultimo_movimiento.jefe_firmante.posicion %}
+                    {{ ultimo_movimiento.jefe_firmante.posicion|upper }}<br>
                 {% endif %}
-                {% if jefe_tic.nombre %}
-                    {{ jefe_tic.nombre }}
+                {% if ultimo_movimiento.jefe_firmante.nombre %}
+                    {{ ultimo_movimiento.jefe_firmante.nombre|upper }}
                 {% else %}
                     &nbsp;
                 {% endif %}

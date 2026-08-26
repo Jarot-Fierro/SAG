@@ -2,7 +2,7 @@ from django import forms
 
 from core.models.funcionario import Funcionario
 from gestion_tic.models import MovimientoActivo, TipoMovimiento
-from gestion_tic.models.catalogo import Ips
+from gestion_tic.models.catalogo import Ips, JefeTic
 
 
 class MovimientoActivoForm(forms.ModelForm):
@@ -29,6 +29,13 @@ class MovimientoActivoForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select select2'})
     )
 
+    jefe_firmante = forms.ModelChoiceField(
+        empty_label='Seleccione una IP',
+        required=True,
+        queryset=JefeTic.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     observacion = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
@@ -36,7 +43,7 @@ class MovimientoActivoForm(forms.ModelForm):
 
     class Meta:
         model = MovimientoActivo
-        fields = ['tipo_movimiento', 'funcionario', 'ip', 'observacion']
+        fields = ['tipo_movimiento', 'funcionario', 'ip', 'observacion', 'jefe_firmante']
 
     def __init__(self, *args, **kwargs):
         establecimiento = kwargs.pop('establecimiento', None)
@@ -44,6 +51,7 @@ class MovimientoActivoForm(forms.ModelForm):
         if establecimiento:
             self.fields['tipo_movimiento'].queryset = TipoMovimiento.objects.filter(establecimiento=establecimiento,
                                                                                     is_active=True)
-            self.fields['funcionario'].queryset = Funcionario.objects.filter(establecimiento=establecimiento,
-                                                                             is_active=True)
+            self.fields['funcionario'].queryset = Funcionario.objects.filter(is_active=True)
             self.fields['ip'].queryset = Ips.objects.filter(establecimiento=establecimiento, is_active=True)
+            self.fields['jefe_firmante'].queryset = JefeTic.objects.filter(establecimiento=establecimiento,
+                                                                           is_active=True)
