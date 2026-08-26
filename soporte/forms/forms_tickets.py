@@ -1,7 +1,7 @@
 from django import forms
 
 from core.models import User, Establecimiento
-from soporte.models import Ticket, AreaSoporte, TipoSoporte
+from soporte.models import Ticket, AreaSoporte, TipoSoporte, PerfilSoporte
 
 
 class FormTicket(forms.ModelForm):
@@ -64,6 +64,19 @@ class FormTicketEditor(forms.ModelForm):
             self.fields["tipo_soporte"].queryset = TipoSoporte.objects.filter(
                 establecimiento=request.user.establecimiento
             )
+            if not request.user.is_superuser and request.user.establecimiento:
+                asignado_qs = PerfilSoporte.objects.filter(
+                    usuario__establecimiento=request.user.establecimiento,
+                    is_active=True
+                )
+                if self.instance and self.instance.asignado_a_id:
+                    asignado_qs = (
+                            asignado_qs | PerfilSoporte.objects.filter(pk=self.instance.asignado_a_id)).distinct()
+                self.fields["asignado_a"].queryset = asignado_qs.select_related('usuario')
+            else:
+                self.fields["asignado_a"].queryset = PerfilSoporte.objects.filter(
+                    is_active=True
+                ).select_related('usuario')
 
         if self.instance and self.instance.pk:
             if self.instance.funcionario:
@@ -155,11 +168,11 @@ class FormTicketEditor(forms.ModelForm):
     asignado_a = forms.ModelChoiceField(
         label='Asignado a',
         empty_label='Seleccione a un responsable',
-        queryset=User.objects.filter(is_active=True, is_staff=True).order_by('username'),
+        queryset=PerfilSoporte.objects.filter(is_active=True).select_related('usuario'),
         widget=forms.Select(attrs={
             'class': 'form-control form-select',
         }),
-        required=True
+        required=False
     )
 
     tipo_soporte = forms.ModelChoiceField(

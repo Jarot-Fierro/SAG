@@ -31,7 +31,9 @@ class TicketListView(StandardListView):
 
     def get_queryset(self):
         # Sobrescribimos para mostrar tanto activos como inactivos
-        queryset = Ticket.objects.all().select_related("establecimiento", "area_soporte", "funcionario")
+        queryset = Ticket.objects.all().select_related(
+            "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
+        )
 
         # Aplicamos filtro de establecimiento similar a StandardBaseView
         if not self.request.user.is_superuser:
@@ -117,7 +119,9 @@ class TicketEditorListView(StandardListView):
     def get_queryset(self):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
-            queryset = super().get_queryset().select_related("establecimiento", "area_soporte", "funcionario").filter(
+            queryset = super().get_queryset().select_related(
+                "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
+            ).filter(
                 area_soporte__in=areas_usuario
             )
         except AttributeError:
@@ -162,9 +166,12 @@ def ticket_delete(request, pk):
 @login_required
 def ticket_tomar(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
-    ticket.asignado_a = request.user
-    ticket.save()
-    messages.success(request, 'Ticket asignado correctamente')
+    if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
+        ticket.asignado_a = request.user.perfil_soporte
+        ticket.save()
+        messages.success(request, 'Ticket asignado correctamente')
+    else:
+        messages.error(request, 'No tienes un perfil de soporte asociado para tomar tickets')
     return redirect('soporte:ticket_editor_list')
 
 
@@ -175,7 +182,8 @@ def ticket_cerrar(request, pk):
         solucion = request.POST.get('solucion')
         ticket.solucion = solucion
         ticket.estado = 'CERRADO'
-        ticket.asignado_a = request.user
+        if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
+            ticket.asignado_a = request.user.perfil_soporte
         ticket.is_active = False
         ticket.fecha_cierre = timezone.now()
         ticket.save()
@@ -217,7 +225,9 @@ class TicketEditorInactivosListView(StandardListView):
             ).select_related(
                 "establecimiento",
                 "area_soporte",
-                "funcionario"
+                "funcionario",
+                "asignado_a",
+                "asignado_a__usuario"
             )
         except AttributeError:
             return queryset.none()
@@ -316,13 +326,13 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
             usuario__establecimiento=user.establecimiento,
             area_soporte__in=areas_usuario
         ).annotate(
-            cerrados_count=Count('usuario__tickets_asignados', filter=Q(usuario__tickets_asignados__estado='CERRADO')),
-            abiertos_count=Count('usuario__tickets_asignados', filter=Q(usuario__tickets_asignados__estado='ABIERTO'))
+            cerrados_count=Count('tickets_asignados', filter=Q(tickets_asignados__estado='CERRADO')),
+            abiertos_count=Count('tickets_asignados', filter=Q(tickets_asignados__estado='ABIERTO'))
         ).distinct()
 
         bar_chart_data = [
             {
-                'usuario': str(p.usuario),
+                'usuario': str(p.usuario) if p.usuario else f"Perfil #{p.id}",
                 'cerrados': p.cerrados_count,
                 'abiertos': p.abiertos_count
             } for p in usuarios_soporte

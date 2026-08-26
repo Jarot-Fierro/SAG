@@ -27,7 +27,7 @@ class PerfilSoporte(StandardModel):
         verbose_name_plural = 'Perfiles de Soporte'
 
     def __str__(self):
-        return str(self.usuario)
+        return str(self.usuario) if self.usuario else f"Perfil #{self.id}"
 
 
 class TipoSoporte(StandardModelEstablishment):
@@ -68,7 +68,7 @@ class Ticket(StandardModel):
     numero_ticket = models.CharField(max_length=20, unique=True, null=True, blank=True)
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='tickets')
-    asignado_a = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
+    asignado_a = models.ForeignKey('soporte.PerfilSoporte', on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='tickets_asignados')
 
     funcionario = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,

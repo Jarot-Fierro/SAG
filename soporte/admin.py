@@ -89,6 +89,7 @@ class TicketAdmin(StandardAdmin):
         'numero_ticket',
         'titulo',
         'funcionario',
+        'asignado_a',
         'estado',
         'area_soporte',
         'establecimiento',
@@ -100,6 +101,9 @@ class TicketAdmin(StandardAdmin):
         'descripcion',
         'solucion',
         'establecimiento__nombre',
+        'asignado_a__usuario__username',
+        'asignado_a__usuario__first_name',
+        'asignado_a__usuario__last_name',
     )
 
     list_filter = (
