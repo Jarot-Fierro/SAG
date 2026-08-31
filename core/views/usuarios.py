@@ -62,7 +62,7 @@ def perfil_view(request):
         user.email = request.POST.get('email', '').lower()
         user.save()
         messages.success(request, 'Perfil actualizado correctamente.')
-        return redirect('perfil')
+        return redirect('usuarios:perfil')
 
     modulos = user.modulos.all()
     return render(request, 'usuarios/perfil.html', {
