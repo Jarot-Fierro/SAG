@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView
@@ -140,6 +141,25 @@ class IpsListView(CatalogoListView):
 
     def get_create_url(self):
         return reverse_lazy('gestion_tic:ips_create')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        queryset = queryset.annotate(
+            ip_sort=RawSQL(
+                """
+                (
+                    CAST(SUBSTRING_INDEX(ip, '.', 1) AS UNSIGNED) * 16777216 +
+                    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 2), '.', -1) AS UNSIGNED) * 65536 +
+                    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 3), '.', -1) AS UNSIGNED) * 256 +
+                    CAST(SUBSTRING_INDEX(ip, '.', -1) AS UNSIGNED)
+                )
+                """,
+                []
+            )
+        ).order_by('ip_sort')
+
+        return queryset
 
 
 class IpsCreateView(CatalogoCreateView):

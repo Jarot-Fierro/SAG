@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.expressions import RawSQL
 
 from core.models.funcionario import Funcionario
 from gestion_tic.models import MovimientoActivo, TipoMovimiento
@@ -52,6 +53,26 @@ class MovimientoActivoForm(forms.ModelForm):
             self.fields['tipo_movimiento'].queryset = TipoMovimiento.objects.filter(establecimiento=establecimiento,
                                                                                     is_active=True)
             self.fields['funcionario'].queryset = Funcionario.objects.filter(is_active=True)
-            self.fields['ip'].queryset = Ips.objects.filter(establecimiento=establecimiento, is_active=True)
+            self.fields['ip'].queryset = (
+                Ips.objects
+                .filter(
+                    establecimiento=establecimiento,
+                    is_active=True
+                )
+                .annotate(
+                    ip_sort=RawSQL(
+                        """
+                        (
+                            CAST(SUBSTRING_INDEX(ip, '.', 1) AS UNSIGNED) * 16777216 +
+                            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 2), '.', -1) AS UNSIGNED) * 65536 +
+                            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(ip, '.', 3), '.', -1) AS UNSIGNED) * 256 +
+                            CAST(SUBSTRING_INDEX(ip, '.', -1) AS UNSIGNED)
+                        )
+                        """,
+                        []
+                    )
+                )
+                .order_by('ip_sort')
+            )
             self.fields['jefe_firmante'].queryset = JefeTic.objects.filter(establecimiento=establecimiento,
                                                                            is_active=True)
