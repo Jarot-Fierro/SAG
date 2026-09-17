@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from django.db.models.expressions import RawSQL
 
 from core.models.funcionario import Funcionario
@@ -53,12 +54,23 @@ class MovimientoActivoForm(forms.ModelForm):
             self.fields['tipo_movimiento'].queryset = TipoMovimiento.objects.filter(establecimiento=establecimiento,
                                                                                     is_active=True)
             self.fields['funcionario'].queryset = Funcionario.objects.filter(is_active=True)
+
+            ip_queryset = Ips.objects.filter(establecimiento=establecimiento, is_active=True)
+
+            current_ip_id = None
+            if self.instance and self.instance.ip_id:
+                current_ip_id = self.instance.ip_id
+            elif self.initial.get('ip'):
+                initial_ip = self.initial.get('ip')
+                current_ip_id = initial_ip.pk if hasattr(initial_ip, 'pk') else initial_ip
+
+            if current_ip_id:
+                ip_queryset = ip_queryset.filter(Q(asignado=False) | Q(pk=current_ip_id))
+            else:
+                ip_queryset = ip_queryset.filter(asignado=False)
+
             self.fields['ip'].queryset = (
-                Ips.objects
-                .filter(
-                    establecimiento=establecimiento,
-                    is_active=True
-                )
+                ip_queryset
                 .annotate(
                     ip_sort=RawSQL(
                         """

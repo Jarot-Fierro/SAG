@@ -112,6 +112,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'core.middleware.MantenimientoMiddleware',
+    'core.middleware.HtmxRedirectMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

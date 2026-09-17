@@ -92,6 +92,36 @@ class Ticket(StandardModel):
     def __str__(self):
         return self.numero_ticket or f"Ticket #{self.id}"
 
+    @property
+    def duracion_cierre(self):
+        if not self.fecha_cierre or not self.created_at:
+            return None
+
+        diferencia = self.fecha_cierre - self.created_at
+
+        dias = diferencia.days
+        horas, resto = divmod(diferencia.seconds, 3600)
+        minutos = resto // 60
+
+        partes = []
+
+        if dias:
+            partes.append(
+                f"{dias} día{'s' if dias != 1 else ''}"
+            )
+
+        if horas:
+            partes.append(
+                f"{horas} hora{'s' if horas != 1 else ''}"
+            )
+
+        if minutos:
+            partes.append(
+                f"{minutos} minuto{'s' if minutos != 1 else ''}"
+            )
+
+        return ", ".join(partes) if partes else "Menos de 1 minuto"
+
     def save(self, *args, **kwargs):
         if not self.pk and not self.numero_ticket:
             with transaction.atomic():

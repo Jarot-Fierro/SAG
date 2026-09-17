@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Tarjetas de Resumen -->
+        <div class="row mt-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-primary">
+                    <div class="inner">
+                        <h3>{{ ips_disponibles|add:ips_asignadas }}</h3>
+                        <p>Total IPs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-success">
+                    <div class="inner">
+                        <h3>{{ ips_disponibles }}</h3>
+                        <p>IPs Disponibles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-danger">
+                    <div class="inner">
+                        <h3>{{ ips_asignadas }}</h3>
+                        <p>IPs Asignadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-info">
+                    <div class="inner">
+                        <h3>{{ tipos_activos_total }}</h3>
+                        <p>Tipos de Activos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segmentos -->
+        <div class="row mt-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-secondary">
+                    <div class="inner">
+                        <h3>{{ segmentos_total }}</h3>
+                        <p>Total Segmentos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-9 col-12">
+                <div class="card card-secondary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Segmentos de Red</h3>
+                    </div>
+                    <div class="card-body">
+                        {% for segmento in segmentos_lista %}
+                            <span class="badge text-bg-info">{{ segmento }}</span>
+                        {% empty %}
+                            <span class="text-muted">No se detectaron segmentos</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mt-3">
+            <div class="col-lg-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Resumen de IPs</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="ips-chart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-info card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Equipos por Tipo de Activo</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="activos-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gráfico de IPs (Pie Chart)
+            const ipsOptions = {
+                series: [{{ ips_disponibles }}, {{ ips_asignadas }}],
+                chart: {
+                    type: 'pie',
+                    height: 350
+                },
+                labels: ['Disponibles', 'Asignadas'],
+                colors: ['#3fa1ad', '#FE6565'],
+                legend: {
+                    position: 'bottom'
+                }
+            };
+            const ipsChart = new ApexCharts(document.querySelector("#ips-chart"), ipsOptions);
+            ipsChart.render();
+
+            // Gráfico de Activos por Tipo (Bar Chart)
+            const activosData = JSON.parse('{{ activos_por_tipo_json|safe }}');
+            const activosOptions = {
+                series: [{
+                    name: 'Equipos',
+                    data: activosData.map(item => item.total)
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 350
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 4,
+                        horizontal: true,
+                    }
+                },
+                dataLabels: {
+                    enabled: true
+                },
+                xaxis: {
+                    categories: activosData.map(item => item.tipo__nombre),
+                },
+                colors: ['#006FB3']
+            };
+            const activosChart = new ApexCharts(document.querySelector("#activos-chart"), activosOptions);
+            activosChart.render();
+        });
+    </script>
+{% endblock %}

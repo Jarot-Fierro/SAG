@@ -57,6 +57,7 @@
                                 <th scope="col">Asignado a</th>
                                 <th scope="col">Fecha Creación</th>
                                 <th scope="col">Fecha Cierre</th>
+                                <th scope="col">Demora</th>
                                 <th scope="col">Acciones</th>
                             </tr>
                             </thead>
@@ -64,7 +65,7 @@
                             {% for ticket in page_obj %}
                                 <tr>
                                     <td>{{ ticket.numero_ticket }}</td>
-                                    <td>{{ ticket.titulo }}</td>
+                                    <td>{{ ticket.titulo|truncatechars:30 }}</td>
                                     <td>
                                         {% if ticket.estado == 'ABIERTO' %}
                                             <span class="badge bg-primary">
@@ -95,7 +96,17 @@
                                     <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
                                     <td>{{ ticket.asignado_a|default:'-' }}</td>
                                     <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
-                                    <td>{{ ticket.fecha_cierre|default:"Sin Fecha" }}</td>
+                                    <td>{{ ticket.fecha_cierre|date:"d/m/Y H:i"|default:"Sin Fecha" }}</td>
+                                    <td>
+                                        {% if ticket.fecha_cierre %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock"></i>
+                                                {{ ticket.duracion_cierre }}
+                                            </small>
+                                        {% else %}
+                                            Sin Fecha
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if ticket.estado == 'CERRADO' %}
                                             <span class="badge bg-danger">
@@ -116,7 +127,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-body-secondary py-4">
+                                    <td colspan="7" class="text-center text-body-secondary py-4">
                                         No se encontraron funcionarios para la búsqueda.
                                     </td>
                                 </tr>

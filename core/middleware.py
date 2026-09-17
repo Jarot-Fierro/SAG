@@ -1,7 +1,24 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
 from core.models.modulos import Modulo
+
+
+class HtmxRedirectMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        # Si es una petición HTMX y hay una redirección (302)
+        if request.headers.get('HX-Request') and response.status_code == 302:
+            login_url = str(settings.LOGIN_URL)
+            # Si la redirección es hacia la página de login
+            if response['Location'].startswith(login_url):
+                # Forzar a HTMX a redirigir la página completa
+                response['HX-Redirect'] = response['Location']
+        return response
 
 
 class MantenimientoMiddleware:

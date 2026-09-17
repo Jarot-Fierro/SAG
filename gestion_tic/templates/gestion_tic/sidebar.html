@@ -1,4 +1,11 @@
 <li class="nav-item">
+    <a href="{% url 'gestion_tic:dashboard_gestion_tic' %}" class="nav-link">
+        <i class="nav-icon bi bi-speedometer2"></i>
+        <p>Dashboard</p>
+    </a>
+</li>
+
+<li class="nav-item">
     <a href="#" class="nav-link">
         <i class="nav-icon bi bi-gear-fill"></i>
         <p>
@@ -109,3 +116,20 @@
     </a>
 </li>
 
+<li class="nav-item">
+    <a href="{% url 'gestion_tic:equipos_baja' %}" class="nav-link">
+        <i class="nav-icon bi bi-box-arrow-down"></i>
+        <p>
+            Dar de Baja Equipos
+        </p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="" class="nav-link">
+        <i class="nav-icon bi bi-files"></i>
+        <p>
+            Generar Acta Masiva
+        </p>
+    </a>
+</li>

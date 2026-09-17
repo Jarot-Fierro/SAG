@@ -116,6 +116,11 @@ class TicketEditorListView(StandardListView):
     update_url_name = "soporte:ticket_editor_update"
     delete_url_name = "soporte:ticket_update"
 
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request'):
+            return ["tickets/_table_list_editor.html"]
+        return [self.template_name]
+
     def get_queryset(self):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()

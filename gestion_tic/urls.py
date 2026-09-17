@@ -1,11 +1,13 @@
 from django.urls import path
 
-from .views import catalogo, tipo_activo, campos_tipo_activos, activos, movimientos_activo, pdfs
-from .views import opciones_campo_tipo_activo
+from .views import catalogo, tipo_activo, campos_tipo_activos, activos, movimientos_activo, pdfs, equipos_baja
+from .views import opciones_campo_tipo_activo, dashboard_gestion_tic
 
 app_name = 'gestion_tic'
 
 urlpatterns = [
+
+    path('', dashboard_gestion_tic.DashboardGestionTicView.as_view(), name='dashboard_gestion_tic'),
 
     path('activo/acta/pdf/<int:pk>/', pdfs.generar_acta_activo, name='activo_acta_pdf'),
 
@@ -70,5 +72,7 @@ urlpatterns = [
     path('opciones-campo-activo/editar/<int:pk>/',
          opciones_campo_tipo_activo.OpcionCampoTipoActivosUpdateView.as_view(),
          name='opcion_campo_update'),
+
+    path('equipos-baja/', equipos_baja.equipos_baja, name='equipos_baja'),
 
 ]

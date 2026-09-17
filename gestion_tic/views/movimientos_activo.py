@@ -24,9 +24,16 @@ def movimientos_activo(request):
 
     if query:
         activo = Activo.objects.filter(
-            Q(codigo_barra=query) | Q(serie=query),
-            establecimiento=establecimiento
+            Q(codigo_barra=query),
+            establecimiento=establecimiento,
         ).select_related('tipo', 'marca', 'modelo').first()
+
+        if not activo.is_active or activo.de_baja:
+            messages.warning(
+                request,
+                f"El equipo con código o serie '{query}' se encuentra dado de baja."
+            )
+            return redirect('gestion_tic:movimientos_busqueda')
 
         if not activo:
             messages.warning(request,
@@ -45,6 +52,10 @@ def movimientos_activo(request):
                     nuevo_mov.establecimiento = establecimiento
                     if nuevo_mov.funcionario:
                         nuevo_mov.unidad_organizacional = nuevo_mov.funcionario.unidad_organizacional
+
+                    if nuevo_mov.ip:
+                        nuevo_mov.ip.asignado = True
+                        nuevo_mov.ip.save()
                     nuevo_mov.save()
                     messages.success(request, "Movimiento registrado correctamente.")
                     return redirect(f"{request.path}?q={query}")
