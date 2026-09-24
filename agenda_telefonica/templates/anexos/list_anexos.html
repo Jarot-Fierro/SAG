@@ -81,38 +81,100 @@
                                     <td>{{ anexo.anexo|default:"-" }}</td>
                                     <td>{{ anexo.anexo_publico|default:"-" }}</td>
                                     <td>{{ anexo.numero_telefonico|default:"-" }}</td>
-                                    <td>{{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}</td>
-                                    <td>{{ anexo.funcionario.email|default:"-" }}</td>
                                     <td>
-                                        {% if anexo.funcionario.unidad_organizacional %}
-                                            {% for unidad in anexo.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
-                                                {% if forloop.first %}
-                                                    <strong>{{ unidad }}</strong>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}
+                                        {% else %}
+                                            {{ anexo.nombre_anexo|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.email|default:"-" }}
+                                        {% else %}
+                                            {{ anexo.email|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {% if anexo.funcionario.unidad_organizacional %}
+                                                {% for unidad in anexo.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                                    {% if forloop.first %}
+                                                        <strong>{{ unidad }}</strong>
+                                                    {% else %}
+                                                        <span style="font-size: 11px;">{{ unidad }}</span>
+                                                    {% endif %}
+                                                    {% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% else %}
+                                            {% if anexo.unidad_organizacional %}
+                                                {% for unidad in anexo.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                                    {% if forloop.first %}
+                                                        <strong>{{ unidad }}</strong>
+                                                    {% else %}
+                                                        <span style="font-size: 11px;">{{ unidad }}</span>
+                                                    {% endif %}
+                                                    {% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {% if anexo.funcionario.unidad_organizacional.direccion %}
+                                                {% if anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
+                                                    <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
+                                                       class="text-decoration-none text-primary"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       title="Abrir ubicación en Google Maps">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                                        {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
+                                                    </a>
                                                 {% else %}
-                                                    <span style="font-size: 11px;">{{ unidad }}</span>
+                                                    {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
                                                 {% endif %}
-                                                {% if not forloop.last %}<br>{% endif %}
-                                            {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
                                         {% else %}
-                                            -
+                                            {% if anexo.unidad_organizacional.direccion %}
+                                                {% if anexo.unidad_organizacional.direccion.enlace_google_maps %}
+                                                    <a href="{{ anexo.unidad_organizacional.direccion.enlace_google_maps }}"
+                                                       class="text-decoration-none text-primary"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       title="Abrir ubicación en Google Maps">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                                        {{ anexo.unidad_organizacional.direccion.nombre }}
+                                                    </a>
+                                                {% else %}
+                                                    {{ anexo.unidad_organizacional.direccion.nombre }}
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if anexo.funcionario.unidad_organizacional.direccion %}
-                                            <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
-                                               class="text-decoration-none text-primary"
-                                               target="_blank"
-                                               rel="noopener noreferrer"
-                                               title="Abrir ubicación en Google Maps">
-                                                <i class="bi bi-geo-alt-fill me-1"></i>
-                                                {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
-                                            </a>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.rol_organizacional|default:"-" }}
                                         {% else %}
-                                            -
+                                            {{ anexo.rol_organizacional|default:"-" }}
                                         {% endif %}
                                     </td>
-                                    <td>{{ anexo.funcionario.rol_organizacional|default:"-" }}</td>
-                                    <td>{{ anexo.funcionario.cargo|default:"-" }}</td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.cargo|default:"-" }}
+                                        {% else %}
+                                            {{ anexo.encargado_de|default:"-" }}
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr>

@@ -464,8 +464,12 @@ class AnexoListView(ListView):
             "establecimiento",
             "funcionario",
             "funcionario__unidad_organizacional",
+            "funcionario__unidad_organizacional__direccion",
             "funcionario__profesion",
+            "funcionario__rol_organizacional",
+            "rol_organizacional",
             "unidad_organizacional",
+            "unidad_organizacional__direccion",
         )
 
         self.filter_form = AnexoFilter(self.request.GET)
@@ -653,7 +657,11 @@ class AnexoEditListView(LoginRequiredMixin, ListView):
                 "establecimiento",
                 "funcionario",
                 "funcionario__unidad_organizacional",
-                "unidad_organizacional"
+                "funcionario__unidad_organizacional__direccion",
+                "funcionario__rol_organizacional",
+                "rol_organizacional",
+                "unidad_organizacional",
+                "unidad_organizacional__direccion"
             )
         )
 

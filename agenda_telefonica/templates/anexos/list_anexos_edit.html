@@ -18,6 +18,12 @@
         <i class="bi bi-person-plus-fill me-1"></i>
         Nuevo Registro
     </a>
+    <a href="{% url 'agenda:anexos_sin_funcionario' %}"
+       class="btn btn-sm btn-info"
+       title="Nuevo Registro">
+        <i class="bi bi-person-plus-fill me-1"></i>
+        Registro Sin Funcionario
+    </a>
     <a href="{% url 'agenda:list_anexos' %}" class="btn btn-sm btn-secondary">
         <i class="bi bi-arrow-left-circle me-1"></i>
         Volver
@@ -78,8 +84,8 @@
                                 <th scope="col">Teléfono</th>
                                 <th scope="col">Nombres</th>
                                 <th scope="col">Email</th>
-                                <th scope="col">Dirección</th>
                                 <th scope="col">Departamentos</th>
+                                <th scope="col">Dirección</th>
                                 <th scope="col">Puesto</th>
                                 <th scope="col">Cargo</th>
                                 <th scope="col">Acciones</th>
@@ -91,52 +97,126 @@
                                     <td>{{ anexo.anexo|default:"-" }}</td>
                                     <td>{{ anexo.anexo_publico|default:"-" }}</td>
                                     <td>{{ anexo.numero_telefonico|default:"-" }}</td>
-                                    <td>{{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}</td>
-                                    <td>{{ anexo.funcionario.email|default:"-" }}</td>
                                     <td>
-                                        {% if anexo.funcionario.unidad_organizacional %}
-                                            {% for unidad in anexo.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
-                                                {% if forloop.first %}
-                                                    <strong>{{ unidad }}</strong>
-                                                {% else %}
-                                                    <span style="font-size: 11px;">{{ unidad }}</span>
-                                                {% endif %}
-                                                {% if not forloop.last %}<br>{% endif %}
-                                            {% endfor %}
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}
                                         {% else %}
-                                            -
+                                            {{ anexo.nombre_anexo|default:"-" }}
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if anexo.funcionario.unidad_organizacional.direccion %}
-                                            <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
-                                               class="text-decoration-none text-primary"
-                                               target="_blank"
-                                               rel="noopener noreferrer"
-                                               title="Abrir ubicación en Google Maps">
-                                                <i class="bi bi-geo-alt-fill me-1"></i>
-                                                {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.email|default:"-" }}
+                                        {% else %}
+                                            {{ anexo.email|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {% if anexo.funcionario.unidad_organizacional %}
+                                                {% for unidad in anexo.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                                    {% if forloop.first %}
+                                                        <strong>{{ unidad }}</strong>
+                                                    {% else %}
+                                                        <span style="font-size: 11px;">{{ unidad }}</span>
+                                                    {% endif %}
+                                                    {% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% else %}
+                                            {% if anexo.unidad_organizacional %}
+                                                {% for unidad in anexo.unidad_organizacional.get_jerarquia_reducida_invertida %}
+                                                    {% if forloop.first %}
+                                                        <strong>{{ unidad }}</strong>
+                                                    {% else %}
+                                                        <span style="font-size: 11px;">{{ unidad }}</span>
+                                                    {% endif %}
+                                                    {% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {% if anexo.funcionario.unidad_organizacional.direccion %}
+                                                {% if anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
+                                                    <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
+                                                       class="text-decoration-none text-primary"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       title="Abrir ubicación en Google Maps">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                                        {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
+                                                    </a>
+                                                {% else %}
+                                                    {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% else %}
+                                            {% if anexo.unidad_organizacional.direccion %}
+                                                {% if anexo.unidad_organizacional.direccion.enlace_google_maps %}
+                                                    <a href="{{ anexo.unidad_organizacional.direccion.enlace_google_maps }}"
+                                                       class="text-decoration-none text-primary"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       title="Abrir ubicación en Google Maps">
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                                        {{ anexo.unidad_organizacional.direccion.nombre }}
+                                                    </a>
+                                                {% else %}
+                                                    {{ anexo.unidad_organizacional.direccion.nombre }}
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.rol_organizacional|default:"-" }}
+                                        {% else %}
+                                            {{ anexo.rol_organizacional|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            {{ anexo.funcionario.cargo|default:"-" }}
+                                        {% else %}
+                                            {{ anexo.encargado_de|default:"-" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if anexo.funcionario %}
+                                            <a href="{% url 'agenda:anexo_editar' anexo.pk %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Editar"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-none">Editar</span>
                                             </a>
                                         {% else %}
-                                            -
+                                            <a href="{% url 'agenda:anexo_sin_funcionario_editar' anexo.pk %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Editar"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="top">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-none">Editar</span>
+                                            </a>
                                         {% endif %}
-                                    </td>
-                                    <td>{{ anexo.funcionario.rol_organizacional|default:"-" }}</td>
-                                    <td>{{ anexo.funcionario.cargo|default:"-" }}</td>
-                                    <td>
-                                        <a href="{% url 'agenda:anexo_editar' anexo.pk %}"
-                                           class="btn btn-sm btn-outline-primary"
-                                           title="Editar"
-                                           data-bs-toggle="tooltip"
-                                           data-bs-placement="top">
-                                            <i class="bi bi-pencil"></i>
-                                            <span class="d-none">Editar</span>
-                                        </a>
+
 
                                         <form method="post"
                                               action="{% url 'agenda:anexo_delete' anexo.pk %}"
                                               class="d-inline"
-                                              onsubmit="return confirm('¿Estás seguro de eliminar este funcionario?');">
+                                              onsubmit="return confirm('¿Estás seguro de eliminar este anexo?');">
                                             {% csrf_token %}
                                             <button type="submit"
                                                     class="btn btn-sm btn-outline-danger"

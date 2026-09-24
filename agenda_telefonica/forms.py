@@ -315,12 +315,29 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
     unidad_organizacional = UnidadOrganizacionalModelChoiceField(
         queryset=UnidadOrganizacional.objects.all(),
         label="Unidad Organizacional",
+        required=True,
     )
     anexo = forms.CharField(
         max_length=6,
         label="Anexo",
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={"placeholder": "Anexo"}),
+    )
+    anexo_publico = forms.CharField(
+        max_length=12,
+        label="Anexo Público",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Anexo Público"}),
+    )
+    nombre_anexo = forms.CharField(
+        label="Nombre del Anexo",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Nombre del Anexo"}),
+    )
+    email = forms.CharField(
+        label="Correo",
+        required=True,
+        widget=forms.EmailInput(attrs={"placeholder": "Correo"}),
     )
 
     class Meta:
@@ -373,23 +390,28 @@ class AnexoSinFuncionarioForm(forms.ModelForm):
             else:
                 field.widget.attrs.update({'class': 'form-control form-control-sm'})
 
-        if user and hasattr(user, 'perfilagenda'):
-            perfil = user.perfilagenda
-            unidades_permitidas = perfil.unidad_organizacional.all()
-            if unidades_permitidas.exists():
-                todas_permitidas_ids = set()
+        if user:
+            qs = UnidadOrganizacional.objects.all()
+            if user.establecimiento:
+                qs = qs.filter(establecimiento=user.establecimiento)
 
-                def obtener_descendientes(unidad):
-                    todas_permitidas_ids.add(unidad.id)
-                    for hijo in unidad.hijos.all():
-                        obtener_descendientes(hijo)
+            if hasattr(user, 'perfilagenda'):
+                perfil = user.perfilagenda
+                unidades_permitidas = perfil.unidad_organizacional.all()
+                if unidades_permitidas.exists():
+                    todas_permitidas_ids = set()
 
-                for unidad in unidades_permitidas:
-                    obtener_descendientes(unidad)
+                    def obtener_descendientes(unidad):
+                        todas_permitidas_ids.add(unidad.id)
+                        for hijo in unidad.hijos.all():
+                            obtener_descendientes(hijo)
 
-                self.fields['unidad_organizacional'].queryset = UnidadOrganizacional.objects.filter(
-                    id__in=todas_permitidas_ids
-                )
+                    for unidad in unidades_permitidas:
+                        obtener_descendientes(unidad)
+
+                    qs = qs.filter(id__in=todas_permitidas_ids)
+
+            self.fields['unidad_organizacional'].queryset = qs
 
 
 class AnexoFilterForm(forms.Form):
