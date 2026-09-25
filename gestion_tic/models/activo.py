@@ -35,6 +35,7 @@ class Activo(StandardModelEstablishment):
         max_length=150,
         blank=True
     )
+    utiliza_ip = models.BooleanField(default=False, verbose_name="¿El activo usa IP?")
     contrato = models.ForeignKey(Contrato, on_delete=models.SET_NULL, null=True, blank=True)
 
     observacion = models.TextField(

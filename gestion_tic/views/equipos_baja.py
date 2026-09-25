@@ -1,6 +1,8 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+
 from gestion_tic.models import Activo
 
 
@@ -63,14 +65,28 @@ def equipos_baja(request):
     activos_disponibles = Activo.objects.filter(
         establecimiento=request.user.establecimiento,
         de_baja=False
-    ).exclude(id__in=carrito).select_related('tipo', 'marca', 'modelo')
+    ).exclude(id__in=carrito).select_related('tipo', 'marca', 'modelo').order_by('codigo_barra')
 
     if q:
         activos_disponibles = activos_disponibles.filter(codigo_barra__icontains=q)
+
+    try:
+        per_page = int(request.GET.get('per_page', 15))
+        if per_page <= 0:
+            per_page = 15
+    except (ValueError, TypeError):
+        per_page = 15
+    paginator = Paginator(activos_disponibles, per_page)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'gestion_tic/activos/equipos_baja.html', {
         'activos_carrito': activos_carrito,
         'activos_disponibles': activos_disponibles,
         'q': q,
-        'title': 'Baja Masiva de Equipos'
+        'title': 'Baja Masiva de Equipos',
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': page_obj.has_other_pages(),
+        'per_page': per_page,
     })

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load query_tags %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -32,7 +33,7 @@
                             </div>
                         </form>
 
-                        {% if activos_disponibles %}
+                        {% if page_obj %}
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover table-striped">
                                     <thead>
@@ -43,7 +44,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {% for activo in activos_disponibles %}
+                                    {% for activo in page_obj %}
                                         <tr>
                                             <td>{{ activo.codigo_barra }}</td>
                                             <td>
@@ -70,6 +71,43 @@
                                     {% endfor %}
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="card-footer clearfix">
+                                <div class="float-start pt-1 fs-7 text-body-secondary">
+                                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }}
+                                    de {{ paginator.count }}
+                                    registros
+                                </div>
+                                {% if is_paginated %}
+                                    <ul class="pagination pagination-sm m-0 float-end">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="?{% query_transform page=page_obj.previous_page_number %}"
+                                                   aria-label="Anterior">«</a>
+                                            </li>
+                                        {% endif %}
+
+                                        {% for i in paginator.page_range %}
+                                            {% if page_obj.number == i %}
+                                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                       href="?{% query_transform page=i %}">{{ i }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="?{% query_transform page=page_obj.next_page_number %}"
+                                                   aria-label="Siguiente">»</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% endif %}
                             </div>
                         {% else %}
                             <p class="text-muted mt-3">

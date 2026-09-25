@@ -1,3 +1,33 @@
+<style>
+    /* Estilos de elemento activo y menús en el sidebar */
+    .sidebar-wrapper .sidebar-menu .nav-link.active,
+    .sidebar-wrapper .nav-treeview > .nav-item > .nav-link.active {
+        background-color: #6e83e3 !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .sidebar-wrapper .sidebar-menu .nav-link.active .nav-icon,
+    .sidebar-wrapper .nav-treeview > .nav-item > .nav-link.active .nav-icon {
+        color: #ffffff !important;
+    }
+
+    /* Submenú seleccionado con indicador distintivo */
+    .sidebar-wrapper .nav-treeview > .nav-item > .nav-link.active {
+        background: linear-gradient(30deg, #6e83e3 0%, #6e83e3 100%) !important;
+        border-left: 4px solid #ffffff !important;
+        padding-left: calc(1rem - 4px) !important;
+    }
+
+    /* Menú desplegable padre cuando está abierto */
+    .sidebar-wrapper .sidebar-menu > .nav-item.menu-open > .nav-link {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: #ffffff !important;
+    }
+</style>
+
 <li class="nav-item">
     <a href="{% url 'gestion_tic:dashboard_gestion_tic' %}" class="nav-link">
         <i class="nav-icon bi bi-speedometer2"></i>
@@ -5,7 +35,7 @@
     </a>
 </li>
 
-<li class="nav-item">
+<li class="nav-item" data-menu-id="mantenedores">
     <a href="#" class="nav-link">
         <i class="nav-icon bi bi-gear-fill"></i>
         <p>
@@ -72,7 +102,7 @@
     </ul>
 </li>
 
-<li class="nav-item">
+<li class="nav-item" data-menu-id="equipos">
     <a href="#" class="nav-link">
         <i class="nav-icon bi bi-pc-display"></i>
         <p>
@@ -99,13 +129,28 @@
     </ul>
 </li>
 
-<li class="nav-item">
-    <a href="{% url 'gestion_tic:movimientos_busqueda' %}" class="nav-link">
+<li class="nav-item" data-menu-id="movimientos">
+    <a href="#" class="nav-link">
         <i class="nav-icon bi bi-arrow-left-right"></i>
         <p>
             Movimientos Activo
+            <i class="nav-arrow bi bi-chevron-right"></i>
         </p>
     </a>
+    <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="{% url 'gestion_tic:movimientos_busqueda' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Búsqueda</p>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'gestion_tic:movimientos_activo_list' %}" class="nav-link">
+                <i class="nav-icon bi bi-circle"></i>
+                <p>Búsqueda con listado</p>
+            </a>
+        </li>
+    </ul>
 </li>
 <li class="nav-item">
     <a href="{% url 'gestion_tic:activo_list_asignado' %}" class="nav-link">
@@ -126,10 +171,123 @@
 </li>
 
 <li class="nav-item">
-    <a href="" class="nav-link">
+    <a href="{% url 'gestion_tic:generar_acta_activo_personalizada' %}" class="nav-link">
         <i class="nav-icon bi bi-files"></i>
         <p>
-            Generar Acta Masiva
+            Acta Personalizada
         </p>
     </a>
 </li>
+
+<script>
+    (function () {
+        const STORAGE_KEY = 'gestion_tic_last_open_menu';
+
+        function initGestionTicSidebar() {
+            const currentPath = window.location.pathname;
+            const currentSearch = window.location.search;
+            const currentFullUrl = currentPath + currentSearch;
+
+            const navLinks = document.querySelectorAll('.sidebar-wrapper .sidebar-menu .nav-link');
+            let bestMatchLink = null;
+            let bestMatchScore = -1;
+
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href || href === '#' || href === '') return;
+
+                let score = -1;
+
+                if (href === currentFullUrl) {
+                    score = 100;
+                } else if (currentSearch && href.includes('?') && currentPath === href.split('?')[0]) {
+                    const currentParams = new URLSearchParams(currentSearch);
+                    const linkParams = new URLSearchParams(href.split('?')[1]);
+                    let paramsMatch = true;
+                    for (const [key, val] of linkParams.entries()) {
+                        if (currentParams.get(key) !== val) {
+                            paramsMatch = false;
+                            break;
+                        }
+                    }
+                    if (paramsMatch) {
+                        score = 90;
+                    }
+                } else if (href === currentPath) {
+                    score = 50;
+                } else if (href !== '/' && currentPath.startsWith(href) && href.length > 1) {
+                    score = 20 + href.length;
+                }
+
+                if (score > bestMatchScore) {
+                    bestMatchScore = score;
+                    bestMatchLink = link;
+                }
+            });
+
+            // Limpiar estados previos
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            let activeMenuId = null;
+
+            if (bestMatchLink && bestMatchScore > 0) {
+                bestMatchLink.classList.add('active');
+
+                // Si está dentro de un submenú desplegable, abrirlo
+                const parentTreeview = bestMatchLink.closest('.nav-treeview');
+                if (parentTreeview) {
+                    const parentNavItem = parentTreeview.closest('.nav-item');
+                    if (parentNavItem) {
+                        parentNavItem.classList.add('menu-open');
+                        parentTreeview.style.display = 'block';
+                        activeMenuId = parentNavItem.getAttribute('data-menu-id');
+                        if (activeMenuId) {
+                            localStorage.setItem(STORAGE_KEY, activeMenuId);
+                        }
+                    }
+                }
+            }
+
+            // Si no hay un submenú abierto por la URL activa, restaurar el último menú abierto guardado
+            if (!activeMenuId) {
+                const savedMenuId = localStorage.getItem(STORAGE_KEY);
+                if (savedMenuId) {
+                    const savedMenu = document.querySelector(`.sidebar-wrapper .nav-item[data-menu-id="${savedMenuId}"]`);
+                    if (savedMenu) {
+                        savedMenu.classList.add('menu-open');
+                        const treeview = savedMenu.querySelector('.nav-treeview');
+                        if (treeview) {
+                            treeview.style.display = 'block';
+                        }
+                    }
+                }
+            }
+
+            // Escuchar clics en los encabezados de menús desplegables
+            const treeviewHeaders = document.querySelectorAll('.sidebar-wrapper .nav-item[data-menu-id] > .nav-link');
+            treeviewHeaders.forEach(header => {
+                header.addEventListener('click', function () {
+                    const parentItem = this.closest('.nav-item[data-menu-id]');
+                    if (!parentItem) return;
+                    const menuId = parentItem.getAttribute('data-menu-id');
+
+                    setTimeout(() => {
+                        if (parentItem.classList.contains('menu-open')) {
+                            localStorage.setItem(STORAGE_KEY, menuId);
+                        } else {
+                            if (localStorage.getItem(STORAGE_KEY) === menuId) {
+                                localStorage.removeItem(STORAGE_KEY);
+                            }
+                        }
+                    }, 100);
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGestionTicSidebar);
+        } else {
+            initGestionTicSidebar();
+        }
+    })();
+</script>

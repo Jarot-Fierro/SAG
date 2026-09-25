@@ -10,6 +10,8 @@ urlpatterns = [
     path('', dashboard_gestion_tic.DashboardGestionTicView.as_view(), name='dashboard_gestion_tic'),
 
     path('activo/acta/pdf/<int:pk>/', pdfs.generar_acta_activo, name='activo_acta_pdf'),
+    path('activo/acta-personalizada/pdf/', pdfs.generar_acta_activo_personalizada,
+         name='generar_acta_activo_personalizada'),
 
     # Activos
     path('activos/', activos.activo_list, name='activo_list'),
@@ -60,6 +62,7 @@ urlpatterns = [
 
     path('campos-tipo-activos/', campos_tipo_activos.campos_tipo_activos, name='campos_tipo_activos'),
     path('movimientos-activo/', movimientos_activo.movimientos_activo, name='movimientos_activo'),
+    path('movimientos-activo-list/', movimientos_activo.movimientos_activo_list, name='movimientos_activo_list'),
     path('busqueda-activo/', movimientos_activo.movimientos_busqueda, name='movimientos_busqueda'),
 
     path('activos-asignados/', activos.activo_list_asignado, name='activo_list_asignado'),

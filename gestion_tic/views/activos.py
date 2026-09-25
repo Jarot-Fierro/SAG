@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
+from gestion_tic.filters.activo import ActivoFormFilter
 from gestion_tic.forms.activos import ActivoForm
 from gestion_tic.models import Activo, TipoActivo, MovimientoActivo
 
@@ -97,8 +99,40 @@ def activo_list_asignado(request):
         )
         .select_related('activo', 'funcionario')
     )
+    establecimiento = request.user.establecimiento
+    filter_form = ActivoFormFilter(request.GET or None, establecimiento=establecimiento)
+    if filter_form.is_valid():
+        data = filter_form.cleaned_data
+        if data.get('codigo_barra'):
+            movimientos_activos = movimientos_activos.filter(codigo_barra__icontains=data['codigo_barra'])
+        if data.get('tipo'):
+            movimientos_activos = movimientos_activos.filter(tipo=data['tipo'])
+        if data.get('marca'):
+            movimientos_activos = movimientos_activos.filter(marca=data['marca'])
+        if data.get('modelo'):
+            movimientos_activos = movimientos_activos.filter(modelo=data['modelo'])
+        if data.get('serie'):
+            movimientos_activos = movimientos_activos.filter(serie__icontains=data['serie'])
+        if data.get('contrato'):
+            movimientos_activos = movimientos_activos.filter(contrato=data['contrato'])
+
+    try:
+        per_page = int(request.GET.get('per_page', 10))
+        if per_page <= 0:
+            per_page = 10
+    except (ValueError, TypeError):
+        per_page = 10
+
+    paginator = Paginator(movimientos_activos, per_page)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'gestion_tic/activos/activos_asignados.html', {
         'movimientos_activos': movimientos_activos,
-        'title': 'Listado de Activos Asignados'
+        'title': 'Listado de Activos Asignados',
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': page_obj.has_other_pages(),
+        'per_page': per_page,
+        'filter_form': filter_form
     })

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
@@ -47,3 +47,15 @@ def generar_acta_activo(request, pk):
     # Generar PDF
     HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
     return response
+
+
+@login_required
+def generar_acta_activo_personalizada(request):
+    establecimiento = getattr(request.user, 'establecimiento', None)
+    contexto = {
+        'title': 'Acta de Entrega Personalizada',
+        'fecha': datetime.now().strftime('%d/%m/%Y'),
+        'hora': datetime.now().strftime('%H:%M'),
+        'establecimiento': establecimiento,
+    }
+    return render(request, 'gestion_tic/pdfs/acta_personalizada.html', contexto)

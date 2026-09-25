@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load query_tags %}
 {% block title %}{{ title }}{% endblock %}
 
 {% block sidebar %}
@@ -19,7 +20,7 @@
         <div class="row justify-content-center mb-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm border-primary">
-                    <form method="get" action="{% url 'gestion_tic:movimientos_activo' %}" id="form-buscador">
+                    <form method="get" action="{% url 'gestion_tic:movimientos_activo_list' %}" id="form-buscador">
                         <div class="card-body">
                             <label for="q" class="form-label fw-bold">Consultar Equipo Código</label>
                             <div class="input-group input-group-lg">
@@ -27,9 +28,21 @@
                                 <input id="q" name="q" type="search" class="form-control"
                                        placeholder="Escanee código de barras" autofocus
                                        value="{{ query|default:'' }}">
+                                {% if per_page %}
+                                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                                {% endif %}
                                 <button type="submit" class="btn btn-primary px-4" id="btn-consultar">
                                     <i class="bi bi-arrow-right-circle me-1"></i> Consultar
                                 </button>
+                                {% if query %}
+                                    <a href="
+
+
+                                            {% url 'gestion_tic:movimientos_activo_list' %}{% if per_page %}?per_page={{ per_page }}{% endif %}"
+                                       class="btn btn-secondary px-3" title="Limpiar búsqueda">
+                                        <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+                                    </a>
+                                {% endif %}
                             </div>
                             <div class="form-text mt-2">
                                 La búsqueda se realiza por código de barras.
@@ -41,13 +54,12 @@
         </div>
 
         {% if activo %}
-            <div class="row">
+            <div class="row mb-4">
                 <!-- Datos del Activo (Disabled) -->
                 <div class="col-lg-4">
                     <div class="card card-outline card-info shadow-sm">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 class="card-title"><i class="bi bi-info-circle me-1"></i> Detalles del Equipo</h3>
-
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
@@ -160,9 +172,9 @@
                                         <tr>
                                             <td class="small">{{ mov.created_at|date:"d/m/Y H:i" }}</td>
                                             <td>
-                                                    <span class="text-danger">
-                                                        {{ mov.tipo_movimiento.nombre }}
-                                                    </span>
+                                                <span class="text-danger">
+                                                    {{ mov.tipo_movimiento.nombre }}
+                                                </span>
                                             </td>
                                             <td>
                                                 {% if mov.funcionario %}
@@ -203,6 +215,151 @@
                 </div>
             </div>
         {% endif %}
+
+        <!-- Listado de Equipos con Paginación y Selector per_page -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <h3 class="card-title mb-0">
+                                <i class="bi bi-list-task me-1 text-primary"></i> {{ title }}
+                            </h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="per_page_select"
+                                       class="form-label mb-0 small text-muted text-nowrap">Mostrar:</label>
+                                <select name="per_page" id="per_page_select" form="form-filtro-activos"
+                                        class="form-select form-select-sm"
+                                        style="width: auto;"
+                                        onchange="document.getElementById('form-filtro-activos').submit()">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10 registros</option>
+                                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 registros</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 registros</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 registros
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Filtros de Activos -->
+                        <form method="get" action="{% url 'gestion_tic:movimientos_activo_list' %}"
+                              id="form-filtro-activos">
+                            {% if q %}
+                                <input type="hidden" name="q" value="{{ q }}">
+                            {% endif %}
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                                    {{ filter_form.codigo_barra }}
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                                    {{ filter_form.serie }}
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                                    {{ filter_form.tipo }}
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                                    {{ filter_form.marca }}
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                                    {{ filter_form.modelo }}
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-2 d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-primary flex-fill">
+                                        <i class="bi bi-funnel-fill me-1"></i> Filtrar
+                                    </button>
+                                    <a href="
+
+                                            {% url 'gestion_tic:movimientos_activo_list' %}{% if q %}?q={{ q }}{% endif %}"
+                                       class="btn btn-sm btn-secondary" title="Limpiar filtros">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Código</th>
+                                    <th>Tipo</th>
+                                    <th>Marca / Modelo</th>
+                                    <th>Serie</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for activo_item in page_obj %}
+                                    <tr>
+                                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                        <td class="fw-bold">{{ activo_item.codigo_barra }}</td>
+                                        <td>{{ activo_item.tipo.nombre }}</td>
+                                        <td>{{ activo_item.marca.nombre|default:"-" }}
+                                            / {{ activo_item.modelo.nombre|default:"-" }}</td>
+                                        <td>{{ activo_item.serie|default:"-" }}</td>
+                                        <td class="text-center">
+                                            <a href="?{% query_transform q=activo_item.codigo_barra page=1 %}"
+                                               class="btn btn-outline-info btn-sm me-1" title="Consultar / Movimientos">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </a>
+                                            <a href="{% url 'gestion_tic:activo_edit' activo_item.pk %}"
+                                               class="btn btn-outline-primary btn-sm" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            No se encontraron activos registrados.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer clearfix">
+                        <div class="float-start pt-1 fs-7 text-body-secondary">
+                            Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
+                            registros
+                        </div>
+                        {% if is_paginated %}
+                            <ul class="pagination pagination-sm m-0 float-end">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?{% query_transform page=page_obj.previous_page_number %}"
+                                           aria-label="Anterior">«</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for i in paginator.page_range %}
+                                    {% if page_obj.number == i %}
+                                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?{% query_transform page=i %}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?{% query_transform page=page_obj.next_page_number %}"
+                                           aria-label="Siguiente">»</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
 

@@ -50,6 +50,17 @@ class CatalogoListView(CatalogoBaseView, ListView):
     paginate_by = 10
     search_fields = ['nombre']
 
+    def get_paginate_by(self, queryset):
+        per_page = self.request.GET.get('per_page')
+        if per_page:
+            try:
+                per_page_int = int(per_page)
+                if per_page_int in [10, 25, 50, 100]:
+                    return per_page_int
+            except (ValueError, TypeError):
+                pass
+        return self.paginate_by
+
     def get_queryset(self):
         queryset = super().get_queryset()
         query = self.request.GET.get('q')
@@ -65,6 +76,7 @@ class CatalogoListView(CatalogoBaseView, ListView):
         context['update_url_name'] = self.update_url_name
         context['delete_url_name'] = self.delete_url_name
         context['q'] = self.request.GET.get('q', '')
+        context['per_page'] = self.get_paginate_by(self.get_queryset())
         return context
 
 
@@ -144,6 +156,12 @@ class IpsListView(CatalogoListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        segmento = self.request.GET.get('segmento')
+        if segmento:
+            prefix = segmento.replace('.x', '.')
+            if not prefix.endswith('.'):
+                prefix += '.'
+            queryset = queryset.filter(ip__startswith=prefix)
 
         queryset = queryset.annotate(
             ip_sort=RawSQL(
@@ -160,6 +178,29 @@ class IpsListView(CatalogoListView):
         ).order_by('ip_sort')
 
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        all_ips = self.model.objects.filter(
+            establecimiento=self.request.user.establecimiento,
+            is_active=True
+        ).values_list('ip', flat=True)
+
+        segmentos_set = set()
+        for ip in all_ips:
+            parts = ip.strip().split('.')
+            if len(parts) == 4:
+                segmentos_set.add(f"{parts[0]}.{parts[1]}.{parts[2]}.x")
+
+        def sort_key(seg):
+            parts = seg.replace('.x', '').split('.')
+            try:
+                return [int(p) for p in parts]
+            except ValueError:
+                return [0, 0, 0]
+
+        context['segmentos_ip'] = sorted(list(segmentos_set), key=sort_key)
+        return context
 
 
 class IpsCreateView(CatalogoCreateView):

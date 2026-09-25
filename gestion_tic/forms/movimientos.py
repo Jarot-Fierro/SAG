@@ -32,7 +32,7 @@ class MovimientoActivoForm(forms.ModelForm):
     )
 
     jefe_firmante = forms.ModelChoiceField(
-        empty_label='Seleccione una IP',
+        empty_label='Seleccione un Firmante',
         required=True,
         queryset=JefeTic.objects.none(),
         widget=forms.Select(attrs={'class': 'form-select'})

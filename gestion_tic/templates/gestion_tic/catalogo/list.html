@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load query_tags %}
 {% block sidebar %}
     {% include 'gestion_tic/sidebar.html' %}
 {% endblock %}
@@ -24,14 +25,25 @@
                 <!--begin::Card Header-->
                 <div class="card-header">
                     <div class="row g-2 align-items-center">
-                        <div class="col-12">
-                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+                        <div class="col-10">
+                            <form method="get" id="form-filtro-catalogo"
+                                  class="d-flex flex-wrap justify-content-md-end gap-2">
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text">
                                         <i class="bi bi-search" aria-hidden="true"></i>
                                     </span>
                                     <input type="text" name="q" class="form-control" placeholder="Buscar..."
                                            value="{{ q }}">
+                                    {% if segmentos_ip %}
+                                        <select name="segmento" class="form-select form-select-sm"
+                                                style="max-width: 220px;" onchange="this.form.submit()">
+                                            <option value="">Todos los segmentos</option>
+                                            {% for segmento in segmentos_ip %}
+                                                <option value="{{ segmento }}"
+                                                        {% if segmento == request.GET.segmento %}selected{% endif %}>{{ segmento }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-funnel-fill me-1"></i>
                                         Filtrar
@@ -42,6 +54,22 @@
                                     </a>
                                 </div>
                             </form>
+                        </div>
+                        <div class="col-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="per_page_select"
+                                       class="form-label mb-0 small text-muted text-nowrap">Mostrar:</label>
+                                <select name="per_page" id="per_page_select" form="form-filtro-catalogo"
+                                        class="form-select form-select-sm"
+                                        style="width: auto;"
+                                        onchange="document.getElementById('form-filtro-catalogo').submit()">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10 registros</option>
+                                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 registros</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 registros</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 registros
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,7 +148,7 @@
                             {% if page_obj.has_previous %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       href="?{% query_transform page=page_obj.previous_page_number %}"
                                        aria-label="Anterior">«</a>
                                 </li>
                             {% endif %}
@@ -131,7 +159,7 @@
                                 {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
                                     <li class="page-item">
                                         <a class="page-link"
-                                           href="?page={{ i }}{% if q %}&q={{ q }}{% endif %}">{{ i }}</a>
+                                           href="?{% query_transform page=i %}">{{ i }}</a>
                                     </li>
                                 {% endif %}
                             {% endfor %}
@@ -139,7 +167,7 @@
                             {% if page_obj.has_next %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}"
+                                       href="?{% query_transform page=page_obj.next_page_number %}"
                                        aria-label="Siguiente">»</a>
                                 </li>
                             {% endif %}

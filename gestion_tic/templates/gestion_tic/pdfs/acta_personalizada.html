@@ -1,0 +1,599 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Acta de Entrega Personalizada{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block styles %}
+    <style>
+        /* Estilos en Pantalla */
+        .acta-wrapper {
+            background-color: #ffffff;
+            padding: 20px 10px;
+        }
+
+        .acta-hoja {
+            max-width: 860px;
+            min-height: 1000px;
+            background: #ffffff;
+            margin: 0 auto;
+            padding: 40px 45px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            font-family: Arial, Helvetica, sans-serif;
+            color: #212529;
+        }
+
+        .acta-header-title {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            font-size: 15px;
+        }
+
+        .table-acta {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: none !important;
+            --bs-table-bg: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .table-acta > :not(caption) > * > * {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .table-acta th {
+            width: 32%;
+            background-color: transparent;
+            font-weight: bold;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .table-acta td {
+            font-size: 13px;
+            vertical-align: middle;
+            background-color: transparent;
+        }
+
+        .acta-input {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #212529;
+            background-color: #fff;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+
+        .acta-input:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            background-color: #ffffff;
+        }
+
+        .table-acta .acta-input {
+            border: 1px solid transparent;
+            background-color: transparent;
+        }
+
+        .table-acta .acta-input:hover {
+            border-color: #dee2e6;
+            background-color: #fff;
+        }
+
+        .table-acta .acta-input:focus {
+            border-color: #86b7fe;
+            background-color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .note-box {
+            padding: 10px 0;
+            margin-top: 20px;
+            margin-bottom: 25px;
+            background-color: transparent;
+            border: none;
+            border-radius: 0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .signature-block {
+            margin-top: 35px;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 240px;
+            text-align: center;
+            margin: 25px auto 0 auto;
+            padding-top: 8px;
+            font-size: 13px;
+        }
+
+        .acta-footer {
+            text-align: center;
+            font-size: 11px;
+            margin-top: 30px;
+            color: #6c757d;
+        }
+
+        .btn-remove-row {
+            padding: 2px 6px;
+            font-size: 12px;
+        }
+
+        .app-content-header {
+            background-color: #ffffff !important;
+        }
+
+        /* Reglas exclusivas para Impresión y Vista Previa PDF */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm 15mm;
+            }
+
+            html,
+            body,
+            body.bg-body-tertiary,
+            body.layout-fixed,
+            .app-wrapper,
+            .app-main,
+            main,
+            .app-content,
+            .acta-wrapper,
+            .acta-hoja,
+            #acta-imprimible {
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 12px !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #acta-imprimible * {
+                background-color: transparent !important;
+                box-shadow: none !important;
+            }
+
+            /* Ocultar elementos de navegación y de interfaz */
+            .app-header,
+            .app-sidebar,
+            .app-footer,
+            .app-content-header,
+            .no-print,
+            .btn,
+            .btn-remove-row,
+            .btn-actions-bar,
+            .modal,
+            nav,
+            aside {
+                display: none !important;
+            }
+
+            /* Anular estilos de formulario en inputs para renderizarlos como texto plano */
+            .acta-input,
+            input,
+            textarea,
+            select,
+            input.form-control,
+            textarea.form-control {
+                border: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                outline: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-family: inherit !important;
+                font-size: inherit !important;
+                font-weight: inherit !important;
+                color: #000000 !important;
+                width: 100% !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                appearance: none !important;
+            }
+
+            .acta-input::placeholder,
+            input::placeholder,
+            textarea::placeholder {
+                color: transparent !important;
+                opacity: 0 !important;
+            }
+
+            .table-acta {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 12px !important;
+                margin-bottom: 16px !important;
+                border: none !important;
+                --bs-table-bg: transparent !important;
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+
+            .table-acta,
+            .table-acta th,
+            .table-acta td,
+            .table-acta > :not(caption) > * > * {
+                border: none !important;
+                background: transparent !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+            }
+
+            .table-acta th,
+            .table-acta td {
+                padding: 4px 8px !important;
+                font-size: 12px !important;
+            }
+
+            .table-acta th {
+                width: 32% !important;
+                background: transparent !important;
+                background-color: transparent !important;
+                font-weight: bold !important;
+            }
+
+            .note-box {
+                background: transparent !important;
+                background-color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 8px 0 !important;
+                margin-top: 15px !important;
+                margin-bottom: 20px !important;
+                font-size: 11px !important;
+            }
+
+            .signature-block {
+                margin-top: 30px !important;
+                page-break-inside: avoid;
+            }
+
+            .signature-line {
+                border-top: 1px solid #000000 !important;
+                width: 220px !important;
+                margin: 40px auto 0 auto !important;
+                padding-top: 5px !important;
+                font-size: 11px !important;
+            }
+
+            .acta-footer {
+                margin-top: 20px !important;
+                font-size: 10px !important;
+                color: #333333 !important;
+            }
+
+            .acta-footer a {
+                color: #333333 !important;
+                text-decoration: none !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block buttons %}
+    <li class="breadcrumb-item no-print">
+        <a href="{% url 'gestion_tic:movimientos_activo_list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </li>
+    <li class="breadcrumb-item active no-print">
+        <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="imprimirActa()">
+            <i class="bi bi-printer-fill me-1"></i> Imprimir
+        </button>
+    </li>
+    <li class="breadcrumb-item active no-print">
+        <button type="button" class="btn btn-sm btn-success" onclick="agregarFila()">
+            <i class="bi bi-plus-circle me-1"></i> Añadir fila
+        </button>
+    </li>
+    <li class="breadcrumb-item active no-print">
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="restablecerActa()">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Restablecer
+        </button>
+    </li>
+
+{% endblock %}
+
+{% block content %}
+    <div class="acta-wrapper">
+        <!-- Documento Imprimible -->
+        <div id="acta-imprimible" class="acta-hoja">
+            <!-- Encabezado con Logo y Fecha/Hora -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Logo_del_MINSAL_Chile.png"
+                         alt="Logo Gobierno de Chile" style="height: 75px; object-fit: contain;">
+                </div>
+                <div class="d-flex flex-column text-end" style="min-width: 180px;">
+                    <div class="d-flex align-items-center justify-content-end mb-1">
+                        <strong class="me-2">FECHA:</strong>
+                        <input type="text" class="acta-input text-end fw-semibold" style="width: 110px;"
+                               value="{{ fecha|default:'' }}" placeholder="dd/mm/aaaa">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-end">
+                        <strong class="me-2">HORA:</strong>
+                        <input type="text" class="acta-input text-end fw-semibold" style="width: 110px;"
+                               value="{{ hora|default:'' }}" placeholder="hh:mm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Título del Acta -->
+            <div class="acta-header-title">ACTA DE ENTREGA</div>
+            <hr class="my-2" style="border-top: 1px solid #000;">
+
+            <!-- Sección de Identificación -->
+            <div class="section-title d-flex align-items-center flex-wrap gap-1">
+                <span>1.- IDENTIFICACIÓN DEL PRODUCTO -</span>
+                <input type="text" class="acta-input fw-bold d-inline-block text-uppercase"
+                       style="width: auto; min-width: 250px; flex: 1;"
+                       value="EQUIPO COMPUTACIONAL" placeholder="TIPO O IDENTIFICACIÓN">
+            </div>
+
+            <!-- Tabla de especificaciones personalizables -->
+            <table class="table table-acta" id="tabla-especificaciones">
+                <tbody id="tabla-tbody-campos">
+                <!-- Fila 1: Tipo de equipo -->
+                <tr class="fila-campo">
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="TIPO DE EQUIPO" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input"
+                               placeholder="Ingrese tipo de equipo (Ej: Notebook, Desktop)">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Fila 2: Marca / Modelo -->
+                <tr class="fila-campo">
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="MARCA / MODELO" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input" placeholder="Ingrese marca y modelo">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Fila 3: N° Serie -->
+                <tr class="fila-campo">
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="N° DE SERIE" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input" placeholder="Ingrese número de serie">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Fila 4: Código de barras -->
+                <tr class="fila-campo">
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="CÓDIGO DE BARRAS" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input" placeholder="Ingrese código de barras o inventario">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Fila 5: Descripción -->
+                <tr class="fila-campo">
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="DESCRIPCIÓN" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input"
+                               placeholder="Ingrese descripción u observaciones adicionales">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+                <!-- Fila de acción para añadir (no imprimible) -->
+                <tfoot class="no-print">
+                <tr>
+                    <td colspan="3" class="text-center bg-light py-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="agregarFila()">
+                            <i class="bi bi-plus-circle me-1"></i> Añadir fila personalizada
+                        </button>
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+
+            <!-- Nota de responsabilidad -->
+            <div class="note-box">
+                <strong>NOTA:</strong><br>
+                EL USUARIO QUE ESTÁ A CARGO DEL EQUIPO (CELULAR, PC, ETC) SERÁ RESPONSABLE DE SU REPARACIÓN, EXTRAVÍO O
+                MAL USO DE ÉSTE, O EN SU DEFECTO ENTREGAR EN BUENAS CONDICIONES Y TODOS SUS ACCESORIOS.
+            </div>
+
+            <!-- Bloque de Firmas -->
+            <div class="signature-block text-center">
+                <p class="fw-bold mb-4" style="font-size: 14px;">ENTREGUE CONFORME A:</p>
+
+                <div class="row pt-4" style="margin-top: 50px;">
+                    <!-- Firma: Quien recibe -->
+                    <div class="col-6 text-center">
+                        <div class="signature-line">
+                            <input type="text" class="acta-input text-center fw-bold"
+                                   value="FUNCIONARIO / RECEPTOR" placeholder="Nombre completo">
+                            <input type="text" class="acta-input text-center text-muted mt-1"
+                                   value="CARGO / DEPARTAMENTO" placeholder="Cargo o departamento">
+                        </div>
+                    </div>
+
+                    <!-- Firma: Quien entrega -->
+                    <div class="col-6 text-center">
+                        <div class="signature-line">
+                            <input type="text" class="acta-input text-center fw-bold"
+                                   value="JEFE / ENCARGADO TIC" placeholder="Nombre completo">
+                            <input type="text" class="acta-input text-center text-muted mt-1"
+                                   value="DEPARTAMENTO DE INFORMÁTICA Y TIC" placeholder="Cargo o departamento">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Establecimiento -->
+                <div class="mt-4 text-center">
+                    <input type="text" class="acta-input text-center text-muted"
+                           value="{{ establecimiento.nombre|default:'HOSPITAL / ESTABLECIMIENTO DE SALUD' }}"
+                           placeholder="Nombre del establecimiento">
+                </div>
+            </div>
+
+            <!-- Pie de página -->
+            <footer class="acta-footer">
+                Página 1/1
+                <br>
+                <a href="http://www.ssarauco.cl">http://www.ssarauco.cl</a>
+            </footer>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Función para sincronizar los valores ingresados en el DOM antes de imprimir
+        function sincronizarValores() {
+            document.querySelectorAll('.acta-input').forEach(function (input) {
+                input.setAttribute('value', input.value);
+            });
+        }
+
+        // Función para imprimir el acta respetando estilos e ignorando apariencia de inputs
+        function imprimirActa() {
+            sincronizarValores();
+            window.print();
+        }
+
+        // Función para añadir una nueva fila a la tabla
+        function agregarFila(clave = '', valor = '') {
+            const tbody = document.getElementById('tabla-tbody-campos');
+            const tr = document.createElement('tr');
+            tr.className = 'fila-campo';
+            tr.innerHTML = `
+                <th>
+                    <input type="text" class="acta-input fw-bold" value="${clave}" placeholder="Nuevo Campo">
+                </th>
+                <td>
+                    <input type="text" class="acta-input" value="${valor}" placeholder="Ingrese valor">
+                </td>
+                <td class="text-center no-print align-middle" style="width: 45px;">
+                    <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Hacer foco en el nuevo campo
+            const nuevoInput = tr.querySelector('input');
+            if (nuevoInput && !clave) {
+                nuevoInput.focus();
+            }
+        }
+
+        // Delegación de eventos para eliminar filas
+        document.getElementById('tabla-especificaciones').addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-remove-row');
+            if (btn) {
+                const tr = btn.closest('tr');
+                if (tr) {
+                    tr.remove();
+                }
+            }
+        });
+
+        // Función para restablecer las filas predeterminadas
+        function restablecerActa() {
+            if (!confirm('¿Desea restablecer las filas predeterminadas del acta?')) {
+                return;
+            }
+            const tbody = document.getElementById('tabla-tbody-campos');
+            tbody.innerHTML = '';
+            const filasDefault = [
+                {clave: 'TIPO DE EQUIPO', placeholder: 'Ingrese tipo de equipo (Ej: Notebook, Desktop)'},
+                {clave: 'MARCA / MODELO', placeholder: 'Ingrese marca y modelo'},
+                {clave: 'N° DE SERIE', placeholder: 'Ingrese número de serie'},
+                {clave: 'CÓDIGO DE BARRAS', placeholder: 'Ingrese código de barras o inventario'},
+                {clave: 'DESCRIPCIÓN', placeholder: 'Ingrese descripción u observaciones adicionales'}
+            ];
+
+            filasDefault.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'fila-campo';
+                tr.innerHTML = `
+                    <th>
+                        <input type="text" class="acta-input fw-bold" value="${item.clave}" placeholder="Campo">
+                    </th>
+                    <td>
+                        <input type="text" class="acta-input" placeholder="${item.placeholder}">
+                    </td>
+                    <td class="text-center no-print align-middle" style="width: 45px;">
+                        <button type="button" class="btn btn-outline-danger btn-remove-row" title="Quitar fila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+{% endblock %}

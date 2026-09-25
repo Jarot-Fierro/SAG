@@ -36,7 +36,6 @@ urlpatterns = [
     path('horos/', include('horos.urls')),
     path('gestion/', include('gestion_tic.urls')),
     path('bodega/', include('bodega.urls')),
-    path('viaticos/', include('viaticos.urls')),
     path('recibe/', recibe_ip),
 ]
 
