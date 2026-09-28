@@ -37,7 +37,7 @@ class TipoSoporteAdmin(StandardAdmin):
     list_display = (
         'id',
         'nombre',
-        'is_active',
+        'display_areas',
     )
 
     search_fields = (
@@ -55,6 +55,12 @@ class TipoSoporteAdmin(StandardAdmin):
     ordering = (
         'nombre',
     )
+    filter_horizontal = ('area_soporte',)
+
+    def display_areas(self, obj):
+        return ", ".join([area.nombre for area in obj.area_soporte.all()])
+
+    display_areas.short_description = 'Áreas de Soporte'
 
 
 @admin.register(AreaSoporte)

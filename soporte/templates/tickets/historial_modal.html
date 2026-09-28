@@ -1,0 +1,49 @@
+<div class="modal-header">
+    <h5 class="modal-title">
+        <i class="bi bi-clock-history me-2"></i>Historial del Ticket <span
+            class="fw-bold">{{ ticket.numero_ticket|default:ticket.id }}</span>
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-4">
+    {% if eventos %}
+        <div class="timeline">
+            {% for evento in eventos %}
+                <div>
+                    <i class="timeline-icon {{ evento.icono }} {{ evento.icon_bg }}"></i>
+                    <div class="timeline-item">
+                        <span class="time">
+                            <i class="bi bi-clock me-1"></i>{{ evento.fecha|date:"d/m/Y H:i" }}
+                        </span>
+                        <h3 class="timeline-header fw-bold">
+                            {{ evento.titulo }}
+                        </h3>
+                        <div class="timeline-body">
+                            <div>{{ evento.detalle|linebreaksbr }}</div>
+                            {% if evento.usuario %}
+                                <div class="mt-2 text-muted small">
+                                    <i class="bi bi-person me-1"></i>Usuario: <strong>{{ evento.usuario }}</strong>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div>
+                <i class="timeline-icon bi bi-clock bg-secondary text-white"></i>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+            No hay registros en el historial para este ticket.
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-circle me-1"></i> Cerrar
+    </button>
+</div>

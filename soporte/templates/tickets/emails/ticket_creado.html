@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .ticket-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .ticket-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>SAG - Sistema de Administración y Gestión</h2>
+    </div>
+
+    <p>Estimado(a) <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>,</p>
+
+    <p>Agradecemos su solicitud. Le informamos que su ticket ha sido recibido correctamente en el sistema y queda
+        pendiente de asignación a un usuario técnico para su atención.</p>
+
+    <div class="ticket-box">
+        <p class="ticket-number">Ticket N°: {{ ticket.numero_ticket }}</p>
+        <p><strong>Título:</strong> {{ ticket.titulo }}</p>
+        {% if departamento %}
+            <p><strong>Departamento / Unidad:</strong> {{ departamento }}</p>
+        {% endif %}
+        {% if ticket.area_soporte %}
+            <p><strong>Área de Soporte:</strong> {{ ticket.area_soporte.nombre }}</p>
+        {% endif %}
+    </div>
+
+    <p>Podrá hacer seguimiento del estado de su requerimiento directamente desde la plataforma.</p>
+
+    <div class="footer">
+        <p>Este es un correo automático generado por el sistema SAG. Por favor no responda a este mensaje.</p>
+        <p>&copy; 2026 SAG - Todos los derechos reservados.</p>
+    </div>
+</div>
+</body>
+</html>

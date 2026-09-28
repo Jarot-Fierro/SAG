@@ -1,7 +1,12 @@
+from unittest.mock import patch
+
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
+from core.models.configuracion_correo import ConfiguracionCorreo
 from core.models.establecimientos import Establecimiento
+from core.models.funcionario import Funcionario
+from core.models.unidad_organizacional import UnidadOrganizacional
 from core.models.usuarios import User
 from soporte.forms.forms_tickets import FormTicketEditor
 from soporte.models import Ticket, AreaSoporte, TipoSoporte, PerfilSoporte
@@ -38,6 +43,7 @@ class SoportePerfilSoporteTests(TestCase):
             nombre="Hardware",
             establecimiento=self.establecimiento
         )
+        self.tipo_soporte.area_soporte.add(self.area_soporte)
         self.perfil_soporte = PerfilSoporte.objects.create(
             usuario=self.user_soporte
         )
@@ -122,7 +128,10 @@ class SoportePerfilSoporteTests(TestCase):
 
         self.client.login(username="tecnico", password="password123")
         url = reverse('soporte:ticket_cerrar', kwargs={'pk': ticket.pk})
-        response = self.client.post(url, {'solucion': 'Se cambio el teclado'})
+        response = self.client.post(url, {
+            'solucion': 'Se cambio el teclado',
+            'tipo_soporte': self.tipo_soporte.pk,
+        })
         self.assertEqual(response.status_code, 302)
 
         ticket.refresh_from_db()
@@ -131,6 +140,7 @@ class SoportePerfilSoporteTests(TestCase):
         self.assertFalse(ticket.is_active)
         self.assertIsNotNone(ticket.fecha_cierre)
         self.assertEqual(ticket.solucion, 'se cambio el teclado')
+        self.assertEqual(ticket.tipo_soporte, self.tipo_soporte)
 
     def test_ticket_dashboard_view(self):
         ticket = Ticket.objects.create(
@@ -185,6 +195,8 @@ class SoportePerfilSoporteTests(TestCase):
         url_editor = reverse('soporte:ticket_editor_list')
         response_editor = self.client.get(url_editor)
         self.assertEqual(response_editor.status_code, 200)
+        self.assertIn('tipos_soporte', response_editor.context)
+        self.assertContains(response_editor, 'name="tipo_soporte"')
 
         # TicketEditorInactivosListView
         ticket.is_active = False
@@ -192,3 +204,198 @@ class SoportePerfilSoporteTests(TestCase):
         url_inactivos = reverse('soporte:ticket_inactivos_list')
         response_inactivos = self.client.get(url_inactivos)
         self.assertEqual(response_inactivos.status_code, 200)
+
+    def test_tipo_soporte_filtrado_por_area_soporte_perfil(self):
+        area_mantencion = AreaSoporte.objects.create(
+            nombre="Mantencion",
+            establecimiento=self.establecimiento
+        )
+        tipo_red = TipoSoporte.objects.create(
+            nombre="Problema de red",
+            establecimiento=self.establecimiento
+        )
+        # Asociado solo a mantención inicialmente
+        tipo_red.area_soporte.add(area_mantencion)
+
+        self.client.login(username="tecnico", password="password123")
+        url_editor = reverse('soporte:ticket_editor_list')
+        response = self.client.get(url_editor)
+
+        # El técnico solo tiene informática, no debe ver "Problema de red"
+        tipos = list(response.context['tipos_soporte'])
+        self.assertIn(self.tipo_soporte, tipos)
+        self.assertNotIn(tipo_red, tipos)
+
+        # Si a "Problema de red" le asignamos "Informatica", ahora sí debe listarse
+        tipo_red.area_soporte.add(self.area_soporte)
+        response = self.client.get(url_editor)
+        tipos = list(response.context['tipos_soporte'])
+        self.assertIn(tipo_red, tipos)
+        self.assertIn(self.tipo_soporte, tipos)
+
+    def test_ticket_historial_timeline(self):
+        # 1. Creación
+        ticket = Ticket.objects.create(
+            titulo="Falla de red",
+            descripcion="Sin acceso a internet",
+            establecimiento=self.establecimiento,
+            funcionario=self.user_solicitante,
+            area_soporte=self.area_soporte,
+            estado='ABIERTO'
+        )
+
+        # 2. Asignación
+        ticket.asignado_a = self.perfil_soporte
+        ticket.save()
+
+        # 3. En Proceso
+        ticket.estado = 'EN_PROCESO'
+        ticket.save()
+
+        # 4. En Espera
+        ticket.estado = 'ESPERA'
+        ticket.save()
+
+        # 5. En Proceso (retomado)
+        ticket.estado = 'EN_PROCESO'
+        ticket.save()
+
+        # 6. Cerrado
+        ticket.estado = 'CERRADO'
+        ticket.solucion = 'Problema solucionado'
+        ticket.save()
+
+        self.client.login(username="tecnico", password="password123")
+        url_historial = reverse('soporte:ticket_historial', kwargs={'pk': ticket.pk})
+        response = self.client.get(url_historial)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('eventos', response.context)
+        eventos = response.context['eventos']
+
+        # Verificar títulos esperados en la línea de tiempo
+        titulos = [e['titulo'] for e in eventos]
+        self.assertIn('Ticket creado', titulos)
+        self.assertIn('Ticket asignado', titulos)
+        self.assertIn('En proceso', titulos)
+        self.assertIn('En espera', titulos)
+        self.assertIn('Cerrado', titulos)
+
+        detalles = [e['detalle'] for e in eventos]
+        self.assertIn('Solicitud ingresada', detalles)
+        self.assertIn(f'Asignado a {self.perfil_soporte}', detalles)
+        self.assertIn('Técnico comenzó la atención', detalles)
+        self.assertIn('Esperando información del usuario', detalles)
+        self.assertIn('Atención retomada', detalles)
+        self.assertIn('problema solucionado', [d.lower() for d in detalles])
+
+        # Verificar que list.html contiene el botón de historial
+        response_list = self.client.get(reverse('soporte:ticket_list'))
+        self.assertEqual(response_list.status_code, 200)
+        self.assertContains(response_list, url_historial)
+        self.assertContains(response_list, 'bi-clock-history')
+
+    @patch('core.services.email_service.EmailService.send_email_with_config')
+    def test_ticket_create_envia_correo_exitosamente(self, mock_send_email):
+        mock_send_email.return_value = True
+
+        # Crear configuración de correo para el establecimiento
+        config_correo = ConfiguracionCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            nombre_remitente="Mesa de Ayuda SAG",
+            email_remitente="soporte@sag.cl",
+            smtp_host="smtp.sag.cl",
+            smtp_port=587,
+            smtp_usuario="soporte@sag.cl",
+            _smtp_password="password123",
+            activo=True
+        )
+
+        # Crear departamento y asociarlo al funcionario del usuario
+        uo = UnidadOrganizacional.objects.create(
+            nombre="Departamento de Informatica",
+            establecimiento=self.establecimiento,
+            es_departamento=True
+        )
+        funcionario = Funcionario.objects.create(
+            nombres="Juan",
+            apellidos="Perez",
+            unidad_organizacional=uo,
+            establecimiento=self.establecimiento
+        )
+        self.user_solicitante.funcionario = funcionario
+        self.user_solicitante.email = "juan.perez@sag.cl"
+        self.user_solicitante.save()
+
+        self.client.login(username="solicitante", password="password123")
+        url_create = reverse('soporte:ticket_create')
+
+        response = self.client.post(url_create, {
+            'titulo': 'Problema con la impresora de red',
+            'descripcion': 'No imprime documentos PDF',
+            'area_soporte': self.area_soporte.pk,
+        })
+
+        # Redirección tras creación exitosa
+        self.assertEqual(response.status_code, 302)
+
+        # Verificar que el ticket fue creado
+        ticket = Ticket.objects.filter(titulo__icontains='Problema con la impresora').first()
+        self.assertIsNotNone(ticket)
+        self.assertEqual(ticket.funcionario, self.user_solicitante)
+        self.assertEqual(ticket.establecimiento, self.establecimiento)
+        self.assertTrue(ticket.numero_ticket.startswith('TCK-'))
+
+        # Verificar que send_email_with_config fue invocado con los parámetros correctos
+        mock_send_email.assert_called_once()
+        call_kwargs = mock_send_email.call_args[1] if mock_send_email.call_args[1] else {}
+        call_args = mock_send_email.call_args[0] if mock_send_email.call_args[0] else ()
+
+        # Revisar argumentos posicionales o por nombre
+        config_passed = call_kwargs.get('config') or (call_args[0] if len(call_args) > 0 else None)
+        subject_passed = call_kwargs.get('subject') or (call_args[1] if len(call_args) > 1 else None)
+        recipient_passed = call_kwargs.get('recipient_list') or (call_args[2] if len(call_args) > 2 else None)
+        context_passed = call_kwargs.get('context') or (call_args[4] if len(call_args) > 4 else None)
+
+        self.assertEqual(config_passed, config_correo)
+        self.assertIn(ticket.numero_ticket, subject_passed)
+        self.assertEqual(recipient_passed, ['juan.perez@sag.cl'])
+        self.assertEqual(context_passed['ticket'], ticket)
+        self.assertEqual(context_passed['usuario'], self.user_solicitante)
+        self.assertIn(uo.nombre, str(context_passed['departamento']))
+
+    @patch('core.services.email_service.EmailService.send_email_with_config')
+    def test_ticket_create_falla_correo_no_impide_creacion(self, mock_send_email):
+        # Simular que el envío de correo lanza una excepción
+        mock_send_email.side_effect = Exception("Fallo de conexión SMTP")
+
+        ConfiguracionCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            nombre_remitente="Mesa de Ayuda SAG",
+            email_remitente="soporte@sag.cl",
+            smtp_host="smtp.sag.cl",
+            smtp_port=587,
+            smtp_usuario="soporte@sag.cl",
+            _smtp_password="password123",
+            activo=True
+        )
+
+        self.user_solicitante.email = "juan.perez@sag.cl"
+        self.user_solicitante.save()
+
+        self.client.login(username="solicitante", password="password123")
+        url_create = reverse('soporte:ticket_create')
+
+        response = self.client.post(url_create, {
+            'titulo': 'Error en pantalla azul',
+            'descripcion': 'Se reinicia continuamente',
+            'area_soporte': self.area_soporte.pk,
+        })
+
+        # Debe responder con 302 exitoso (no crash 500)
+        self.assertEqual(response.status_code, 302)
+
+        # El ticket debe existir en la BD
+        ticket = Ticket.objects.filter(titulo__icontains='Error en pantalla azul').first()
+        self.assertIsNotNone(ticket)
+        self.assertEqual(ticket.funcionario, self.user_solicitante)

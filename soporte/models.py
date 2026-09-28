@@ -32,6 +32,7 @@ class PerfilSoporte(StandardModel):
 
 class TipoSoporte(StandardModelEstablishment):
     nombre = models.CharField(max_length=100)
+    area_soporte = models.ManyToManyField('soporte.AreaSoporte', blank=True, verbose_name='Areas de Soporte')
 
     UPPERCASE_FIELDS = ['nombre']
 

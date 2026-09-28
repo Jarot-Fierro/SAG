@@ -96,6 +96,8 @@ INSTALLED_APPS = [
     'horos.apps.HorosConfig',
     # BODEGA,
     'bodega.apps.BodegaConfig',
+    # SOLICITUD CORREO
+    'solicitud_correo.apps.SolicitudCorreoConfig'
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

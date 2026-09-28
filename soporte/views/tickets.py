@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -7,14 +8,91 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 
+from core.models.configuracion_correo import ConfiguracionCorreo
+from core.services.email_service import EmailService
 from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView, StandardDetailView
 from soporte.filters.tickets import FiltroTicket
 from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
-from soporte.models import Ticket, AreaSoporte, PerfilSoporte
+from soporte.models import Ticket, AreaSoporte, PerfilSoporte, TipoSoporte
+
+logger = logging.getLogger(__name__)
 
 MODULE_NAME = 'Tickets'
+
+
+def _obtener_departamento_ticket(ticket, usuario=None):
+    """
+    Obtiene el departamento asociado al ticket o al usuario/funcionario solicitante si existe.
+    """
+    if hasattr(ticket, 'departamento') and ticket.departamento:
+        return ticket.departamento
+
+    user = usuario or ticket.funcionario
+    if user:
+        if hasattr(user, 'departamento') and user.departamento:
+            return user.departamento
+        if hasattr(user, 'funcionario') and user.funcionario:
+            if hasattr(user.funcionario, 'unidad_organizacional') and user.funcionario.unidad_organizacional:
+                uo = user.funcionario.unidad_organizacional
+                if hasattr(uo, 'get_departamento'):
+                    dep = uo.get_departamento()
+                    if dep:
+                        return dep
+                return uo
+            if hasattr(user.funcionario, 'departamento') and user.funcionario.departamento:
+                return user.funcionario.departamento
+    return None
+
+
+def enviar_correo_ticket_creado(ticket, usuario):
+    """
+    Envía notificación por correo al usuario cuando se crea un ticket correctamente
+    utilizando la configuración SMTP del establecimiento.
+    """
+    try:
+        # Para depuración / pruebas manuales con un correo específico:
+        # destinatario = ['jarot.fierro.c@redsalud.gob.cl']
+        destinatario = [usuario.email] if usuario and usuario.email else []
+
+        if not destinatario:
+            logger.warning(
+                f"No se pudo enviar correo para el ticket {ticket.numero_ticket}: usuario o email no disponible.")
+            return False
+
+        establecimiento = ticket.establecimiento or getattr(usuario, 'establecimiento', None)
+        if not establecimiento:
+            logger.warning(
+                f"No se pudo enviar correo para el ticket {ticket.numero_ticket}: no tiene establecimiento asignado.")
+            return False
+
+        config = ConfiguracionCorreo.objects.filter(establecimiento=establecimiento, activo=True).first()
+        if not config:
+            logger.warning(
+                f"No existe configuración de correo activa para el establecimiento {establecimiento.nombre}.")
+            return False
+
+        departamento = _obtener_departamento_ticket(ticket, usuario)
+        asunto = f"Ticket #{ticket.numero_ticket} recibido exitosamente"
+        context = {
+            'ticket': ticket,
+            'usuario': usuario,
+            'departamento': departamento,
+        }
+
+        return EmailService.send_email_with_config(
+            config=config,
+            subject=asunto,
+            recipient_list=destinatario,
+            template_name='tickets/emails/ticket_creado.html',
+            context=context
+        )
+    except Exception as e:
+        logger.error(
+            f"Error inesperado al intentar enviar correo de ticket {ticket.numero_ticket or ticket.id}: {str(e)}",
+            exc_info=True)
+        return False
 
 
 class TicketListView(StandardListView):
@@ -92,7 +170,13 @@ class TicketCreateView(StandardCreateView):
     def form_valid(self, form):
         form.instance.funcionario = self.request.user
         form.instance.establecimiento = self.request.user.establecimiento
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        # El ticket ya fue creado y persistido con su ID y correlativo
+        try:
+            enviar_correo_ticket_creado(self.object, self.request.user)
+        except Exception as e:
+            logger.error(f"Error al intentar enviar el correo de confirmación de ticket: {str(e)}", exc_info=True)
+        return response
 
 
 class TicketsUpdateView(StandardUpdateView):
@@ -150,6 +234,25 @@ class TicketEditorListView(StandardListView):
 
         return queryset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tipos_soporte = TipoSoporte.objects.filter(is_active=True)
+        if (
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+        ):
+            tipos_soporte = tipos_soporte.filter(establecimiento=self.request.user.establecimiento)
+
+        try:
+            areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            tipos_soporte = tipos_soporte.filter(area_soporte__in=areas_usuario).distinct()
+        except AttributeError:
+            tipos_soporte = tipos_soporte.none()
+
+        context["tipos_soporte"] = tipos_soporte
+        return context
+
 
 class TicketDetailView(StandardDetailView):
     model = Ticket
@@ -157,6 +260,240 @@ class TicketDetailView(StandardDetailView):
     title = "Detalle del Ticket"
     module_name = MODULE_NAME
     back_url_name = "soporte:ticket_list"
+
+
+class TicketHistorialView(LoginRequiredMixin, DetailView):
+    model = Ticket
+    template_name = "tickets/historial_modal.html"
+    context_object_name = "ticket"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not self.request.user.is_superuser and hasattr(self.request.user,
+                                                          'establecimiento') and self.request.user.establecimiento:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['eventos'] = self.get_historial_eventos(self.object)
+        return context
+
+    def get_historial_eventos(self, ticket):
+        records = list(ticket.history.all().order_by('history_date', 'history_id'))
+        eventos = []
+        prev_record = None
+
+        for record in records:
+            if prev_record is None:
+                # 1. Creación del ticket
+                eventos.append({
+                    'titulo': 'Ticket creado',
+                    'fecha': record.history_date,
+                    'detalle': 'Solicitud ingresada',
+                    'icono': 'bi bi-plus-circle-fill',
+                    'badge_bg': 'bg-primary',
+                    'icon_bg': 'bg-primary text-white',
+                    'usuario': record.history_user,
+                })
+
+                if record.asignado_a:
+                    eventos.append({
+                        'titulo': 'Ticket asignado',
+                        'fecha': record.history_date,
+                        'detalle': f'Asignado a {record.asignado_a}',
+                        'icono': 'bi bi-person-check-fill',
+                        'badge_bg': 'bg-info text-white',
+                        'icon_bg': 'bg-info text-white',
+                        'usuario': record.history_user,
+                    })
+
+                if record.estado != 'ABIERTO':
+                    if record.estado == 'EN_PROCESO':
+                        eventos.append({
+                            'titulo': 'En proceso',
+                            'fecha': record.history_date,
+                            'detalle': 'Técnico comenzó la atención',
+                            'icono': 'bi bi-play-circle-fill',
+                            'badge_bg': 'bg-warning text-dark',
+                            'icon_bg': 'bg-warning text-dark',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'ESPERA':
+                        eventos.append({
+                            'titulo': 'En espera',
+                            'fecha': record.history_date,
+                            'detalle': 'Esperando información del usuario',
+                            'icono': 'bi bi-pause-circle-fill',
+                            'badge_bg': 'bg-info text-dark',
+                            'icon_bg': 'bg-info text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'CERRADO':
+                        detalle = record.solucion.strip() if (
+                                record.solucion and record.solucion.strip()) else 'Problema solucionado'
+                        eventos.append({
+                            'titulo': 'Cerrado',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-check-circle-fill',
+                            'badge_bg': 'bg-danger text-white',
+                            'icon_bg': 'bg-danger text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'RECHAZADO':
+                        detalle = record.solucion.strip() if (
+                                record.solucion and record.solucion.strip()) else 'Ticket rechazado'
+                        eventos.append({
+                            'titulo': 'Rechazado',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-x-circle-fill',
+                            'badge_bg': 'bg-danger text-white',
+                            'icon_bg': 'bg-danger text-white',
+                            'usuario': record.history_user,
+                        })
+            else:
+                hubo_evento = False
+
+                # 2. Asignación / cambio de técnico
+                if prev_record.asignado_a_id != record.asignado_a_id:
+                    hubo_evento = True
+                    if not prev_record.asignado_a_id and record.asignado_a:
+                        eventos.append({
+                            'titulo': 'Ticket asignado',
+                            'fecha': record.history_date,
+                            'detalle': f'Asignado a {record.asignado_a}',
+                            'icono': 'bi bi-person-check-fill',
+                            'badge_bg': 'bg-info text-white',
+                            'icon_bg': 'bg-info text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.asignado_a:
+                        eventos.append({
+                            'titulo': 'Ticket reasignado',
+                            'fecha': record.history_date,
+                            'detalle': f'Reasignado a {record.asignado_a}',
+                            'icono': 'bi bi-arrow-left-right',
+                            'badge_bg': 'bg-info text-white',
+                            'icon_bg': 'bg-info text-white',
+                            'usuario': record.history_user,
+                        })
+                    else:
+                        eventos.append({
+                            'titulo': 'Asignación removida',
+                            'fecha': record.history_date,
+                            'detalle': 'Se retiró la asignación del técnico',
+                            'icono': 'bi bi-person-x-fill',
+                            'badge_bg': 'bg-secondary text-white',
+                            'icon_bg': 'bg-secondary text-white',
+                            'usuario': record.history_user,
+                        })
+
+                # 3. Cambio de estado
+                if prev_record.estado != record.estado:
+                    hubo_evento = True
+                    if record.estado == 'EN_PROCESO':
+                        detalle = 'Atención retomada' if prev_record.estado == 'ESPERA' else 'Técnico comenzó la atención'
+                        eventos.append({
+                            'titulo': 'En proceso',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-play-circle-fill',
+                            'badge_bg': 'bg-warning text-dark',
+                            'icon_bg': 'bg-warning text-dark',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'ESPERA':
+                        eventos.append({
+                            'titulo': 'En espera',
+                            'fecha': record.history_date,
+                            'detalle': 'Esperando información del usuario',
+                            'icono': 'bi bi-pause-circle-fill',
+                            'badge_bg': 'bg-info text-dark',
+                            'icon_bg': 'bg-info text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'CERRADO':
+                        detalle = record.solucion.strip() if (
+                                record.solucion and record.solucion.strip()) else 'Problema solucionado'
+                        eventos.append({
+                            'titulo': 'Cerrado',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-check-circle-fill',
+                            'badge_bg': 'bg-danger text-white',
+                            'icon_bg': 'bg-danger text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'RECHAZADO':
+                        detalle = record.solucion.strip() if (
+                                record.solucion and record.solucion.strip()) else 'Ticket rechazado'
+                        eventos.append({
+                            'titulo': 'Rechazado',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-x-circle-fill',
+                            'badge_bg': 'bg-danger text-white',
+                            'icon_bg': 'bg-danger text-white',
+                            'usuario': record.history_user,
+                        })
+                    elif record.estado == 'ABIERTO':
+                        eventos.append({
+                            'titulo': 'Abierto',
+                            'fecha': record.history_date,
+                            'detalle': 'Ticket reabierto' if prev_record.estado in ['CERRADO',
+                                                                                    'RECHAZADO'] else 'Ticket en estado abierto',
+                            'icono': 'bi bi-folder2-open',
+                            'badge_bg': 'bg-primary text-white',
+                            'icon_bg': 'bg-primary text-white',
+                            'usuario': record.history_user,
+                        })
+                else:
+                    # Si el estado sigue siendo CERRADO pero se cerró con fecha o solución actualizada
+                    if record.estado == 'CERRADO' and (record.fecha_cierre and not prev_record.fecha_cierre or (
+                            record.solucion and not prev_record.solucion)):
+                        hubo_evento = True
+                        detalle = record.solucion.strip() if (
+                                record.solucion and record.solucion.strip()) else 'Problema solucionado'
+                        eventos.append({
+                            'titulo': 'Cerrado',
+                            'fecha': record.history_date,
+                            'detalle': detalle,
+                            'icono': 'bi bi-check-circle-fill',
+                            'badge_bg': 'bg-danger text-white',
+                            'icon_bg': 'bg-danger text-white',
+                            'usuario': record.history_user,
+                        })
+
+                # Si no hubo cambio de asignación ni de estado pero hubo cambios en otros campos
+                if not hubo_evento and record.history_type == '~':
+                    cambios = []
+                    if prev_record.titulo != record.titulo:
+                        cambios.append("Título modificado")
+                    if prev_record.descripcion != record.descripcion:
+                        cambios.append("Descripción modificada")
+                    if prev_record.solucion != record.solucion and record.solucion:
+                        cambios.append(f"Solución: {record.solucion.strip()}")
+                    if prev_record.area_soporte_id != record.area_soporte_id:
+                        cambios.append(f"Área: {record.area_soporte.nombre if record.area_soporte else '-'}")
+                    if prev_record.tipo_soporte_id != record.tipo_soporte_id:
+                        cambios.append(f"Tipo: {record.tipo_soporte.nombre if record.tipo_soporte else '-'}")
+
+                    detalle = ", ".join(cambios) if cambios else "Ticket actualizado"
+                    eventos.append({
+                        'titulo': 'Ticket actualizado',
+                        'fecha': record.history_date,
+                        'detalle': detalle,
+                        'icono': 'bi bi-pencil-fill',
+                        'badge_bg': 'bg-secondary text-white',
+                        'icon_bg': 'bg-secondary text-white',
+                        'usuario': record.history_user,
+                    })
+
+            prev_record = record
+
+        return eventos
 
 
 @login_required
@@ -173,6 +510,7 @@ def ticket_tomar(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
     if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
         ticket.asignado_a = request.user.perfil_soporte
+        ticket.estado = 'EN_PROCESO'
         ticket.save()
         messages.success(request, 'Ticket asignado correctamente')
     else:
@@ -185,6 +523,12 @@ def ticket_cerrar(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
     if request.method == 'POST':
         solucion = request.POST.get('solucion')
+        tipo_soporte_id = request.POST.get('tipo_soporte')
+        if tipo_soporte_id:
+            try:
+                ticket.tipo_soporte = TipoSoporte.objects.get(pk=tipo_soporte_id)
+            except TipoSoporte.DoesNotExist:
+                ticket.tipo_soporte = None
         ticket.solucion = solucion
         ticket.estado = 'CERRADO'
         if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:

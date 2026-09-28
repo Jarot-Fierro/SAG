@@ -103,6 +103,16 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label for="tipo_soporte" class="form-label fw-bold">Tipo de Soporte</label>
+                            <select class="form-select" id="tipo_soporte" name="tipo_soporte" required>
+                                <option value="">Seleccione tipo de soporte...</option>
+                                {% for tipo in tipos_soporte %}
+                                    <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Indique la clasificación del soporte realizado.</div>
+                        </div>
+                        <div class="mb-3">
                             <label for="solucion" class="form-label fw-bold">Motivo de cierre / Solución</label>
                             <textarea class="form-control" id="solucion" name="solucion" rows="4"
                                       placeholder="Describa la solución aplicada..." required></textarea>
@@ -157,11 +167,16 @@
                 cerrarTicketModal.addEventListener('show.bs.modal', function (event) {
                     const button = event.relatedTarget;
                     const url = button.getAttribute('data-url');
+                    const tipoSoporte = button.getAttribute('data-tipo-soporte') || '';
                     const form = document.getElementById('cerrarTicketForm');
                     form.setAttribute('action', url);
 
-                    // Limpiar el campo de solución al abrir
+                    // Limpiar el campo de solución al abrir y setear tipo de soporte
                     document.getElementById('solucion').value = '';
+                    const selectTipoSoporte = document.getElementById('tipo_soporte');
+                    if (selectTipoSoporte) {
+                        selectTipoSoporte.value = tipoSoporte;
+                    }
                 });
             }
         });

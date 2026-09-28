@@ -51,6 +51,19 @@
                     <td>{{ ticket.asignado_a|default:'-' }}</td>
                     <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
+                        <!-- Historial -->
+                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Historial">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-info"
+                                    hx-get="{% url 'soporte:ticket_historial' ticket.pk %}"
+                                    hx-target="#genericModalContent"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#genericModal">
+                                <i class="bi bi-clock-history"></i>
+                                <span class="d-none">Historial</span>
+                            </button>
+                        </span>
+                    
                         <!-- Ver detalle -->
                         <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ver Ticket">
                             <button type="button"
@@ -87,7 +100,8 @@
                                     class="btn btn-sm btn-outline-success btn-cerrar-modal"
                                     data-bs-toggle="modal"
                                     data-bs-target="#cerrarTicketModal"
-                                    data-url="{% url 'soporte:ticket_cerrar' ticket.id %}">
+                                    data-url="{% url 'soporte:ticket_cerrar' ticket.id %}"
+                                    data-tipo-soporte="{{ ticket.tipo_soporte.id|default:'' }}">
                                 <i class="bi bi-check2-circle"></i>
                                 <span class="d-none">Cerrar</span>
                             </button>
