@@ -399,3 +399,101 @@ class SoportePerfilSoporteTests(TestCase):
         ticket = Ticket.objects.filter(titulo__icontains='Error en pantalla azul').first()
         self.assertIsNotNone(ticket)
         self.assertEqual(ticket.funcionario, self.user_solicitante)
+
+    @patch('core.services.email_service.EmailService.send_email_with_config')
+    def test_ticket_para_funcionario_create_envia_correo_a_correo_especificado(self, mock_send_email):
+        mock_send_email.return_value = True
+
+        config_correo = ConfiguracionCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            nombre_remitente="Mesa de Ayuda SAG",
+            email_remitente="soporte@sag.cl",
+            smtp_host="smtp.sag.cl",
+            smtp_port=587,
+            smtp_usuario="soporte@sag.cl",
+            _smtp_password="password123",
+            activo=True
+        )
+
+        uo = UnidadOrganizacional.objects.create(
+            nombre="Departamento de Finanzas",
+            establecimiento=self.establecimiento,
+            es_departamento=True
+        )
+
+        self.client.login(username="solicitante", password="password123")
+        url_create_para_funcionario = reverse('soporte:ticket_para_funcionario_create')
+
+        response = self.client.post(url_create_para_funcionario, {
+            'titulo': 'Problema externo',
+            'descripcion': 'Fallo en equipo',
+            'area_soporte': self.area_soporte.pk,
+            'nombres': 'Pedro',
+            'apellidos': 'González',
+            'correo': 'pedro.gonzalez@externo.cl',
+            'departamento': uo.pk,
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        ticket = Ticket.objects.filter(titulo='Problema externo').first()
+        self.assertIsNotNone(ticket)
+        self.assertEqual(ticket.nombres, 'Pedro')
+        self.assertEqual(ticket.apellidos, 'González')
+        self.assertEqual(ticket.correo, 'pedro.gonzalez@externo.cl')
+        self.assertIn('Departamento de Finanzas', ticket.departamento)
+
+        mock_send_email.assert_called_once()
+        call_kwargs = mock_send_email.call_args[1] if mock_send_email.call_args[1] else {}
+        call_args = mock_send_email.call_args[0] if mock_send_email.call_args[0] else ()
+
+        config_passed = call_kwargs.get('config') or (call_args[0] if len(call_args) > 0 else None)
+        subject_passed = call_kwargs.get('subject') or (call_args[1] if len(call_args) > 1 else None)
+        recipient_passed = call_kwargs.get('recipient_list') or (call_args[2] if len(call_args) > 2 else None)
+        context_passed = call_kwargs.get('context') or (call_args[4] if len(call_args) > 4 else None)
+
+        self.assertEqual(config_passed, config_correo)
+        self.assertIn(ticket.numero_ticket, subject_passed)
+        self.assertEqual(recipient_passed, ['pedro.gonzalez@externo.cl'])
+        self.assertEqual(context_passed['ticket'], ticket)
+        self.assertIn('Departamento de Finanzas', str(context_passed['departamento']))
+
+    def test_ticket_delete_view_desactiva_ticket(self):
+        ticket = Ticket.objects.create(
+            titulo="Ticket para desactivar",
+            descripcion="Descripción de prueba",
+            establecimiento=self.establecimiento,
+            funcionario=self.user_solicitante,
+            area_soporte=self.area_soporte,
+            is_active=True
+        )
+
+        self.client.login(username="solicitante", password="password123")
+        url_delete = reverse('soporte:ticket_delete', kwargs={'pk': ticket.pk})
+        url_list = reverse('soporte:ticket_list')
+
+        response = self.client.get(url_delete, HTTP_REFERER=url_list, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        ticket.refresh_from_db()
+        self.assertFalse(ticket.is_active)
+        self.assertContains(response, 'Ticket desactivado correctamente')
+
+    def test_ticket_list_shows_delete_button_for_active_ticket(self):
+        ticket = Ticket.objects.create(
+            titulo="Ticket en lista",
+            descripcion="Descripción en lista",
+            establecimiento=self.establecimiento,
+            funcionario=self.user_solicitante,
+            area_soporte=self.area_soporte,
+            is_active=True
+        )
+
+        self.client.login(username="solicitante", password="password123")
+        url_list = reverse('soporte:ticket_list')
+
+        response = self.client.get(url_list)
+        self.assertEqual(response.status_code, 200)
+        url_delete = reverse('soporte:ticket_delete', kwargs={'pk': ticket.pk})
+        self.assertContains(response, url_delete)
+        self.assertContains(response, 'Desactivar')

@@ -6,10 +6,17 @@
 
 {% block buttons %}
     <a href="{% url 'soporte:ticket_create' %}"
-       class="btn btn-sm btn-primary"
+       class="btn btn-sm btn-primary mx-2"
        title="Nuevo Registro">
         <i class="bi bi-plus-circle me-1"></i>
-        Nuevo Registro
+        Soporte para mi
+    </a>
+
+    <a href="{% url 'soporte:ticket_para_funcionario_create' %}"
+       class="btn btn-sm btn-success"
+       title="Nuevo Ticket Para Funcionario">
+        <i class="bi bi-plus-circle me-1"></i>
+        Soporte a Funcionario
     </a>
 {% endblock %}
 
@@ -121,6 +128,19 @@
                                             </button>
                                         </span>
 
+                                        <!-- Ver detalle -->
+                                        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Ver Ticket">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    hx-get="{% url 'soporte:ticket_detail' ticket.pk %}"
+                                                    hx-target="#genericModalContent"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#genericModal">
+                                                <i class="bi bi-eye"></i>
+                                                <span class="d-none">Ver</span>
+                                            </button>
+                                        </span>
+
                                         {% if ticket.estado == 'CERRADO' %}
                                             <span class="badge bg-danger">
                                             Cerrado
@@ -134,6 +154,17 @@
                                                 <i class="bi bi-pencil"></i>
                                                 <span class="d-none">Editar</span>
                                             </a>
+                                            {% if ticket.is_active %}
+                                                <a href="{% url 'soporte:ticket_delete' ticket.pk %}"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   title="Desactivar"
+                                                   data-bs-toggle="tooltip"
+                                                   data-bs-placement="top"
+                                                   onclick="return confirm('¿Estás seguro de desactivar este ticket?');">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span class="d-none">Desactivar</span>
+                                                </a>
+                                            {% endif %}
                                         {% endif %}
 
                                     </td>

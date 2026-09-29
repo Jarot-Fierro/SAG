@@ -51,7 +51,8 @@
         <h2>SAG - Sistema de Administración y Gestión</h2>
     </div>
 
-    <p>Estimado(a) <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>,</p>
+    <p>Estimado(a) <strong>{{ nombre_destinatario|default:usuario.get_full_name|default:usuario.username }}</strong>,
+    </p>
 
     <p>Agradecemos su solicitud. Le informamos que su ticket ha sido recibido correctamente en el sistema y queda
         pendiente de asignación a un usuario técnico para su atención.</p>

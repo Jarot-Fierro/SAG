@@ -76,45 +76,138 @@
 
             <p class="login-box-msg">Inicia sesión con tus credenciales</p>
 
-            <form action="{% url 'usuarios:login' %}" method="post" id="loginForm">
-                {% csrf_token %}
-                {% if next %}
-                    <input type="hidden" name="next" value="{{ next }}">
-                {% endif %}
-                <div class="input-group mb-3">
-                    <input type="text" name="username" id="id_username" class="form-control" placeholder="Usuario"
-                           aria-label="Username"
-                           value="{{ form.username.value|default:'' }}"
-                           required>
-                    <div class="input-group-text">
-                        <span class="bi bi-person"></span>
-                    </div>
-                </div>
-                <div class="input-group mb-3">
-                    <input type="password" name="password" class="form-control" placeholder="Contraseña"
-                           aria-label="Password" required>
-                    <div class="input-group-text">
-                        <span class="bi bi-lock-fill"></span>
-                    </div>
-                </div>
-                <!--begin::Row-->
-                <div class="row">
-                    <div class="col-4 d-inline-flex align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember_me" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">Recuerdame</label>
+            <!--begin::Login Tabs-->
+            <ul class="nav nav-tabs nav-fill mb-3" id="loginTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if tipo_acceso != 'DEPARTAMENTO' %}active{% endif %}"
+                            id="personal-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#personal-tab-pane"
+                            type="button"
+                            role="tab"
+                            aria-controls="personal-tab-pane"
+                            aria-selected="{% if tipo_acceso != 'DEPARTAMENTO' %}true{% else %}false{% endif %}">
+                        <i class="bi bi-person me-1"></i> Personal
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if tipo_acceso == 'DEPARTAMENTO' %}active{% endif %}"
+                            id="depto-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#depto-tab-pane"
+                            type="button"
+                            role="tab"
+                            aria-controls="depto-tab-pane"
+                            aria-selected="{% if tipo_acceso == 'DEPARTAMENTO' %}true{% else %}false{% endif %}">
+                        <i class="bi bi-building me-1"></i> Departamento
+                    </button>
+                </li>
+            </ul>
+            <!--end::Login Tabs-->
+
+            <div class="tab-content" id="loginTabContent">
+                <!--begin::Personal Tab Pane-->
+                <div class="tab-pane fade {% if tipo_acceso != 'DEPARTAMENTO' %}show active{% endif %}"
+                     id="personal-tab-pane"
+                     role="tabpanel"
+                     aria-labelledby="personal-tab"
+                     tabindex="0">
+                    <form action="{% url 'usuarios:login' %}" method="post" id="loginFormPersonal">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo_acceso" value="PERSONAL">
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                        <div class="input-group mb-3">
+                            <input type="text" name="username" id="id_username" class="form-control"
+                                   placeholder="RUT (ej: 12.345.678-9)"
+                                   aria-label="Username"
+                                   value="{% if tipo_acceso != 'DEPARTAMENTO' %}{{ form.username.value|default:'' }}{% endif %}"
+                                   required>
+                            <div class="input-group-text">
+                                <span class="bi bi-person"></span>
+                            </div>
                         </div>
-                    </div>
-                    <!-- /.col -->
-                    <div class="col-8">
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                        <div class="input-group mb-3">
+                            <input type="password" name="password" class="form-control" placeholder="Contraseña"
+                                   aria-label="Password" required>
+                            <div class="input-group-text">
+                                <span class="bi bi-lock-fill"></span>
+                            </div>
                         </div>
-                    </div>
-                    <!-- /.col -->
+                        <!--begin::Row-->
+                        <div class="row">
+                            <div class="col-4 d-inline-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="remember_me"
+                                           id="flexCheckDefaultPersonal">
+                                    <label class="form-check-label" for="flexCheckDefaultPersonal">Recuérdame</label>
+                                </div>
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-8">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                                </div>
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        <!--end::Row-->
+                    </form>
                 </div>
-                <!--end::Row-->
-            </form>
+                <!--end::Personal Tab Pane-->
+
+                <!--begin::Departamento Tab Pane-->
+                <div class="tab-pane fade {% if tipo_acceso == 'DEPARTAMENTO' %}show active{% endif %}"
+                     id="depto-tab-pane"
+                     role="tabpanel"
+                     aria-labelledby="depto-tab"
+                     tabindex="0">
+                    <form action="{% url 'usuarios:login' %}" method="post" id="loginFormDepto">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo_acceso" value="DEPARTAMENTO">
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                        <div class="input-group mb-3">
+                            <input type="text" name="alias" id="id_alias" class="form-control"
+                                   placeholder="Alias de departamento (ej: informatica)"
+                                   aria-label="Alias"
+                                   value="{% if tipo_acceso == 'DEPARTAMENTO' %}{{ form.username.value|default:'' }}{% endif %}"
+                                   required>
+                            <div class="input-group-text">
+                                <span class="bi bi-building"></span>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="password" name="password" class="form-control" placeholder="Contraseña"
+                                   aria-label="Password" required>
+                            <div class="input-group-text">
+                                <span class="bi bi-lock-fill"></span>
+                            </div>
+                        </div>
+                        <!--begin::Row-->
+                        <div class="row">
+                            <div class="col-4 d-inline-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="remember_me"
+                                           id="flexCheckDefaultDepto">
+                                    <label class="form-check-label" for="flexCheckDefaultDepto">Recuérdame</label>
+                                </div>
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-8">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                                </div>
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        <!--end::Row-->
+                    </form>
+                </div>
+                <!--end::Departamento Tab Pane-->
+            </div>
 
             <!-- /.social-auth-links -->
 
@@ -184,9 +277,10 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const usernameInput = document.getElementById('id_username');
-        const loginForm = document.getElementById('loginForm');
+        const loginFormPersonal = document.getElementById('loginFormPersonal');
 
         function formatRut(value) {
+            if (!value) return '';
             // Quitar all lo que no sea número o k/K
             let rut = value.replace(/[^\dkK]/g, '').toUpperCase();
             if (rut.length <= 1) return rut;
@@ -206,23 +300,27 @@
             return formatted + '-' + dv;
         }
 
-        usernameInput.addEventListener('input', function (e) {
-            let cursorPosition = e.target.selectionStart;
-            let oldLength = e.target.value.length;
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function (e) {
+                let cursorPosition = e.target.selectionStart;
+                let oldLength = e.target.value.length;
 
-            let formatted = formatRut(e.target.value);
-            e.target.value = formatted;
+                let formatted = formatRut(e.target.value);
+                e.target.value = formatted;
 
-            // Ajustar posición del cursor si es necesario
-            let newLength = formatted.length;
-            cursorPosition = cursorPosition + (newLength - oldLength);
-            e.target.setSelectionRange(cursorPosition, cursorPosition);
-        });
+                // Ajustar posición del cursor si es necesario
+                let newLength = formatted.length;
+                cursorPosition = cursorPosition + (newLength - oldLength);
+                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            });
+        }
 
-        loginForm.addEventListener('submit', function () {
-            // Asegurar el formato final al enviar
-            usernameInput.value = formatRut(usernameInput.value);
-        });
+        if (loginFormPersonal && usernameInput) {
+            loginFormPersonal.addEventListener('submit', function () {
+                // Asegurar el formato final al enviar
+                usernameInput.value = formatRut(usernameInput.value);
+            });
+        }
     });
 </script>
 <!--end::Script-->

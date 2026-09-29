@@ -14,7 +14,7 @@ from core.models.configuracion_correo import ConfiguracionCorreo
 from core.services.email_service import EmailService
 from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView, StandardDetailView
 from soporte.filters.tickets import FiltroTicket
-from soporte.forms.forms_tickets import FormTicket, FormTicketEditor
+from soporte.forms.forms_tickets import FormTicket, FormTicketEditor, FormTicketParaFuncionario
 from soporte.models import Ticket, AreaSoporte, PerfilSoporte, TipoSoporte
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def _obtener_departamento_ticket(ticket, usuario=None):
     return None
 
 
-def enviar_correo_ticket_creado(ticket, usuario):
+def enviar_correo_ticket_creado(ticket, usuario=None, correo_destinatario=None):
     """
     Envía notificación por correo al usuario cuando se crea un ticket correctamente
     utilizando la configuración SMTP del establecimiento.
@@ -54,7 +54,15 @@ def enviar_correo_ticket_creado(ticket, usuario):
     try:
         # Para depuración / pruebas manuales con un correo específico:
         # destinatario = ['jarot.fierro.c@redsalud.gob.cl']
-        destinatario = [usuario.email] if usuario and usuario.email else []
+        if correo_destinatario:
+            destinatario = [correo_destinatario]
+        elif usuario and getattr(usuario, 'email', None):
+            destinatario = [usuario.email]
+        elif getattr(ticket, 'correo', None):
+            destinatario = [ticket.correo]
+        else:
+            destinatario = []
+        print(destinatario)
 
         if not destinatario:
             logger.warning(
@@ -62,12 +70,14 @@ def enviar_correo_ticket_creado(ticket, usuario):
             return False
 
         establecimiento = ticket.establecimiento or getattr(usuario, 'establecimiento', None)
+        print(establecimiento)
         if not establecimiento:
             logger.warning(
                 f"No se pudo enviar correo para el ticket {ticket.numero_ticket}: no tiene establecimiento asignado.")
             return False
 
         config = ConfiguracionCorreo.objects.filter(establecimiento=establecimiento, activo=True).first()
+        print(config)
         if not config:
             logger.warning(
                 f"No existe configuración de correo activa para el establecimiento {establecimiento.nombre}.")
@@ -75,9 +85,21 @@ def enviar_correo_ticket_creado(ticket, usuario):
 
         departamento = _obtener_departamento_ticket(ticket, usuario)
         asunto = f"Ticket #{ticket.numero_ticket} recibido exitosamente"
+        print(asunto, departamento)
+
+        nombre_destinatario = None
+        if ticket.nombres or ticket.apellidos:
+            nombre_destinatario = f"{ticket.nombres or ''} {ticket.apellidos or ''}".strip()
+        elif usuario:
+            nombre_destinatario = usuario.get_full_name() if hasattr(usuario,
+                                                                     'get_full_name') and usuario.get_full_name() else getattr(
+                usuario, 'username', str(usuario))
+
         context = {
             'ticket': ticket,
-            'usuario': usuario,
+            'usuario': usuario or (type('Obj', (object,), {'get_full_name': lambda self: nombre_destinatario,
+                                                           'username': nombre_destinatario})() if nombre_destinatario else None),
+            'nombre_destinatario': nombre_destinatario,
             'departamento': departamento,
         }
 
@@ -105,7 +127,7 @@ class TicketListView(StandardListView):
     list_url_name = "soporte:ticket_list"
     create_url_name = "soporte:ticket_create"
     update_url_name = "soporte:ticket_update"
-    delete_url_name = "soporte:ticket_update"
+    delete_url_name = "soporte:ticket_delete"
 
     def get_queryset(self):
         # Sobrescribimos para mostrar tanto activos como inactivos
@@ -114,8 +136,8 @@ class TicketListView(StandardListView):
         )
 
         # Aplicamos filtro de establecimiento similar a StandardBaseView
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        # if not self.request.user.is_superuser:
+        queryset = queryset.filter(establecimiento=self.request.user.establecimiento, is_active=True)
 
         self.filter_form = self.get_filter_form()
 
@@ -179,6 +201,30 @@ class TicketCreateView(StandardCreateView):
         return response
 
 
+class TicketParaFuncionarioCreateView(StandardCreateView):
+    template_name = 'tickets/form_para_funcionario.html'
+    model = Ticket
+    form_class = FormTicketParaFuncionario
+    success_url = reverse_lazy('soporte:ticket_list')
+    title = 'Nuevo Ticket Para Funcionario'
+    module_name = MODULE_NAME
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.establecimiento = self.request.user.establecimiento
+        response = super().form_valid(form)
+        # El ticket ya fue creado y persistido con su ID y correlativo
+        try:
+            enviar_correo_ticket_creado(self.object, correo_destinatario=self.object.correo)
+        except Exception as e:
+            logger.error(f"Error al intentar enviar el correo de confirmación de ticket: {str(e)}", exc_info=True)
+        return response
+
+
 class TicketsUpdateView(StandardUpdateView):
     template_name = 'tickets/form.html'
     model = Ticket
@@ -211,7 +257,7 @@ class TicketEditorListView(StandardListView):
             queryset = super().get_queryset().select_related(
                 "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
             ).filter(
-                area_soporte__in=areas_usuario
+                area_soporte__in=areas_usuario, is_active=True
             )
         except AttributeError:
             # Si el usuario no tiene perfil_soporte, no ve ningún ticket
@@ -500,9 +546,16 @@ class TicketHistorialView(LoginRequiredMixin, DetailView):
 def ticket_delete(request, pk):
     ticket = get_object_or_404(Ticket, pk=pk)
     ticket.is_active = False
+    ticket.estado = 'CANCELADO'
+    ticket.solucion = "YO COMO USUARIO AUTORIZO CANCELAR ESTE TICKET"
     ticket.save()
     messages.success(request, 'Ticket desactivado correctamente')
-    return redirect('soporte:ticket_editor_list')
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
+    if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
+        return redirect('soporte:ticket_editor_list')
+    return redirect('soporte:ticket_list')
 
 
 @login_required

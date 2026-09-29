@@ -116,6 +116,18 @@
                             <i class="bi bi-pencil-square"></i>
                             <span class="d-none">Editar</span>
                         </a>
+
+                        {% if ticket.is_active %}
+                            <a href="{% url 'soporte:ticket_delete' ticket.pk %}"
+                               class="btn btn-sm btn-outline-danger"
+                               title="Desactivar"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               onclick="return confirm('¿Estás seguro de desactivar este ticket?');">
+                                <i class="bi bi-trash"></i>
+                                <span class="d-none">Desactivar</span>
+                            </a>
+                        {% endif %}
                     </td>
                 </tr>
             {% empty %}

@@ -1,6 +1,8 @@
 from django import forms
+from django.db.models import Q
 
 from core.models import User, Establecimiento
+from core.models.unidad_organizacional import UnidadOrganizacional
 from soporte.models import Ticket, AreaSoporte, TipoSoporte, PerfilSoporte
 
 
@@ -48,6 +50,107 @@ class FormTicket(forms.ModelForm):
         fields = [
             'titulo',
             'area_soporte',
+            'descripcion',
+        ]
+
+
+class FormTicketParaFuncionario(forms.ModelForm):
+
+    def __init__(self, *args, request=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        deptos_qs = UnidadOrganizacional.objects.filter(
+            Q(es_departamento=True) | Q(es_subdepartamento=True)
+        )
+        if request and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+            self.fields["area_soporte"].queryset = AreaSoporte.objects.filter(
+                establecimiento=request.user.establecimiento
+            )
+            deptos_qs = deptos_qs.filter(establecimiento=request.user.establecimiento)
+
+        self.fields["departamento"].queryset = deptos_qs
+
+    titulo = forms.CharField(
+        label='Título del problema',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Problema con impresora'
+        }),
+        required=True
+    )
+
+    descripcion = forms.CharField(
+        label='Descripción del problema',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Describa el problema que está presentando'
+        }),
+        required=False
+    )
+
+    area_soporte = forms.ModelChoiceField(
+        queryset=AreaSoporte.objects.all(),
+        label='¿Para que área quieres mandar este soporte?',
+        empty_label='Selecciona una opción',
+        widget=forms.Select(attrs={
+            'class': 'form-control form-select'
+        }),
+        required=True
+    )
+
+    nombres = forms.CharField(
+        label='Nombres',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Juan'
+        }),
+        required=True
+    )
+
+    apellidos = forms.CharField(
+        label='Apellidos',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Pérez'
+        }),
+        required=True
+    )
+
+    correo = forms.EmailField(
+        label='Correo Electrónico',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: juan.perez@redsalud.gob.cl'
+        }),
+        required=True
+    )
+
+    departamento = forms.ModelChoiceField(
+        queryset=UnidadOrganizacional.objects.none(),
+        label='Departamento / Subdepartamento',
+        empty_label='Selecciona una opción',
+        widget=forms.Select(attrs={
+            'class': 'form-control form-select select2'
+        }),
+        required=True
+    )
+
+    def clean_departamento(self):
+        depto = self.cleaned_data.get('departamento')
+        if isinstance(depto, UnidadOrganizacional):
+            return str(depto)
+        return depto or ''
+
+    class Meta:
+        model = Ticket
+        fields = [
+            'titulo',
+            'area_soporte',
+            'nombres',
+            'apellidos',
+            'correo',
+            'departamento',
             'descripcion',
         ]
 

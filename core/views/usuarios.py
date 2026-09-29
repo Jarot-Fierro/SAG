@@ -22,9 +22,17 @@ def login_view(request):
         return redirect('intranet:index')
 
     next_url = request.GET.get('next') or request.POST.get('next') or 'intranet:index'
+    tipo_acceso = request.POST.get('tipo_acceso', 'PERSONAL')
 
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        # Preparar datos para AuthenticationForm según tipo_acceso
+        post_data = request.POST.copy()
+        if tipo_acceso == 'DEPARTAMENTO':
+            alias = post_data.get('alias', '')
+            if alias:
+                post_data['username'] = alias
+
+        form = AuthenticationForm(request, data=post_data)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
@@ -45,7 +53,11 @@ def login_view(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, 'base_login.html', {'form': form, 'next': next_url})
+    return render(request, 'base_login.html', {
+        'form': form,
+        'next': next_url,
+        'tipo_acceso': tipo_acceso
+    })
 
 
 def logout_view(request):

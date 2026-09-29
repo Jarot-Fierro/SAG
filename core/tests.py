@@ -100,3 +100,80 @@ class StandardViewURLTests(TestCase):
         self.assertEqual(context['list_url'], reverse('core:establecimiento_list'))
         self.assertEqual(context['create_url'], reverse('core:establecimiento_create'))
         self.assertEqual(context['q'], 'test')
+
+
+class LoginViewTests(TestCase):
+    def setUp(self):
+        self.establecimiento = Establecimiento.objects.create(
+            nombre="Hospital Base Test",
+            alias="HBT",
+            region="Metropolitana"
+        )
+        self.user_personal = User.objects.create_user(
+            username="11.111.111-1",
+            password="Password123!",
+            first_name="Juan",
+            last_name="Perez",
+            establecimiento=self.establecimiento
+        )
+        self.user_depto = User.objects.create_user(
+            username="TI_SOPORTE",
+            password="DeptoPassword123!",
+            first_name="Soporte",
+            last_name="TI",
+            establecimiento=self.establecimiento
+        )
+
+    def test_login_get_shows_tabs_and_forms(self):
+        url = reverse('usuarios:login')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'base_login.html')
+        self.assertContains(response, 'id="personal-tab"')
+        self.assertContains(response, 'id="depto-tab"')
+        self.assertContains(response, 'name="tipo_acceso" value="PERSONAL"')
+        self.assertContains(response, 'name="tipo_acceso" value="DEPARTAMENTO"')
+        self.assertContains(response, 'name="alias"')
+
+    def test_login_personal_exitoso(self):
+        url = reverse('usuarios:login')
+        response = self.client.post(url, {
+            'tipo_acceso': 'PERSONAL',
+            'username': '11.111.111-1',
+            'password': 'Password123!',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('intranet:index'))
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user_personal.pk)
+
+    def test_login_departamento_exitoso(self):
+        url = reverse('usuarios:login')
+        response = self.client.post(url, {
+            'tipo_acceso': 'DEPARTAMENTO',
+            'alias': 'ti_soporte',
+            'password': 'DeptoPassword123!',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('intranet:index'))
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user_depto.pk)
+
+    def test_login_personal_fallido(self):
+        url = reverse('usuarios:login')
+        response = self.client.post(url, {
+            'tipo_acceso': 'PERSONAL',
+            'username': '11.111.111-1',
+            'password': 'WrongPassword',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Credenciales invalidas')
+
+    def test_login_departamento_fallido(self):
+        url = reverse('usuarios:login')
+        response = self.client.post(url, {
+            'tipo_acceso': 'DEPARTAMENTO',
+            'alias': 'ti_soporte',
+            'password': 'WrongPassword',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Credenciales invalidas')
+        self.assertEqual(response.context['tipo_acceso'], 'DEPARTAMENTO')
