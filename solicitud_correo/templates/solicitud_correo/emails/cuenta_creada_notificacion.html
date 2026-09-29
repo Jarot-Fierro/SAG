@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .cuenta-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #198754;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .cuenta-email {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>SAG - Sistema de Administración y Gestión</h2>
+        <h4 style="color: #198754;">Cuenta de Correo Institucional Creada</h4>
+    </div>
+
+    <p>Estimado(a) <strong>{{ detalle.nombre_completo }}</strong>,</p>
+
+    <p>Le informamos que su cuenta de correo electrónico institucional ha sido creada exitosamente en la plataforma MINSAL según la solicitud <strong>{{ solicitud.numero_solicitud }}</strong>.</p>
+
+    <div class="cuenta-box">
+        <p><strong>Funcionario:</strong> {{ detalle.nombre_completo }} (RUT: {{ detalle.rut|default:'N/A' }})</p>
+        <p><strong>Correo Creado:</strong> <span class="cuenta-email">{{ detalle.correo_creado }}</span></p>
+        {% if detalle.departamento %}
+            <p><strong>Departamento / Unidad:</strong> {{ detalle.departamento }}</p>
+        {% endif %}
+        {% if detalle.referencia_externa %}
+            <p><strong>N° Solicitud MINSAL:</strong> {{ detalle.referencia_externa }}</p>
+        {% endif %}
+        {% if observacion %}
+            <p><strong>Observaciones:</strong> {{ observacion }}</p>
+        {% endif %}
+    </div>
+
+    <p>Para ingresar a su correo institucional, acceda a la plataforma webmail MINSAL correspondiente con sus credenciales institucionales.</p>
+
+    <div class="footer">
+        <p>Este es un correo automático generado por el sistema SAG. Por favor no responda a este mensaje.</p>
+        <p>&copy; 2026 {{ establecimiento.nombre|default:'SAG' }} - Todos los derechos reservados.</p>
+    </div>
+</div>
+</body>
+</html>

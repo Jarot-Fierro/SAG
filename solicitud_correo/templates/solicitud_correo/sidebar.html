@@ -1,0 +1,35 @@
+{% if es_rrhh or user.is_superuser %}
+    <li class="nav-item">
+        <a href="{% url 'solicitud_correo:bandeja_rrhh' %}" class="nav-link">
+            <i class="nav-icon bi bi-person-check"></i>
+            <p>Bandeja RR.HH.</p>
+        </a>
+    </li>
+{% endif %}
+
+{% if es_tic or user.is_superuser %}
+    <li class="nav-item">
+        <a href="{% url 'solicitud_correo:bandeja_tic' %}" class="nav-link">
+            <i class="nav-icon bi bi-hdd-network"></i>
+            <p>Bandeja TIC / Informática</p>
+        </a>
+    </li>
+{% endif %}
+
+{% if es_rrhh or es_tic or user.is_superuser %}
+    <hr class="my-2 border-secondary">
+{% endif %}
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="nav-link">
+        <i class="nav-icon bi bi-list-task"></i>
+        <p>Mis Solicitudes</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_correo:crear' %}" class="nav-link">
+        <i class="nav-icon bi bi-envelope-plus"></i>
+        <p>Nueva Solicitud</p>
+    </a>
+</li>

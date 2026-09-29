@@ -1,31 +1,8 @@
-import socket
-
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import HttpResponse
 from django.urls import path, include
 
 from config import settings
-
-
-def recibe_ip(request):
-    ip = request.META.get("REMOTE_ADDR")
-
-    try:
-        nombre_equipo = socket.gethostbyaddr(ip)[0]
-    except socket.herror:
-        nombre_equipo = "No identificado"
-
-    print("\n" + "=" * 80)
-    print("NUEVA VISITA")
-    print(f"IP origen: {ip}")
-    print(f"Nombre DNS: {nombre_equipo}")
-    print(f"Ruta: {request.path}")
-    print(f"User-Agent: {request.META.get('HTTP_USER_AGENT')}")
-    print("=" * 80 + "\n")
-
-    return HttpResponse("No eres Bienvenido")
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,7 +13,7 @@ urlpatterns = [
     path('horos/', include('horos.urls')),
     path('gestion/', include('gestion_tic.urls')),
     path('bodega/', include('bodega.urls')),
-    path('recibe/', recibe_ip),
+    path('solicitudes-correo/', include('solicitud_correo.urls')),
 ]
 
 handler404 = 'core.views.errors.handler404'

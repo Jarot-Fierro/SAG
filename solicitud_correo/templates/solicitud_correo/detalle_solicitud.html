@@ -1,0 +1,500 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+    {% include 'solicitud_correo/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+
+        <!-- Botón Historial -->
+        <button type="button"
+                class="btn btn-sm btn-info text-white"
+                hx-get="{% url 'solicitud_correo:historial' solicitud.pk %}"
+                hx-target="#genericModalContent"
+                data-bs-toggle="modal"
+                data-bs-target="#genericModal">
+            <i class="bi bi-clock-history me-1"></i> Historial
+        </button>
+
+        {% if es_rrhh and solicitud.total_pendientes_rrhh > 0 %}
+            <form method="post" action="{% url 'solicitud_correo:aprobar_todos_rrhh' solicitud.pk %}" class="d-inline"
+                  onsubmit="return confirm('¿Aprobar todos los funcionarios pendientes de esta solicitud?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success">
+                    <i class="bi bi-check-all me-1"></i> Aprobar Todos (RR.HH.)
+                </button>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block title %}Solicitud de Correo: {{ solicitud.numero_solicitud|default:solicitud.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+
+    <!-- Cabecera de la Solicitud -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span class="fw-bold fs-5">
+                <i class="bi bi-file-earmark-text me-2"></i>Folio: {{ solicitud.numero_solicitud|default:solicitud.id }}
+            </span>
+            <div>
+                {% if solicitud.estado == 'BORRADOR' %}
+                    <span class="badge bg-secondary fs-6">Borrador</span>
+                {% elif solicitud.estado == 'PENDIENTE_RRHH' %}
+                    <span class="badge bg-warning text-dark fs-6">Pendiente Revisión RR.HH.</span>
+                {% elif solicitud.estado == 'EN_REVISION_RRHH' %}
+                    <span class="badge bg-warning text-dark fs-6">En Revisión RR.HH.</span>
+                {% elif solicitud.estado == 'EN_TIC' %}
+                    <span class="badge bg-info text-dark fs-6">Enviada a TIC</span>
+                {% elif solicitud.estado == 'EN_PROCESO_TIC' %}
+                    <span class="badge bg-primary fs-6">En Proceso TIC</span>
+                {% elif solicitud.estado == 'FINALIZADA' %}
+                    <span class="badge bg-success fs-6">Finalizada</span>
+                {% elif solicitud.estado == 'CANCELADA' %}
+                    <span class="badge bg-danger fs-6">Cancelada</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <small class="text-muted d-block">Solicitante</small>
+                    <strong>{{ solicitud.usuario_solicitante.get_full_name|default:solicitud.usuario_solicitante.username }}</strong>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <small class="text-muted d-block">Departamento Solicitante</small>
+                    <strong>{{ solicitud.departamento_nombre|default:solicitud.departamento_solicitante|default:'No especificado' }}</strong>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <small class="text-muted d-block">Establecimiento</small>
+                    <strong>{{ solicitud.establecimiento.nombre|default:'General' }}</strong>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <small class="text-muted d-block">Fecha de Solicitud</small>
+                    <strong>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</strong>
+                </div>
+
+                {% if solicitud.usuario_rrhh %}
+                    <div class="col-md-3 col-sm-6">
+                        <small class="text-muted d-block">Revisado en RR.HH. por</small>
+                        <span>{{ solicitud.usuario_rrhh.get_full_name|default:solicitud.usuario_rrhh.username }}</span>
+                        {% if solicitud.fecha_revision_rrhh %}
+                            <small class="text-muted">({{ solicitud.fecha_revision_rrhh|date:"d/m/Y H:i" }})</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if solicitud.tecnico_tic %}
+                    <div class="col-md-3 col-sm-6">
+                        <small class="text-muted d-block">Técnico TIC Responsable</small>
+                        <span>{{ solicitud.tecnico_tic.get_full_name|default:solicitud.tecnico_tic.username }}</span>
+                        {% if solicitud.fecha_procesamiento_tic %}
+                            <small class="text-muted">({{ solicitud.fecha_procesamiento_tic|date:"d/m/Y H:i" }})</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if solicitud.fecha_finalizacion %}
+                    <div class="col-md-3 col-sm-6">
+                        <small class="text-muted d-block">Fecha Finalización</small>
+                        <span class="text-success fw-bold">{{ solicitud.fecha_finalizacion|date:"d/m/Y H:i" }}</span>
+                    </div>
+                {% endif %}
+
+                {% if solicitud.observacion %}
+                    <div class="col-12 mt-2">
+                        <small class="text-muted d-block">Observaciones de la Solicitud</small>
+                        <div class="p-2 bg-light rounded border">{{ solicitud.observacion|linebreaksbr }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Funcionarios Solicitados -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-people-fill me-2"></i>Funcionarios Solicitados ({{ solicitud.detalles.count }})
+            </h5>
+            <div class="d-flex gap-2">
+                <span class="badge bg-secondary">{{ solicitud.total_funcionarios }} Total</span>
+                <span class="badge bg-success">{{ solicitud.total_creados }} Creados</span>
+                <span class="badge bg-danger">{{ solicitud.total_rechazados }} Rechazados</span>
+                {% if solicitud.total_pendientes_rrhh > 0 %}
+                    <span class="badge bg-warning text-dark">{{ solicitud.total_pendientes_rrhh }} Pend. RR.HH.</span>
+                {% endif %}
+                {% if solicitud.total_pendientes_tic > 0 %}
+                    <span class="badge bg-info text-dark">{{ solicitud.total_pendientes_tic }} Pend. TIC</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;">#</th>
+                            <th>Funcionario / Datos</th>
+                            <th>Estado Individual</th>
+                            <th>Revisión RR.HH.</th>
+                            <th>Gestión TIC / Cuenta</th>
+                            <th>Notificación</th>
+                            <th class="text-center" style="min-width: 120px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for det in solicitud.detalles.all %}
+                            <tr>
+                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ det.nombre_completo }}</div>
+                                    <small class="text-muted d-block"><i class="bi bi-person-vcard me-1"></i>RUT: {{ det.rut|default:'Sin RUT' }}</small>
+                                    <small class="text-muted d-block"><i class="bi bi-building me-1"></i>Depto: {{ det.departamento|default:'-' }}</small>
+                                    {% if det.cargo %}
+                                        <small class="text-muted d-block"><i class="bi bi-briefcase me-1"></i>Cargo: {{ det.cargo }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if det.estado == 'PENDIENTE_RRHH' %}
+                                        <span class="badge bg-warning text-dark">Pendiente RR.HH.</span>
+                                    {% elif det.estado == 'APROBADO_RRHH' %}
+                                        <span class="badge bg-info text-dark">Aprobado RR.HH. (Enviado a TIC)</span>
+                                    {% elif det.estado == 'RECHAZADO_RRHH' %}
+                                        <span class="badge bg-danger">Rechazado RR.HH.</span>
+                                    {% elif det.estado == 'EN_PROCESO_TIC' %}
+                                        <span class="badge bg-primary">En Proceso TIC</span>
+                                    {% elif det.estado == 'CREADO' %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Cuenta Creada</span>
+                                    {% elif det.estado == 'ERROR' %}
+                                        <span class="badge bg-danger">Error Creación TIC</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if det.usuario_rrhh %}
+                                        <div class="small fw-semibold">{{ det.usuario_rrhh.get_full_name|default:det.usuario_rrhh.username }}</div>
+                                        <small class="text-muted d-block">{{ det.fecha_revision_rrhh|date:"d/m/Y H:i" }}</small>
+                                        {% if det.motivo_rechazo %}
+                                            <div class="alert alert-danger p-1 mt-1 mb-0 small">
+                                                <strong>Motivo:</strong> {{ det.motivo_rechazo }}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted small">Pendiente de revisión</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if det.correo_creado %}
+                                        <div class="fw-bold text-primary">
+                                            <i class="bi bi-envelope-at-fill me-1"></i>{{ det.correo_creado }}
+                                        </div>
+                                        {% if det.fecha_creacion %}
+                                            <small class="text-muted d-block">Creado el {{ det.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                                        {% endif %}
+                                        {% if det.referencia_externa %}
+                                            <small class="text-muted d-block">Ref MINSAL: {{ det.referencia_externa }}</small>
+                                        {% endif %}
+                                        {% if det.observacion_tic %}
+                                            <small class="text-muted d-block fst-italic">Obs: {{ det.observacion_tic }}</small>
+                                        {% endif %}
+                                        {% if det.tecnico_responsable %}
+                                            <small class="text-muted d-block">Técnico: {{ det.tecnico_responsable.get_full_name|default:det.tecnico_responsable.username }}</small>
+                                        {% endif %}
+                                    {% elif det.estado == 'ERROR' %}
+                                        <div class="text-danger small">
+                                            <strong>Error:</strong> {{ det.observacion_tic|default:'No especificado' }}
+                                        </div>
+                                        {% if det.tecnico_responsable %}
+                                            <small class="text-muted d-block">Técnico: {{ det.tecnico_responsable.get_full_name|default:det.tecnico_responsable.username }}</small>
+                                        {% endif %}
+                                    {% elif det.estado == 'APROBADO_RRHH' or det.estado == 'EN_PROCESO_TIC' %}
+                                        <span class="text-info small"><i class="bi bi-clock me-1"></i>Pendiente creación en MINSAL</span>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if det.notificado %}
+                                        <span class="badge bg-success"><i class="bi bi-bell-fill me-1"></i>Notificado</span>
+                                        {% if det.fecha_notificacion %}
+                                            <small class="text-muted d-block">{{ det.fecha_notificacion|date:"d/m/Y H:i" }}</small>
+                                        {% endif %}
+                                        {% if det.notificado_por %}
+                                            <small class="text-muted d-block">Por: {{ det.notificado_por.get_full_name|default:det.notificado_por.username }}</small>
+                                        {% endif %}
+                                        {% if det.observacion_notificacion %}
+                                            <small class="text-muted d-block fst-italic">{{ det.observacion_notificacion }}</small>
+                                        {% endif %}
+                                    {% elif det.estado == 'CREADO' %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-bell me-1"></i>Sin Notificar</span>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex flex-column gap-1">
+                                        <!-- Acciones RR.HH. -->
+                                        {% if es_rrhh and det.estado == 'PENDIENTE_RRHH' %}
+                                            <form method="post" action="{% url 'solicitud_correo:revisar_detalle_rrhh' det.pk %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="accion" value="APROBADO_RRHH">
+                                                <button type="submit" class="btn btn-sm btn-success w-100" title="Aprobar Funcionario">
+                                                    <i class="bi bi-check-lg me-1"></i> Aprobar
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 btn-abrir-modal-rechazo"
+                                                    data-bs-toggle="modal" data-bs-target="#modalRechazoRRHH"
+                                                    data-det-id="{{ det.pk }}" data-det-nombre="{{ det.nombre_completo }}">
+                                                <i class="bi bi-x-lg me-1"></i> Rechazar
+                                            </button>
+                                        {% endif %}
+
+                                        <!-- Acciones TIC -->
+                                        {% if es_tic and det.estado in 'APROBADO_RRHH,EN_PROCESO_TIC,ERROR' %}
+                                            <button type="button" class="btn btn-sm btn-primary w-100 btn-abrir-modal-tic"
+                                                    data-bs-toggle="modal" data-bs-target="#modalProcesarTIC"
+                                                    data-det-id="{{ det.pk }}" data-det-nombre="{{ det.nombre_completo }}"
+                                                    data-det-rut="{{ det.rut|default:'' }}"
+                                                    data-det-depto="{{ det.departamento|default:'' }}">
+                                                <i class="bi bi-envelope-gear me-1"></i> Registrar MINSAL
+                                            </button>
+                                        {% endif %}
+
+                                        <!-- Acciones Notificación -->
+                                        {% if puede_notificar and det.estado == 'CREADO' %}
+                                            <button type="button" class="btn btn-sm btn-outline-info w-100 btn-abrir-modal-notif"
+                                                    data-bs-toggle="modal" data-bs-target="#modalNotificacion"
+                                                    data-det-id="{{ det.pk }}" data-det-nombre="{{ det.nombre_completo }}"
+                                                    data-det-correo="{{ det.correo_creado|default:'' }}">
+                                                <i class="bi bi-bell me-1"></i> {% if det.notificado %}Actualizar Notif.{% else %}Notificar{% endif %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================== -->
+<!-- MODAL: Rechazar RR.HH. -->
+<!-- ============================================================================== -->
+<div class="modal fade" id="modalRechazoRRHH" tabindex="-1" aria-labelledby="modalRechazoRRHHLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" id="form-rechazo-rrhh">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="RECHAZADO_RRHH">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalRechazoRRHHLabel">
+                        <i class="bi bi-x-circle-fill me-2"></i>Rechazar Solicitud de Correo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Rechazando funcionario: <strong id="modal-rechazo-nombre"></strong></p>
+                    <div class="mb-3">
+                        <label for="motivo_rechazo_input" class="form-label fw-bold">
+                            Motivo del Rechazo <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="motivo_rechazo" id="motivo_rechazo_input" class="form-control" rows="3" required
+                                  placeholder="Indique la justificación del rechazo..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================================== -->
+<!-- MODAL: Procesar TIC (Creación externa MINSAL) -->
+<!-- ============================================================================== -->
+<div class="modal fade" id="modalProcesarTIC" tabindex="-1" aria-labelledby="modalProcesarTICLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="post" id="form-procesar-tic">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalProcesarTICLabel">
+                        <i class="bi bi-hdd-network me-2"></i>Registro de Creación Externa en MINSAL (TIC)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2">
+                        <div class="fw-bold">Funcionario: <span id="modal-tic-nombre"></span></div>
+                        <div class="small">RUT: <span id="modal-tic-rut"></span> | Depto: <span id="modal-tic-depto"></span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Resultado del Procesamiento</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="accion" id="radioAccionCrear" value="CREADO" checked>
+                                <label class="form-check-label text-success fw-bold" for="radioAccionCrear">
+                                    <i class="bi bi-check-circle me-1"></i> Cuenta Creada Exitosamente
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="accion" id="radioAccionError" value="ERROR">
+                                <label class="form-check-label text-danger fw-bold" for="radioAccionError">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Registrar Inconveniente / Error
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="seccion-datos-creacion">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="tic_correo_creado" class="form-label fw-bold">
+                                    Correo Electrónico Creado <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" name="correo_creado" id="tic_correo_creado" class="form-control"
+                                       placeholder="nombre.apellido@redsalud.gob.cl">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tic_referencia_externa" class="form-label fw-bold">
+                                    Referencia / N° Solicitud MINSAL
+                                </label>
+                                <input type="text" name="referencia_externa" id="tic_referencia_externa" class="form-control"
+                                       placeholder="Ej: TCK-MINSAL-84729">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tic_fecha_creacion" class="form-label fw-bold">
+                                    Fecha / Hora de Creación
+                                </label>
+                                <input type="datetime-local" name="fecha_creacion" id="tic_fecha_creacion" class="form-control"
+                                       value="{% now 'Y-m-d\TH:i' %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label for="tic_observacion" class="form-label fw-bold">
+                            Observaciones Técnicas TIC
+                        </label>
+                        <textarea name="observacion_tic" id="tic_observacion" class="form-control" rows="2"
+                                  placeholder="Detalles técnicos, notas o motivo del error..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Guardar Registro</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================================== -->
+<!-- MODAL: Notificación a Funcionario -->
+<!-- ============================================================================== -->
+<div class="modal fade" id="modalNotificacion" tabindex="-1" aria-labelledby="modalNotificacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" id="form-notificacion">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalNotificacionLabel">
+                        <i class="bi bi-bell-fill me-2"></i>Registrar Notificación al Funcionario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-light border py-2 mb-3">
+                        <div class="fw-bold">Funcionario: <span id="modal-notif-nombre"></span></div>
+                        <div class="small">Cuenta creada: <strong id="modal-notif-correo" class="text-primary"></strong></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notif_correo_destinatario" class="form-label fw-bold">
+                            Correo Electrónico de Contacto
+                        </label>
+                        <input type="email" name="correo_destinatario" id="notif_correo_destinatario" class="form-control"
+                               placeholder="Ej: correo.personal@gmail.com o jefatura@redsalud.gob.cl">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notif_observacion" class="form-label fw-bold">
+                            Detalle / Medio de Notificación
+                        </label>
+                        <textarea name="observacion_notificacion" id="notif_observacion" class="form-control" rows="2"
+                                  placeholder="Ej: Notificado presencialmente / Notificado vía telefónica / Correo de notificación enviado..."></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="enviar_email" id="notif_enviar_email" value="1">
+                        <label class="form-check-label" for="notif_enviar_email">
+                            Intentar enviar correo electrónico automático al contacto
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info text-white fw-bold">Registrar Notificación</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Configuración Modal Rechazo RR.HH.
+    document.querySelectorAll('.btn-abrir-modal-rechazo').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const detId = this.dataset.detId;
+            const detNombre = this.dataset.detNombre;
+            document.getElementById('modal-rechazo-nombre').textContent = detNombre;
+            document.getElementById('form-rechazo-rrhh').action = `/solicitudes-correo/rrhh/revisar-detalle/${detId}/`;
+        });
+    });
+
+    // Configuración Modal TIC
+    document.querySelectorAll('.btn-abrir-modal-tic').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const detId = this.dataset.detId;
+            const detNombre = this.dataset.detNombre;
+            const detRut = this.dataset.detRut;
+            const detDepto = this.dataset.detDepto;
+
+            document.getElementById('modal-tic-nombre').textContent = detNombre;
+            document.getElementById('modal-tic-rut').textContent = detRut;
+            document.getElementById('modal-tic-depto').textContent = detDepto;
+            document.getElementById('form-procesar-tic').action = `/solicitudes-correo/tic/procesar-detalle/${detId}/`;
+        });
+    });
+
+    // Configuración Modal Notificación
+    document.querySelectorAll('.btn-abrir-modal-notif').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const detId = this.dataset.detId;
+            const detNombre = this.dataset.detNombre;
+            const detCorreo = this.dataset.detCorreo;
+
+            document.getElementById('modal-notif-nombre').textContent = detNombre;
+            document.getElementById('modal-notif-correo').textContent = detCorreo;
+            document.getElementById('form-notificacion').action = `/solicitudes-correo/notificar-detalle/${detId}/`;
+        });
+    });
+});
+</script>
+{% endblock %}

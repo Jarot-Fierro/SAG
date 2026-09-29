@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+
+{% block sidebar %}
+    {% include 'solicitud_correo/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-list-task me-1"></i> Mis Solicitudes
+    </a>
+{% endblock %}
+
+{% block title %}Bandeja de TIC / Informática - Creación de Correos MINSAL{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+
+    <!-- KPI Cards TIC -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-warning text-dark"><i class="bi bi-envelope-exclamation-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Pendientes Creación TIC</span>
+                    <span class="info-box-number fs-4">{{ total_pendientes_tic }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-primary text-white"><i class="bi bi-envelope-check-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Creados Hoy</span>
+                    <span class="info-box-number fs-4">{{ total_creados_hoy }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-success text-white"><i class="bi bi-check-all"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Total Cuentas Creadas</span>
+                    <span class="info-box-number fs-4">{{ total_creados_total }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas de Vista -->
+    <ul class="nav nav-tabs mb-3" id="tabBandejaTIC" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="cola-funcionarios-tab" data-bs-toggle="tab" data-bs-target="#cola-funcionarios" type="button" role="tab">
+                <i class="bi bi-list-stars me-1"></i> Cola Rápida de Funcionarios Aprobados ({{ total_pendientes_tic }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="por-solicitud-tab" data-bs-toggle="tab" data-bs-target="#por-solicitud" type="button" role="tab">
+                <i class="bi bi-folder-fill me-1"></i> Por Solicitud
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="tabContentBandejaTIC">
+        <!-- Pestaña 1: Cola de Funcionarios Aprobados -->
+        <div class="tab-pane fade show active" id="cola-funcionarios" role="tabpanel">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">
+                            <i class="bi bi-person-lines-fill me-1"></i> Funcionarios listos para crear en plataforma MINSAL
+                        </span>
+                        <small class="text-muted">La creación externa se realiza en la plataforma MINSAL y se registra aquí</small>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Funcionario</th>
+                                    <th>RUT</th>
+                                    <th>Departamento / Cargo</th>
+                                    <th>Solicitud / Establecimiento</th>
+                                    <th>Aprobado por RR.HH.</th>
+                                    <th class="text-center" style="width: 200px;">Acción TIC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for det in detalles_pendientes_tic %}
+                                    <tr>
+                                        <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ det.nombre_completo }}</div>
+                                            <span class="badge bg-info text-dark">{{ det.get_estado_display }}</span>
+                                        </td>
+                                        <td>
+                                            <code class="fs-6">{{ det.rut|default:'Sin RUT' }}</code>
+                                        </td>
+                                        <td>
+                                            <div>{{ det.departamento|default:'-' }}</div>
+                                            <small class="text-muted">{{ det.cargo|default:'-' }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'solicitud_correo:detalle' det.solicitud.pk %}" class="fw-bold">
+                                                {{ det.solicitud.numero_solicitud }}
+                                            </a>
+                                            <small class="text-muted d-block">{{ det.solicitud.establecimiento.nombre }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="d-block">{{ det.usuario_rrhh.get_full_name|default:det.usuario_rrhh.username }}</small>
+                                            <small class="text-muted d-block">{{ det.fecha_revision_rrhh|date:"d/m/Y H:i" }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-primary w-100 btn-modal-tic-registro"
+                                                    data-bs-toggle="modal" data-bs-target="#modalProcesarTICBandeja"
+                                                    data-id="{{ det.pk }}" data-nombre="{{ det.nombre_completo }}"
+                                                    data-rut="{{ det.rut|default:'' }}"
+                                                    data-depto="{{ det.departamento|default:'' }}">
+                                                <i class="bi bi-envelope-plus me-1"></i> Registrar MINSAL
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">
+                                            <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                                            ¡Excelente! No hay funcionarios pendientes de creación en TIC.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Por Solicitud -->
+        <div class="tab-pane fade" id="por-solicitud" role="tabpanel">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <form method="get" class="row g-2 align-items-center">
+                        <div class="col-md-3 col-sm-6">
+                            {{ filter_form.numero_solicitud }}
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            {{ filter_form.estado }}
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            {{ filter_form.funcionario_busqueda }}
+                        </div>
+                        <div class="col-md-3 col-sm-6 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+                                <i class="bi bi-funnel me-1"></i> Filtrar
+                            </button>
+                            <a href="{% url 'solicitud_correo:bandeja_tic' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Folio</th>
+                                    <th scope="col">Solicitante / Depto</th>
+                                    <th scope="col">Establecimiento</th>
+                                    <th scope="col">Funcionarios</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Fecha Solicitud</th>
+                                    <th scope="col" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sol in solicitudes %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'solicitud_correo:detalle' sol.pk %}" class="fw-bold text-decoration-none">
+                                                {{ sol.numero_solicitud|default:sol.id }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ sol.usuario_solicitante.get_full_name|default:sol.usuario_solicitante.username }}</div>
+                                            <small class="text-muted">{{ sol.departamento_nombre|default:sol.departamento_solicitante|default:'Sin departamento' }}</small>
+                                        </td>
+                                        <td>
+                                            <span>{{ sol.establecimiento.nombre|default:'General' }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                <span class="badge bg-secondary">{{ sol.total_funcionarios }} Total</span>
+                                                {% if sol.total_pendientes_tic > 0 %}
+                                                    <span class="badge bg-warning text-dark">{{ sol.total_pendientes_tic }} Pend. TIC</span>
+                                                {% endif %}
+                                                {% if sol.total_creados > 0 %}
+                                                    <span class="badge bg-success">{{ sol.total_creados }} Creados</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if sol.estado == 'EN_TIC' %}
+                                                <span class="badge bg-info text-dark">Enviada a TIC</span>
+                                            {% elif sol.estado == 'EN_PROCESO_TIC' %}
+                                                <span class="badge bg-primary">En Proceso TIC</span>
+                                            {% elif sol.estado == 'FINALIZADA' %}
+                                                <span class="badge bg-success">Finalizada</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ sol.get_estado_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>{{ sol.fecha_solicitud|date:"d/m/Y" }}</div>
+                                            <small class="text-muted">{{ sol.fecha_solicitud|date:"H:i" }} hrs</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'solicitud_correo:procesamiento_tic' sol.pk %}" class="btn btn-primary" title="Procesar Solicitud">
+                                                    <i class="bi bi-gear-fill me-1"></i> Procesar
+                                                </a>
+                                                <a href="{% url 'solicitud_correo:detalle' sol.pk %}" class="btn btn-outline-primary" title="Ver Detalle">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5">
+                                            No se encontraron solicitudes en la bandeja de TIC.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Procesar TIC -->
+<div class="modal fade" id="modalProcesarTICBandeja" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form method="post" id="formProcesarTICBandeja">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-hdd-network me-2"></i>Registrar Creación de Cuenta (MINSAL)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2">
+                        <div class="fw-bold">Funcionario: <span id="modalTicBandejaNombre"></span></div>
+                        <div class="small">RUT: <span id="modalTicBandejaRut"></span> | Depto: <span id="modalTicBandejaDepto"></span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Resultado</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="accion" id="radioCrearBandeja" value="CREADO" checked>
+                                <label class="form-check-label text-success fw-bold" for="radioCrearBandeja">
+                                    <i class="bi bi-check-circle me-1"></i> Cuenta Creada Exitosamente
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="accion" id="radioErrorBandeja" value="ERROR">
+                                <label class="form-check-label text-danger fw-bold" for="radioErrorBandeja">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Error en Creación
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="correoCreadoBandeja" class="form-label fw-bold">
+                                Correo Creado <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" name="correo_creado" id="correoCreadoBandeja" class="form-control"
+                                   placeholder="nombre.apellido@redsalud.gob.cl">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="refMinsalBandeja" class="form-label fw-bold">
+                                Referencia / N° Solicitud MINSAL
+                            </label>
+                            <input type="text" name="referencia_externa" id="refMinsalBandeja" class="form-control"
+                                   placeholder="Ej: TCK-MINSAL-12345">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fechaCreacionBandeja" class="form-label fw-bold">
+                                Fecha de Creación
+                            </label>
+                            <input type="datetime-local" name="fecha_creacion" id="fechaCreacionBandeja" class="form-control"
+                                   value="{% now 'Y-m-d\TH:i' %}">
+                        </div>
+                        <div class="col-12">
+                            <label for="obsTicBandeja" class="form-label fw-bold">
+                                Observaciones Técnicas
+                            </label>
+                            <textarea name="observacion_tic" id="obsTicBandeja" class="form-control" rows="2"
+                                      placeholder="Observaciones o descripción de error si corresponde..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Guardar Registro</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-modal-tic-registro').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const nombre = this.dataset.nombre;
+            const rut = this.dataset.rut;
+            const depto = this.dataset.depto;
+
+            document.getElementById('modalTicBandejaNombre').textContent = nombre;
+            document.getElementById('modalTicBandejaRut').textContent = rut;
+            document.getElementById('modalTicBandejaDepto').textContent = depto;
+            document.getElementById('formProcesarTICBandeja').action = `/solicitudes-correo/tic/procesar-detalle/${id}/`;
+        });
+    });
+});
+</script>
+{% endblock %}

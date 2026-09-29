@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+    {% include 'solicitud_correo/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver a Mis Solicitudes
+    </a>
+{% endblock %}
+
+{% block title %}Nueva Solicitud de Correos Electrónicos{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+    <form method="post" id="form-solicitud-correo">
+        {% csrf_token %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-card-checklist me-2"></i>1. Datos Generales de la Solicitud
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Establecimiento</label>
+                        <input type="text" class="form-control" value="{{ user.establecimiento.nombre|default:'General' }}" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold">
+                            Departamento / Unidad Solicitante <span class="text-danger">*</span>
+                        </label>
+                        {{ form.departamento_solicitante }}
+                        {% if form.departamento_solicitante.errors %}
+                            <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold">
+                            Observaciones / Justificación de la Solicitud
+                        </label>
+                        {{ form.observacion }}
+                        {% if form.observacion.errors %}
+                            <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Indique cualquier información relevante o motivo general para la creación de estas cuentas.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people-fill me-2"></i>2. Funcionarios para Crear Cuenta de Correo
+                </h5>
+                <button type="button" class="btn btn-sm btn-light fw-bold" id="btn-agregar-funcionario">
+                    <i class="bi bi-plus-circle-fill text-primary me-1"></i> Agregar Otro Funcionario
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="p-3 bg-light border-bottom text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos manualmente si aún no está registrado en el sistema.
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0" id="tabla-funcionarios">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th style="min-width: 220px;">Funcionario Existente (Opcional)</th>
+                                <th style="min-width: 140px;">RUT <span class="text-danger">*</span></th>
+                                <th style="min-width: 160px;">Nombres <span class="text-danger">*</span></th>
+                                <th style="min-width: 160px;">Apellidos <span class="text-danger">*</span></th>
+                                <th style="min-width: 160px;">Departamento / Unidad</th>
+                                <th style="min-width: 140px;">Cargo</th>
+                                <th style="width: 60px;" class="text-center">Quitar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contenedor-filas-funcionarios">
+                            <!-- Fila 1 inicial -->
+                            <tr class="fila-funcionario" data-indice="0">
+                                <td class="text-center fw-bold numero-fila">1</td>
+                                <td>
+                                    <select class="form-select form-select-sm select-funcionario-existente" name="det_funcionario_id[]">
+                                        <option value="">-- Ingreso Manual / Seleccionar --</option>
+                                        {% for f in funcionarios_disponibles %}
+                                            <option value="{{ f.id }}"
+                                                    data-rut="{{ f.rut|default:'' }}"
+                                                    data-nombres="{{ f.nombres|default:'' }}"
+                                                    data-apellidos="{{ f.apellidos|default:'' }}"
+                                                    data-cargo="{{ f.cargo|default:'' }}"
+                                                    data-depto="{{ f.unidad_organizacional|default:'' }}">
+                                                {{ f.nombre_completo|default:f }} {% if f.rut %}({{ f.rut }}){% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="det_rut[]" class="form-control form-control-sm input-rut" placeholder="12.345.678-9" required>
+                                </td>
+                                <td>
+                                    <input type="text" name="det_nombres[]" class="form-control form-control-sm input-nombres" placeholder="Nombres" required>
+                                </td>
+                                <td>
+                                    <input type="text" name="det_apellidos[]" class="form-control form-control-sm input-apellidos" placeholder="Apellidos" required>
+                                </td>
+                                <td>
+                                    <input type="text" name="det_departamento[]" class="form-control form-control-sm input-depto" placeholder="Departamento">
+                                </td>
+                                <td>
+                                    <input type="text" name="det_cargo[]" class="form-control form-control-sm input-cargo" placeholder="Cargo">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-fila" disabled title="Eliminar funcionario">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-agregar-funcionario-pie">
+                    <i class="bi bi-plus-lg me-1"></i> Agregar Otro Funcionario
+                </button>
+                <span class="text-muted small" id="contador-funcionarios">Total: 1 funcionario</span>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-5">
+            <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-success fw-bold px-4">
+                <i class="bi bi-send-check me-1"></i> Enviar Solicitud a RR.HH.
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const contenedor = document.getElementById('contenedor-filas-funcionarios');
+    const btnAgregar = document.getElementById('btn-agregar-funcionario');
+    const btnAgregarPie = document.getElementById('btn-agregar-funcionario-pie');
+    const contador = document.getElementById('contador-funcionarios');
+
+    function actualizarNumeracionYBotones() {
+        const filas = contenedor.querySelectorAll('.fila-funcionario');
+        filas.forEach((fila, idx) => {
+            const numCell = fila.querySelector('.numero-fila');
+            if (numCell) numCell.textContent = (idx + 1);
+            const btnEliminar = fila.querySelector('.btn-eliminar-fila');
+            if (btnEliminar) {
+                btnEliminar.disabled = (filas.length === 1);
+            }
+        });
+        if (contador) {
+            contador.textContent = `Total: ${filas.length} funcionario${filas.length !== 1 ? 's' : ''}`;
+        }
+    }
+
+    function vincularEventosFila(fila) {
+        const select = fila.querySelector('.select-funcionario-existente');
+        const inputRut = fila.querySelector('.input-rut');
+        const inputNom = fila.querySelector('.input-nombres');
+        const inputApe = fila.querySelector('.input-apellidos');
+        const inputDep = fila.querySelector('.input-depto');
+        const inputCar = fila.querySelector('.input-cargo');
+        const btnEliminar = fila.querySelector('.btn-eliminar-fila');
+
+        if (select) {
+            select.addEventListener('change', function () {
+                const opt = select.selectedOptions[0];
+                if (opt && opt.value) {
+                    if (opt.dataset.rut) inputRut.value = opt.dataset.rut;
+                    if (opt.dataset.nombres) inputNom.value = opt.dataset.nombres;
+                    if (opt.dataset.apellidos) inputApe.value = opt.dataset.apellidos;
+                    if (opt.dataset.cargo) inputCar.value = opt.dataset.cargo;
+                    if (opt.dataset.depto) inputDep.value = opt.dataset.depto;
+                }
+            });
+        }
+
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', function () {
+                const filas = contenedor.querySelectorAll('.fila-funcionario');
+                if (filas.length > 1) {
+                    fila.remove();
+                    actualizarNumeracionYBotones();
+                }
+            });
+        }
+    }
+
+    function agregarFila() {
+        const filas = contenedor.querySelectorAll('.fila-funcionario');
+        const primeraFila = filas[0];
+        const nuevaFila = primeraFila.cloneNode(true);
+
+        // Limpiar inputs en la nueva fila
+        nuevaFila.querySelectorAll('input').forEach(inp => inp.value = '');
+        const select = nuevaFila.querySelector('select');
+        if (select) select.selectedIndex = 0;
+
+        contenedor.appendChild(nuevaFila);
+        vincularEventosFila(nuevaFila);
+        actualizarNumeracionYBotones();
+    }
+
+    // Inicializar fila existente
+    contenedor.querySelectorAll('.fila-funcionario').forEach(f => vincularEventosFila(f));
+    actualizarNumeracionYBotones();
+
+    if (btnAgregar) btnAgregar.addEventListener('click', agregarFila);
+    if (btnAgregarPie) btnAgregarPie.addEventListener('click', agregarFila);
+});
+</script>
+{% endblock %}

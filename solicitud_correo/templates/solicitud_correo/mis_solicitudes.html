@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+
+{% block sidebar %}
+    {% include 'solicitud_correo/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'solicitud_correo:crear' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-envelope-plus me-1"></i>
+        Nueva Solicitud
+    </a>
+{% endblock %}
+
+{% block title %}Mis Solicitudes de Correo Electrónico{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+
+    <!-- Tarjetas de resumen rápido -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-warning text-dark"><i class="bi bi-hourglass-split"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Pendientes en RR.HH.</span>
+                    <span class="info-box-number fs-4">{{ total_pendientes }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-info text-white"><i class="bi bi-gear-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">En Gestión TIC</span>
+                    <span class="info-box-number fs-4">{{ total_en_tic }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="info-box shadow-sm">
+                <span class="info-box-icon bg-success text-white"><i class="bi bi-check-circle-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Finalizadas</span>
+                    <span class="info-box-number fs-4">{{ total_finalizadas }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y Tabla -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-3 col-sm-6">
+                    {{ filter_form.numero_solicitud }}
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    {{ filter_form.estado }}
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    {{ filter_form.funcionario_busqueda }}
+                </div>
+                <div class="col-md-3 col-sm-6 d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                    <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Folio</th>
+                            <th scope="col">Departamento Solicitante</th>
+                            <th scope="col">Funcionarios</th>
+                            <th scope="col">Estado General</th>
+                            <th scope="col">Fecha Solicitud</th>
+                            <th scope="col" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sol in solicitudes %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'solicitud_correo:detalle' sol.pk %}" class="fw-bold text-decoration-none">
+                                        {{ sol.numero_solicitud|default:sol.id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div>{{ sol.departamento_nombre|default:sol.departamento_solicitante|default:'Sin departamento' }}</div>
+                                    <small class="text-muted">{{ sol.establecimiento.alias|default:sol.establecimiento.nombre }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <span class="badge bg-secondary" title="Total Funcionarios">
+                                            <i class="bi bi-people me-1"></i>{{ sol.total_funcionarios }}
+                                        </span>
+                                        {% if sol.total_creados > 0 %}
+                                            <span class="badge bg-success" title="Cuentas Creadas">
+                                                <i class="bi bi-check-lg me-1"></i>{{ sol.total_creados }} Creados
+                                            </span>
+                                        {% endif %}
+                                        {% if sol.total_rechazados > 0 %}
+                                            <span class="badge bg-danger" title="Rechazados por RR.HH.">
+                                                <i class="bi bi-x-lg me-1"></i>{{ sol.total_rechazados }} Rechazados
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if sol.estado == 'BORRADOR' %}
+                                        <span class="badge bg-secondary">Borrador</span>
+                                    {% elif sol.estado == 'PENDIENTE_RRHH' %}
+                                        <span class="badge bg-warning text-dark">Pendiente RR.HH.</span>
+                                    {% elif sol.estado == 'EN_REVISION_RRHH' %}
+                                        <span class="badge bg-warning text-dark">En Revisión RR.HH.</span>
+                                    {% elif sol.estado == 'EN_TIC' %}
+                                        <span class="badge bg-info text-dark">Enviada a TIC</span>
+                                    {% elif sol.estado == 'EN_PROCESO_TIC' %}
+                                        <span class="badge bg-primary">En Proceso TIC</span>
+                                    {% elif sol.estado == 'FINALIZADA' %}
+                                        <span class="badge bg-success">Finalizada</span>
+                                    {% elif sol.estado == 'CANCELADA' %}
+                                        <span class="badge bg-danger">Cancelada</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ sol.get_estado_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>{{ sol.fecha_solicitud|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ sol.fecha_solicitud|date:"H:i" }} hrs</small>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <!-- Ver Detalle -->
+                                        <a href="{% url 'solicitud_correo:detalle' sol.pk %}"
+                                           class="btn btn-outline-primary"
+                                           title="Ver Detalle"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <!-- Historial Modal -->
+                                        <button type="button"
+                                                class="btn btn-outline-info"
+                                                hx-get="{% url 'solicitud_correo:historial' sol.pk %}"
+                                                hx-target="#genericModalContent"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#genericModal"
+                                                title="Historial de Cambios">
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>
+
+                                        <!-- Cancelar si está pendiente -->
+                                        {% if sol.estado in 'PENDIENTE_RRHH,BORRADOR' %}
+                                            <form method="post" action="{% url 'solicitud_correo:cancelar' sol.pk %}" class="d-inline"
+                                                  onsubmit="return confirm('¿Está seguro de que desea cancelar esta solicitud?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger" title="Cancelar Solicitud" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No se encontraron solicitudes de correo.
+                                    <div class="mt-3">
+                                        <a href="{% url 'solicitud_correo:crear' %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-envelope-plus me-1"></i> Crear mi primera solicitud
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if is_paginated %}
+            <div class="card-footer clearfix">
+                <div class="float-start pt-1 fs-7 text-muted">
+                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }} solicitudes
+                </div>
+                <ul class="pagination pagination-sm m-0 float-end">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% query_transform page=page_obj.previous_page_number %}">«</a>
+                        </li>
+                    {% endif %}
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% query_transform page=i %}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}">»</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
