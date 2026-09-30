@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.standard.admin import StandardAdmin
-from solicitud_correo.models import SolicitudCorreo, SolicitudCorreoDetalle
+from solicitud_correo.models import SolicitudCorreo, SolicitudCorreoDetalle, PerfilCorreo
 
 
 class SolicitudCorreoDetalleInline(admin.TabularInline):
@@ -12,6 +12,25 @@ class SolicitudCorreoDetalleInline(admin.TabularInline):
         'estado', 'motivo_rechazo', 'correo_creado', 'notificado'
     )
 
+
+@admin.register(PerfilCorreo)
+class PerfilCorreoAdmin(StandardAdmin):
+    list_display = (
+        'id',
+        'usuario',
+        'bandeja_rrhh',
+        'bandeja_tic',
+    )
+    search_fields = (
+        'id',
+        'usuario',
+    )
+    list_filter = (
+        'bandeja_rrhh',
+        'bandeja_tic',
+        'is_active',
+    )
+    autocomplete_fields = ('usuario',)
 
 @admin.register(SolicitudCorreo)
 class SolicitudCorreoAdmin(StandardAdmin):

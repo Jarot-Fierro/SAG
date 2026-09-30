@@ -5,6 +5,33 @@ from config import settings
 from core.standard.models import StandardModel
 
 
+class PerfilCorreo(StandardModel):
+    PERMISION_CHOICES = [
+        (0, 'Sin Acceso'),
+        (1, 'Solo Ver'),
+        (2, 'Crear y Modificar'),
+        (3, 'Administrador')
+    ]
+
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='perfil_correo',
+        verbose_name='Usuario'
+    )
+    bandeja_rrhh = models.IntegerField(
+        choices=PERMISION_CHOICES,
+        default=0,
+        verbose_name='Bandeja RR.HH.'
+    )
+    bandeja_tic = models.IntegerField(
+        choices=PERMISION_CHOICES,
+        default=0,
+        verbose_name='Bandeja TIC'
+    )
+
+
+
 class SolicitudCorreo(StandardModel):
     ESTADOS = (
         ('BORRADOR', 'Borrador'),

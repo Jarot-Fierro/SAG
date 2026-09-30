@@ -25,11 +25,11 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Establecimiento</label>
                         <input type="text" class="form-control" value="{{ user.establecimiento.nombre|default:'General' }}" disabled>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-9">
                         <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold">
                             Departamento / Unidad Solicitante <span class="text-danger">*</span>
                         </label>
@@ -57,9 +57,9 @@
                 <h5 class="card-title mb-0">
                     <i class="bi bi-people-fill me-2"></i>2. Funcionarios para Crear Cuenta de Correo
                 </h5>
-                <button type="button" class="btn btn-sm btn-light fw-bold" id="btn-agregar-funcionario">
-                    <i class="bi bi-plus-circle-fill text-primary me-1"></i> Agregar Otro Funcionario
-                </button>
+{#                <button type="button" class="btn btn-sm btn-light fw-bold" id="btn-agregar-funcionario">#}
+{#                    <i class="bi bi-plus-circle-fill text-primary me-1"></i> Agregar Otro Funcionario#}
+{#                </button>#}
             </div>
             <div class="card-body p-0">
                 <div class="p-3 bg-light border-bottom text-muted small">
@@ -86,7 +86,7 @@
                             <tr class="fila-funcionario" data-indice="0">
                                 <td class="text-center fw-bold numero-fila">1</td>
                                 <td>
-                                    <select class="form-select form-select-sm select-funcionario-existente" name="det_funcionario_id[]">
+                                    <select class="form-select form-select-sm select-funcionario-existente select2" name="det_funcionario_id[]">
                                         <option value="">-- Ingreso Manual / Seleccionar --</option>
                                         {% for f in funcionarios_disponibles %}
                                             <option value="{{ f.id }}"
@@ -153,6 +153,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnAgregarPie = document.getElementById('btn-agregar-funcionario-pie');
     const contador = document.getElementById('contador-funcionarios');
 
+    function inicializarSelect2(elemento) {
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $(elemento).find('.select2').each(function () {
+                $(this).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '-- Ingreso Manual / Seleccionar --',
+                    allowClear: true
+                });
+            });
+        }
+    }
+
     function actualizarNumeracionYBotones() {
         const filas = contenedor.querySelectorAll('.fila-funcionario');
         filas.forEach((fila, idx) => {
@@ -178,22 +191,36 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnEliminar = fila.querySelector('.btn-eliminar-fila');
 
         if (select) {
-            select.addEventListener('change', function () {
-                const opt = select.selectedOptions[0];
+            function alCambiarFuncionario() {
+                const opt = select.options[select.selectedIndex];
                 if (opt && opt.value) {
-                    if (opt.dataset.rut) inputRut.value = opt.dataset.rut;
-                    if (opt.dataset.nombres) inputNom.value = opt.dataset.nombres;
-                    if (opt.dataset.apellidos) inputApe.value = opt.dataset.apellidos;
-                    if (opt.dataset.cargo) inputCar.value = opt.dataset.cargo;
-                    if (opt.dataset.depto) inputDep.value = opt.dataset.depto;
+                    if (inputRut) inputRut.value = opt.dataset.rut || '';
+                    if (inputNom) inputNom.value = opt.dataset.nombres || '';
+                    if (inputApe) inputApe.value = opt.dataset.apellidos || '';
+                    if (inputCar) inputCar.value = opt.dataset.cargo || '';
+                    if (inputDep) inputDep.value = opt.dataset.depto || '';
+                } else {
+                    if (inputRut) inputRut.value = '';
+                    if (inputNom) inputNom.value = '';
+                    if (inputApe) inputApe.value = '';
+                    if (inputCar) inputCar.value = '';
+                    if (inputDep) inputDep.value = '';
                 }
-            });
+            }
+
+            select.addEventListener('change', alCambiarFuncionario);
+            if (typeof $ !== 'undefined') {
+                $(select).on('change select2:select select2:clear', alCambiarFuncionario);
+            }
         }
 
         if (btnEliminar) {
             btnEliminar.addEventListener('click', function () {
                 const filas = contenedor.querySelectorAll('.fila-funcionario');
                 if (filas.length > 1) {
+                    if (typeof $ !== 'undefined' && select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
                     fila.remove();
                     actualizarNumeracionYBotones();
                 }
@@ -206,18 +233,33 @@ document.addEventListener('DOMContentLoaded', function () {
         const primeraFila = filas[0];
         const nuevaFila = primeraFila.cloneNode(true);
 
+        // Remover contenedor residual de Select2 si existe
+        nuevaFila.querySelectorAll('.select2-container').forEach(el => el.remove());
+
         // Limpiar inputs en la nueva fila
         nuevaFila.querySelectorAll('input').forEach(inp => inp.value = '');
         const select = nuevaFila.querySelector('select');
-        if (select) select.selectedIndex = 0;
+        if (select) {
+            select.selectedIndex = 0;
+            // Limpiar atributos y clases residuales de Select2
+            select.removeAttribute('data-select2-id');
+            select.removeAttribute('tabindex');
+            select.removeAttribute('aria-hidden');
+            select.classList.remove('select2-hidden-accessible');
+            select.querySelectorAll('option').forEach(opt => opt.removeAttribute('data-select2-id'));
+        }
 
         contenedor.appendChild(nuevaFila);
         vincularEventosFila(nuevaFila);
+        inicializarSelect2(nuevaFila);
         actualizarNumeracionYBotones();
     }
 
     // Inicializar fila existente
-    contenedor.querySelectorAll('.fila-funcionario').forEach(f => vincularEventosFila(f));
+    contenedor.querySelectorAll('.fila-funcionario').forEach(f => {
+        vincularEventosFila(f);
+        inicializarSelect2(f);
+    });
     actualizarNumeracionYBotones();
 
     if (btnAgregar) btnAgregar.addEventListener('click', agregarFila);

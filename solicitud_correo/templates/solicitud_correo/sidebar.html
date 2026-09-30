@@ -1,4 +1,4 @@
-{% if es_rrhh or user.is_superuser %}
+{% if request.user.perfil_correo.bandeja_rrhh > 0 %}
     <li class="nav-item">
         <a href="{% url 'solicitud_correo:bandeja_rrhh' %}" class="nav-link">
             <i class="nav-icon bi bi-person-check"></i>
@@ -7,7 +7,7 @@
     </li>
 {% endif %}
 
-{% if es_tic or user.is_superuser %}
+{% if request.user.perfil_correo.bandeja_tic > 0 %}
     <li class="nav-item">
         <a href="{% url 'solicitud_correo:bandeja_tic' %}" class="nav-link">
             <i class="nav-icon bi bi-hdd-network"></i>
@@ -15,11 +15,7 @@
         </a>
     </li>
 {% endif %}
-
-{% if es_rrhh or es_tic or user.is_superuser %}
-    <hr class="my-2 border-secondary">
-{% endif %}
-
+<hr class="my-2 border-secondary">
 <li class="nav-item">
     <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="nav-link">
         <i class="nav-icon bi bi-list-task"></i>
