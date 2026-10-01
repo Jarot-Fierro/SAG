@@ -97,7 +97,9 @@ INSTALLED_APPS = [
     # BODEGA,
     'bodega.apps.BodegaConfig',
     # SOLICITUD CORREO
-    'solicitud_correo.apps.SolicitudCorreoConfig'
+    'solicitud_correo.apps.SolicitudCorreoConfig',
+    # SOLICITUD VPN
+    'solicitud_vpn.apps.SolicitudVpnConfig'
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

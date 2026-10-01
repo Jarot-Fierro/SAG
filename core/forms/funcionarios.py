@@ -11,7 +11,7 @@ class FuncionarioForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(
             attrs={
-                "class": "form-control form-control-sm",
+                "class": "form-control form-control-sm id_rut",
                 "placeholder": "RUT",
             }
         ),

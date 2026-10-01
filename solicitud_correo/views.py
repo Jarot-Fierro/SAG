@@ -52,11 +52,13 @@ class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
             'establecimiento', 'departamento_solicitante', 'usuario_solicitante'
         ).prefetch_related('detalles')
 
+        # Siempre filtrar por establecimiento si el usuario lo tiene y no es superuser
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+
         # Si no es superuser ni RR.HH./TIC, solo ve sus propias solicitudes
         if not self.request.user.is_superuser:
             queryset = queryset.filter(usuario_solicitante=self.request.user)
-            if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento:
-                queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
 
         # Filtros
         form = FiltroSolicitudForm(self.request.GET)
@@ -88,6 +90,8 @@ class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
 
         # Contadores rápidos
         user_solicitudes = SolicitudCorreo.objects.filter(is_active=True, usuario_solicitante=self.request.user)
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            user_solicitudes = user_solicitudes.filter(establecimiento=self.request.user.establecimiento)
         context['total_pendientes'] = user_solicitudes.filter(estado__in=['PENDIENTE_RRHH', 'EN_REVISION_RRHH']).count()
         context['total_en_tic'] = user_solicitudes.filter(estado__in=['EN_TIC', 'EN_PROCESO_TIC']).count()
         context['total_finalizadas'] = user_solicitudes.filter(estado='FINALIZADA').count()
@@ -206,6 +210,8 @@ class SolicitudCorreoDetailView(LoginRequiredMixin, DetailView):
             'detalles', 'detalles__funcionario', 'detalles__usuario_rrhh',
             'detalles__tecnico_responsable', 'detalles__notificado_por'
         )
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -303,6 +309,12 @@ class SolicitudRevisionRRHHView(RRHHRequiredMixin, DetailView):
     template_name = 'solicitud_correo/revision_rrhh.html'
     context_object_name = 'solicitud'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f"Revisión RR.HH. - Solicitud {self.object.numero_solicitud}"
@@ -394,6 +406,12 @@ class SolicitudProcesamientoTICView(TICRequiredMixin, DetailView):
     template_name = 'solicitud_correo/procesamiento_tic.html'
     context_object_name = 'solicitud'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f"Procesamiento TIC - Solicitud {self.object.numero_solicitud}"
@@ -415,7 +433,10 @@ def detalle_revisar_rrhh(request, pk):
     """
     Permite a RR.HH. aprobar o rechazar individualmente a un funcionario.
     """
-    detalle = get_object_or_404(SolicitudCorreoDetalle, pk=pk)
+    detalle_qs = SolicitudCorreoDetalle.objects.select_related('solicitud')
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        detalle_qs = detalle_qs.filter(solicitud__establecimiento=request.user.establecimiento)
+    detalle = get_object_or_404(detalle_qs, pk=pk)
     solicitud = detalle.solicitud
 
     accion = request.POST.get('accion')
@@ -470,7 +491,10 @@ def solicitud_aprobar_todos_rrhh(request, pk):
     """
     Permite a RR.HH. aprobar todos los funcionarios pendientes de una solicitud de una sola vez.
     """
-    solicitud = get_object_or_404(SolicitudCorreo, pk=pk)
+    solicitud_qs = SolicitudCorreo.objects.all()
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        solicitud_qs = solicitud_qs.filter(establecimiento=request.user.establecimiento)
+    solicitud = get_object_or_404(solicitud_qs, pk=pk)
     detalles_pendientes = solicitud.detalles.filter(estado='PENDIENTE_RRHH')
 
     count = 0
@@ -500,7 +524,10 @@ def detalle_procesar_tic(request, pk):
     """
     Permite a un técnico de TIC registrar la creación externa de la cuenta en MINSAL o registrar un error.
     """
-    detalle = get_object_or_404(SolicitudCorreoDetalle, pk=pk)
+    detalle_qs = SolicitudCorreoDetalle.objects.select_related('solicitud')
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        detalle_qs = detalle_qs.filter(solicitud__establecimiento=request.user.establecimiento)
+    detalle = get_object_or_404(detalle_qs, pk=pk)
     solicitud = detalle.solicitud
 
     accion = request.POST.get('accion')
@@ -580,7 +607,10 @@ def detalle_notificar_funcionario(request, pk):
         messages.error(request, "No tiene permisos para registrar notificaciones.")
         return redirect('solicitud_correo:mis_solicitudes')
 
-    detalle = get_object_or_404(SolicitudCorreoDetalle, pk=pk)
+    detalle_qs = SolicitudCorreoDetalle.objects.select_related('solicitud')
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        detalle_qs = detalle_qs.filter(solicitud__establecimiento=request.user.establecimiento)
+    detalle = get_object_or_404(detalle_qs, pk=pk)
     correo_destinatario = request.POST.get('correo_destinatario', '').strip()
     observacion_notificacion = request.POST.get('observacion_notificacion', '').strip()
     enviar_email = request.POST.get('enviar_email') in ['true', 'True', '1', 'on']
@@ -626,7 +656,10 @@ def solicitud_cancelar(request, pk):
     """
     Permite cancelar una solicitud en estado BORRADOR o PENDIENTE_RRHH.
     """
-    solicitud = get_object_or_404(SolicitudCorreo, pk=pk)
+    solicitud_qs = SolicitudCorreo.objects.all()
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        solicitud_qs = solicitud_qs.filter(establecimiento=request.user.establecimiento)
+    solicitud = get_object_or_404(solicitud_qs, pk=pk)
 
     # Validar permisos: debe ser el usuario solicitante o RR.HH. o superuser
     if not (request.user.is_superuser or user_is_rrhh(request.user) or solicitud.usuario_solicitante == request.user):
@@ -654,6 +687,8 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         queryset = SolicitudCorreo.objects.all()
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         if not self.request.user.is_superuser and not user_is_rrhh(self.request.user) and not user_is_tic(self.request.user):
             queryset = queryset.filter(usuario_solicitante=self.request.user)
         return queryset
@@ -765,7 +800,10 @@ def api_funcionario_info(request, pk):
     """
     Retorna los datos del funcionario en JSON para autocompletar en el formulario.
     """
-    funcionario = get_object_or_404(Funcionario, pk=pk)
+    funcionario_qs = Funcionario.objects.all()
+    if hasattr(request.user, 'establecimiento') and request.user.establecimiento and not request.user.is_superuser:
+        funcionario_qs = funcionario_qs.filter(establecimiento=request.user.establecimiento)
+    funcionario = get_object_or_404(funcionario_qs, pk=pk)
     depto = str(funcionario.unidad_organizacional) if funcionario.unidad_organizacional else ''
     return JsonResponse({
         'id': funcionario.id,

@@ -136,8 +136,16 @@ class TicketListView(StandardListView):
         )
 
         # Aplicamos filtro de establecimiento similar a StandardBaseView
-        # if not self.request.user.is_superuser:
-        queryset = queryset.filter(establecimiento=self.request.user.establecimiento, is_active=True)
+        if (
+            hasattr(self.request.user, "establecimiento")
+            and self.request.user.establecimiento
+            and not self.request.user.is_superuser
+        ):
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        elif hasattr(self.request.user, "establecimiento") and self.request.user.establecimiento:
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+
+        queryset = queryset.filter(is_active=True)
 
         self.filter_form = self.get_filter_form()
 
@@ -233,6 +241,16 @@ class TicketsUpdateView(StandardUpdateView):
     title = 'Editar Ticket'
     module_name = MODULE_NAME
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if (
+            not self.request.user.is_superuser
+            and hasattr(self.request.user, 'establecimiento')
+            and self.request.user.establecimiento
+        ):
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
 
 class TicketEditorListView(StandardListView):
     model = Ticket
@@ -254,11 +272,25 @@ class TicketEditorListView(StandardListView):
     def get_queryset(self):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            if (
+                hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+                and not self.request.user.is_superuser
+            ):
+                areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
+
             queryset = super().get_queryset().select_related(
                 "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
             ).filter(
                 area_soporte__in=areas_usuario, is_active=True
             )
+
+            if (
+                hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+                and not self.request.user.is_superuser
+            ):
+                queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         except AttributeError:
             # Si el usuario no tiene perfil_soporte, no ve ningún ticket
             queryset = super().get_queryset().none()
@@ -292,6 +324,12 @@ class TicketEditorListView(StandardListView):
 
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            if (
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+            ):
+                areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
             tipos_soporte = tipos_soporte.filter(area_soporte__in=areas_usuario).distinct()
         except AttributeError:
             tipos_soporte = tipos_soporte.none()
@@ -306,6 +344,16 @@ class TicketDetailView(StandardDetailView):
     title = "Detalle del Ticket"
     module_name = MODULE_NAME
     back_url_name = "soporte:ticket_list"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if (
+            not self.request.user.is_superuser
+            and hasattr(self.request.user, 'establecimiento')
+            and self.request.user.establecimiento
+        ):
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
 
 
 class TicketHistorialView(LoginRequiredMixin, DetailView):
@@ -544,7 +592,10 @@ class TicketHistorialView(LoginRequiredMixin, DetailView):
 
 @login_required
 def ticket_delete(request, pk):
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket_qs = Ticket.objects.all()
+    if not request.user.is_superuser and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+        ticket_qs = ticket_qs.filter(establecimiento=request.user.establecimiento)
+    ticket = get_object_or_404(ticket_qs, pk=pk)
     ticket.is_active = False
     ticket.estado = 'CANCELADO'
     ticket.solucion = "YO COMO USUARIO AUTORIZO CANCELAR ESTE TICKET"
@@ -560,7 +611,10 @@ def ticket_delete(request, pk):
 
 @login_required
 def ticket_tomar(request, pk):
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket_qs = Ticket.objects.all()
+    if not request.user.is_superuser and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+        ticket_qs = ticket_qs.filter(establecimiento=request.user.establecimiento)
+    ticket = get_object_or_404(ticket_qs, pk=pk)
     if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
         ticket.asignado_a = request.user.perfil_soporte
         ticket.estado = 'EN_PROCESO'
@@ -573,13 +627,19 @@ def ticket_tomar(request, pk):
 
 @login_required
 def ticket_cerrar(request, pk):
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket_qs = Ticket.objects.all()
+    if not request.user.is_superuser and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+        ticket_qs = ticket_qs.filter(establecimiento=request.user.establecimiento)
+    ticket = get_object_or_404(ticket_qs, pk=pk)
     if request.method == 'POST':
         solucion = request.POST.get('solucion')
         tipo_soporte_id = request.POST.get('tipo_soporte')
         if tipo_soporte_id:
             try:
-                ticket.tipo_soporte = TipoSoporte.objects.get(pk=tipo_soporte_id)
+                tipo_qs = TipoSoporte.objects.all()
+                if not request.user.is_superuser and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+                    tipo_qs = tipo_qs.filter(establecimiento=request.user.establecimiento)
+                ticket.tipo_soporte = tipo_qs.get(pk=tipo_soporte_id)
             except TipoSoporte.DoesNotExist:
                 ticket.tipo_soporte = None
         ticket.solucion = solucion
@@ -622,6 +682,12 @@ class TicketEditorInactivosListView(StandardListView):
 
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            if (
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+            ):
+                areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
             queryset = queryset.filter(
                 area_soporte__in=areas_usuario
             ).select_related(
@@ -665,6 +731,16 @@ class TicketsUpdateEditorView(StandardUpdateView):
     title = 'Editar Ticket'
     module_name = MODULE_NAME
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if (
+            not self.request.user.is_superuser
+            and hasattr(self.request.user, 'establecimiento')
+            and self.request.user.establecimiento
+        ):
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['request'] = self.request
@@ -683,15 +759,24 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Áreas del usuario
+        # Áreas del usuario filtradas por el establecimiento del usuario
         try:
             perfil = user.perfil_soporte
             areas_usuario = perfil.area_soporte.all()
+            if hasattr(user, 'establecimiento') and user.establecimiento and not user.is_superuser:
+                areas_usuario = areas_usuario.filter(establecimiento=user.establecimiento)
         except AttributeError:
             areas_usuario = AreaSoporte.objects.none()
 
+        # Base queryset de tickets según establecimiento
+        tickets_base = Ticket.objects.all()
+        if hasattr(user, 'establecimiento') and user.establecimiento and not user.is_superuser:
+            tickets_base = tickets_base.filter(establecimiento=user.establecimiento)
+        elif hasattr(user, 'establecimiento') and user.establecimiento:
+            tickets_base = tickets_base.filter(establecimiento=user.establecimiento)
+
         # Widgets del establecimiento
-        stats_est = Ticket.objects.filter(establecimiento=user.establecimiento).values('estado').annotate(
+        stats_est = tickets_base.values('estado').annotate(
             total=Count('id'))
         est_data = {
             'ABIERTO': 0,
@@ -707,10 +792,10 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
         # Widgets por área
         stats_areas = []
         for area in areas_usuario:
-            stats = Ticket.objects.filter(area_soporte=area).values('estado').annotate(total=Count('id'))
+            stats = tickets_base.filter(area_soporte=area).values('estado').annotate(total=Count('id'))
             area_data = {
                 'area': area.nombre,
-                'area_establecimiento': area.establecimiento.nombre,
+                'area_establecimiento': area.establecimiento.nombre if area.establecimiento else '',
                 'ABIERTO': 0,
                 'EN_PROCESO': 0,
                 'CERRADO': 0,
@@ -724,12 +809,26 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
         context['stats_areas'] = stats_areas
 
         # Gráfico de columnas: Usuarios con perfil de soporte y sus tickets por estado
-        usuarios_soporte = PerfilSoporte.objects.filter(
-            usuario__establecimiento=user.establecimiento,
+        usuarios_soporte_qs = PerfilSoporte.objects.all()
+        if hasattr(user, 'establecimiento') and user.establecimiento and not user.is_superuser:
+            usuarios_soporte_qs = usuarios_soporte_qs.filter(usuario__establecimiento=user.establecimiento)
+        elif hasattr(user, 'establecimiento') and user.establecimiento:
+            usuarios_soporte_qs = usuarios_soporte_qs.filter(usuario__establecimiento=user.establecimiento)
+
+        filter_tickets_cerrados = Q(tickets_asignados__estado='CERRADO')
+        filter_tickets_abiertos = Q(tickets_asignados__estado='ABIERTO')
+        if hasattr(user, 'establecimiento') and user.establecimiento and not user.is_superuser:
+            filter_tickets_cerrados &= Q(tickets_asignados__establecimiento=user.establecimiento)
+            filter_tickets_abiertos &= Q(tickets_asignados__establecimiento=user.establecimiento)
+        elif hasattr(user, 'establecimiento') and user.establecimiento:
+            filter_tickets_cerrados &= Q(tickets_asignados__establecimiento=user.establecimiento)
+            filter_tickets_abiertos &= Q(tickets_asignados__establecimiento=user.establecimiento)
+
+        usuarios_soporte = usuarios_soporte_qs.filter(
             area_soporte__in=areas_usuario
         ).annotate(
-            cerrados_count=Count('tickets_asignados', filter=Q(tickets_asignados__estado='CERRADO')),
-            abiertos_count=Count('tickets_asignados', filter=Q(tickets_asignados__estado='ABIERTO'))
+            cerrados_count=Count('tickets_asignados', filter=filter_tickets_cerrados),
+            abiertos_count=Count('tickets_asignados', filter=filter_tickets_abiertos)
         ).distinct()
 
         bar_chart_data = [

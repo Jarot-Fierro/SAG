@@ -215,7 +215,7 @@ def list_users(request):
 class UsuarioCreateView(StandardCreateView):
     model = User
     form_class = UsuarioForm
-    title = 'Crear Configuración de Usuario'
+    title = 'Crear Usuario'
     success_url = reverse_lazy('usuarios:list_usuario')
     template_name = 'usuarios/form_create_user.html'
 

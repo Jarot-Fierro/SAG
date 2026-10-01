@@ -114,7 +114,7 @@ class MarcaListView(CatalogoListView):
         return reverse_lazy('gestion_tic:marca_create')
 
     def get_queryset(self):
-        return super().get_queryset().all()
+        return self.model.objects.all()
 
 
 class MarcaCreateView(CatalogoCreateView):

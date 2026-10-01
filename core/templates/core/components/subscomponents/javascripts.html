@@ -314,3 +314,157 @@
 {#    const sparkline3 = new ApexCharts(document.querySelector('#sparkline-3'), option_sparkline3);#}
 {#    sparkline3.render();#}
 {#</script>#}
+
+<script>
+class RutValidator {
+
+    constructor(selector = '.id_rut') {
+        this.selector = selector;
+        this.init();
+    }
+
+    init() {
+        $(document).on('input', this.selector, (e) => {
+            const input = e.currentTarget;
+
+            let cursorPosition = input.selectionStart;
+            let originalLength = input.value.length;
+
+            // Formatear
+            input.value = this.format(input.value);
+
+            // Mantener posición del cursor
+            const newLength = input.value.length;
+            cursorPosition += newLength - originalLength;
+
+            input.setSelectionRange(cursorPosition, cursorPosition);
+        });
+
+        $(document).on('blur', this.selector, (e) => {
+            const input = e.currentTarget;
+            const rut = input.value;
+
+            if (!rut) {
+                this.setStatus(input, null);
+                return;
+            }
+
+            if (this.isValid(rut)) {
+                input.value = this.format(rut);
+                this.setStatus(input, true);
+            } else {
+                this.setStatus(input, false);
+            }
+        });
+    }
+
+    /**
+     * Formatea un RUT
+     * Ejemplo:
+     * 209300559 -> 20.930.055-9
+     */
+    format(rut) {
+
+        let value = rut
+            .replace(/[^\dkK]/g, '')
+            .toUpperCase();
+
+        if (value.length <= 1) {
+            return value;
+        }
+
+        const body = value.slice(0, -1);
+        const dv = value.slice(-1);
+
+        let formattedBody = '';
+        let counter = 0;
+
+        for (let i = body.length - 1; i >= 0; i--) {
+
+            formattedBody = body.charAt(i) + formattedBody;
+            counter++;
+
+            if (counter === 3 && i !== 0) {
+                formattedBody = '.' + formattedBody;
+                counter = 0;
+            }
+        }
+
+        return formattedBody + '-' + dv;
+    }
+
+    /**
+     * Valida el dígito verificador
+     */
+    isValid(rut) {
+
+        let value = rut
+            .replace(/\./g, '')
+            .replace(/-/g, '')
+            .replace(/\s/g, '')
+            .toUpperCase();
+
+        if (value.length < 2) {
+            return false;
+        }
+
+        const body = value.slice(0, -1);
+        const dv = value.slice(-1);
+
+        if (!/^\d+$/.test(body)) {
+            return false;
+        }
+
+        let sum = 0;
+        let multiplier = 2;
+
+        for (let i = body.length - 1; i >= 0; i--) {
+
+            sum += parseInt(body.charAt(i)) * multiplier;
+
+            multiplier++;
+
+            if (multiplier > 7) {
+                multiplier = 2;
+            }
+        }
+
+        const remainder = 11 - (sum % 11);
+
+        let expectedDV;
+
+        if (remainder === 11) {
+            expectedDV = '0';
+        } else if (remainder === 10) {
+            expectedDV = 'K';
+        } else {
+            expectedDV = remainder.toString();
+        }
+
+        return dv === expectedDV;
+    }
+
+    /**
+     * Estado visual del campo
+     */
+    setStatus(input, valid) {
+
+        $(input)
+            .removeClass('is-valid is-invalid');
+
+        if (valid === true) {
+            $(input).addClass('is-valid');
+        }
+
+        if (valid === false) {
+            $(input).addClass('is-invalid');
+        }
+    }
+}
+
+
+// Inicializar
+$(document).ready(function () {
+    new RutValidator('.id_rut');
+});
+</script>

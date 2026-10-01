@@ -18,7 +18,7 @@
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-body">
-                    <form method="post" novalidate>
+                    <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
 
                         {% if form.non_field_errors %}
@@ -95,7 +95,7 @@
                         </div>
 
                         <div class="d-flex gap-2 justify-content-end">
-                            <a href="{% url 'funcionarios:list_funcionarios' %}" class="btn btn-secondary">
+                            <a href="{% url 'usuarios:list_usuario' %}" class="btn btn-secondary">
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">
