@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+    {% include 'solicitud_vpn/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {% if es_gestor_vpn %}
+        <a href="{% url 'solicitud_vpn:bandeja_tic' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-hdd-network me-1"></i> Bandeja TIC
+        </a>
+    {% endif %}
+    <a href="{% url 'solicitud_vpn:mis_solicitudes' %}" class="btn btn-sm btn-outline-secondary ms-1">
+        <i class="bi bi-list-task me-1"></i> Mis Solicitudes
+    </a>
+    <button type="button" class="btn btn-sm btn-primary ms-2" id="btn-copiar-todo-econecta">
+        <i class="bi bi-clipboard-check me-1"></i> Copiar Todo para eConecta
+    </button>
+{% endblock %}
+
+{% block title %}Solicitud VPN {{ solicitud.numero_solicitud }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+
+    <!-- Encabezado de la Solicitud -->
+    <div class="card shadow-sm mb-4 border-primary">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="badge bg-primary fs-6 mb-2">Solicitud VPN</span>
+                    <h3 class="fw-bold mb-1 text-primary">{{ solicitud.numero_solicitud }}</h3>
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar-event me-1"></i> Fecha Solicitud: <strong>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }} hrs</strong> |
+                        <i class="bi bi-person me-1"></i> Creado por: <strong>{{ solicitud.usuario_solicitante.get_full_name|default:solicitud.usuario_solicitante.username }}</strong>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <!-- Badge Acción -->
+                    <div>
+                        <small class="text-muted d-block text-end">Acción Solicitada</small>
+                        {% if solicitud.accion == 'CREAR' %}
+                            <span class="badge bg-success fs-6"><i class="bi bi-plus-circle me-1"></i>Crear</span>
+                        {% elif solicitud.accion == 'ACTUALIZAR' %}
+                            <span class="badge bg-warning text-dark fs-6"><i class="bi bi-arrow-repeat me-1"></i>Actualizar</span>
+                        {% elif solicitud.accion == 'ELIMINAR' %}
+                            <span class="badge bg-danger fs-6"><i class="bi bi-trash me-1"></i>Eliminar</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">{{ solicitud.get_accion_display }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Badge Estado -->
+                    <div>
+                        <small class="text-muted d-block text-end">Estado Actual</small>
+                        {% if solicitud.estado == 'BORRADOR' %}
+                            <span class="badge bg-secondary fs-6"><i class="bi bi-pencil me-1"></i>Borrador</span>
+                        {% elif solicitud.estado == 'PENDIENTE' %}
+                            <span class="badge bg-warning text-dark fs-6"><i class="bi bi-clock me-1"></i>Pendiente</span>
+                        {% elif solicitud.estado == 'EN_REVISION' %}
+                            <span class="badge bg-primary fs-6"><i class="bi bi-search me-1"></i>En revisión</span>
+                        {% elif solicitud.estado == 'ENVIADO_ECONECTA' %}
+                            <span class="badge text-white fs-6" style="background-color: #6f42c1;"><i class="bi bi-send-check me-1"></i>Enviado a eConecta</span>
+                        {% elif solicitud.estado == 'COMPLETADO' %}
+                            <span class="badge bg-success fs-6"><i class="bi bi-check2-all me-1"></i>Completado</span>
+                        {% elif solicitud.estado == 'RECHAZADO' %}
+                            <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Rechazado</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">{{ solicitud.get_estado_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Datos del Solicitante / Referente Técnico (para eConecta) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold fs-6">
+                <i class="bi bi-person-lines-fill me-2"></i>1. Datos del Solicitante / Informático Referente (para Requerimiento eConecta)
+            </h5>
+            <button type="button" class="btn btn-xs btn-light fw-bold" id="btn-copiar-solicitante" title="Copiar datos del solicitante al portapapeles">
+                <i class="bi bi-clipboard me-1"></i> Copiar Datos Solicitante
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="text-muted small fw-bold">Nombre Completo</label>
+                    <div class="fs-6 fw-bold text-dark">{{ solicitud.tecnico_nombre|default:'-' }}</div>
+                </div>
+                <div class="col-md-2">
+                    <label class="text-muted small fw-bold">RUT</label>
+                    <div><code class="fs-6">{{ solicitud.tecnico_rut|default:'-' }}</code></div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Establecimiento</label>
+                    <div class="fw-semibold text-primary">
+                        <i class="bi bi-hospital me-1"></i>{{ solicitud.tecnico_establecimiento|default:solicitud.establecimiento.nombre|default:'-' }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Departamento / Unidad</label>
+                    <div>{{ solicitud.departamento_nombre|default:solicitud.departamento_solicitante|default:'-' }}</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Cargo</label>
+                    <div>{{ solicitud.tecnico_cargo|default:'-' }}</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Teléfono</label>
+                    <div>{{ solicitud.tecnico_telefono|default:'-' }}</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Email</label>
+                    <div><a href="mailto:{{ solicitud.tecnico_email }}">{{ solicitud.tecnico_email|default:'-' }}</a></div>
+                </div>
+                <div class="col-md-2">
+                    <label class="text-muted small fw-bold">Fecha Requerimiento</label>
+                    <div>{{ solicitud.tecnico_fecha|date:"d/m/Y"|default:solicitud.fecha_solicitud|date:"d/m/Y" }}</div>
+                </div>
+                <div class="col-md-1">
+                    <label class="text-muted small fw-bold">¿Proveedor?</label>
+                    <div>
+                        {% if solicitud.es_proveedor %}
+                            <span class="badge bg-warning text-dark">SÍ</span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border">NO</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Parámetros Técnicos de la VPN -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white py-2">
+            <h5 class="card-title mb-0 fw-bold fs-6">
+                <i class="bi bi-shield-check me-2"></i>2. Parámetros Técnicos de VPN
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Nombre del Grupo VPN</label>
+                    <div class="fw-bold">{{ solicitud.grupo_vpn|default:'(No especificado)' }}</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Fecha de Expiración</label>
+                    <div>{{ solicitud.fecha_expiracion|date:"d/m/Y"|default:'Indefinida / Sin límite' }}</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Time Out VPN</label>
+                    <div><span class="badge bg-light text-dark border">{{ solicitud.timeout_vpn|default:'1 hora' }}</span></div>
+                </div>
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold">Ticket / eConecta ID</label>
+                    <div>
+                        {% if solicitud.ticket_econecta %}
+                            <code class="fs-6 fw-bold text-success">{{ solicitud.ticket_econecta }}</code>
+                        {% else %}
+                            <span class="text-muted">(Pendiente de asignación)</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if solicitud.observacion %}
+                    <div class="col-12">
+                        <label class="text-muted small fw-bold">Observaciones Generales</label>
+                        <div class="p-2 bg-light rounded border">{{ solicitud.observacion|linebreaksbr }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Beneficiarios de la Solicitud -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold fs-6">
+                <i class="bi bi-people-fill me-2"></i>3. Beneficiarios de la Solicitud ({{ solicitud.beneficiarios.count }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th style="width: 40px;" class="text-center">#</th>
+                            <th>Nombre Completo</th>
+                            <th>RUT</th>
+                            <th>Establecimiento</th>
+                            <th>Cargo</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Fecha</th>
+                            <th style="width: 80px;" class="text-center">Copiar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ben in solicitud.beneficiarios.all %}
+                            <tr>
+                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                <td class="fw-bold">{{ ben.get_nombre_completo }}</td>
+                                <td><code>{{ ben.rut|default:'-' }}</code></td>
+                                <td>{{ ben.establecimiento|default:'-' }}</td>
+                                <td>{{ ben.cargo|default:'-' }}</td>
+                                <td>{{ ben.telefono|default:'-' }}</td>
+                                <td>
+                                    {% if ben.email %}
+                                        <a href="mailto:{{ ben.email }}">{{ ben.email }}</a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ ben.fecha|date:"d/m/Y"|default:solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-copiar-ben-row"
+                                            data-nombre="{{ ben.get_nombre_completo }}"
+                                            data-rut="{{ ben.rut|default:'' }}"
+                                            data-establecimiento="{{ ben.establecimiento|default:'' }}"
+                                            data-cargo="{{ ben.cargo|default:'' }}"
+                                            data-telefono="{{ ben.telefono|default:'' }}"
+                                            data-email="{{ ben.email|default:'' }}"
+                                            title="Copiar datos del beneficiario">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="p-4 text-center text-muted">No se encontraron beneficiarios registrados en esta solicitud.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Accesos VPN Solicitados (ManyToMany) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold fs-6">
+                <i class="bi bi-hdd-network me-2"></i>4. Accesos VPN Solicitados ({{ solicitud.accesos.count }})
+            </h5>
+            <span class="badge bg-light text-primary fw-bold">{{ solicitud.accesos.count }} acceso{{ solicitud.accesos.count|pluralize }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Sistema / Plataforma / Recurso</th>
+                            <th>Dirección IP o Segmento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for acc in solicitud.accesos.all %}
+                            <tr>
+                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                <td class="fw-bold text-primary">{{ acc.plataforma }}</td>
+                                <td><code class="fs-6">{{ acc.ip }}</code></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="p-4 text-center text-muted">
+                                    <em>(No se registraron accesos específicos del mantenedor para esta solicitud)</em>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Panel de Gestión TIC (Sólo visible para Gestores TIC / Superuser) -->
+    {% if es_gestor_vpn %}
+        <div class="card shadow-sm mb-4 border-warning">
+            <div class="card-header bg-warning text-dark py-2 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold fs-6">
+                    <i class="bi bi-gear-wide-connected me-2"></i>5. Gestión de Solicitud en eConecta (Bandeja TIC)
+                </h5>
+                <span class="badge bg-dark text-white">Exclusivo Informática / TIC</span>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'solicitud_vpn:cambiar_estado' solicitud.pk %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Actualizar Estado <span class="text-danger">*</span></label>
+                            {{ gestion_form.estado }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ticket / Folio eConecta</label>
+                            {{ gestion_form.ticket_econecta }}
+                            <div class="form-text small">Número de ticket generado tras registrar la solicitud en eConecta.</div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Observación de Gestión / Revisión TIC</label>
+                            {{ gestion_form.observacion_revision }}
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-warning fw-bold text-dark px-4">
+                                <i class="bi bi-check2-circle me-1"></i> Guardar Gestión TIC
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Modal para ver y copiar texto plano eConecta -->
+    <div class="modal fade" id="modalTextoEconecta" tabindex="-1" aria-labelledby="modalTextLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold" id="modalTextLabel">
+                        <i class="bi bi-file-earmark-text me-2"></i>Texto Formateado para Requerimiento eConecta
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">
+                        Copie este texto directamente para completar el formulario o adjunto en la plataforma eConecta:
+                    </p>
+                    <textarea class="form-control font-monospace text-dark bg-light" id="textarea-econecta-texto" rows="18" readonly style="font-size: 0.85rem;">{{ texto_econecta_completo }}</textarea>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success fw-bold" id="btn-copiar-textarea">
+                        <i class="bi bi-clipboard-check me-1"></i> Copiar al Portapapeles
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Copiar all para eConecta
+    $('#btn-copiar-todo-econecta').on('click', function() {
+        $('#modalTextoEconecta').modal('show');
+    });
+
+    $('#btn-copiar-textarea').on('click', function() {
+        const copyText = document.getElementById("textarea-econecta-texto");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(function() {
+            alert('¡Texto completo copiado al portapapeles!');
+        }).catch(function() {
+            document.execCommand('copy');
+            alert('¡Texto copiado!');
+        });
+    });
+
+    // Copiar datos del solicitante
+    $('#btn-copiar-solicitante').on('click', function() {
+        const text = [
+            "DATOS DEL SOLICITANTE:",
+            "Nombre: {{ solicitud.tecnico_nombre|default:''|escapejs }}",
+            "RUT: {{ solicitud.tecnico_rut|default:''|escapejs }}",
+            "Establecimiento: {{ solicitud.tecnico_establecimiento|default:''|escapejs }}",
+            "Cargo: {{ solicitud.tecnico_cargo|default:''|escapejs }}",
+            "Teléfono: {{ solicitud.tecnico_telefono|default:''|escapejs }}",
+            "Email: {{ solicitud.tecnico_email|default:''|escapejs }}",
+            "Fecha: {{ solicitud.tecnico_fecha|date:'d/m/Y'|escapejs }}",
+            "Proveedor: {% if solicitud.es_proveedor %}SÍ{% else %}NO{% endif %}"
+        ].join("\n");
+
+        navigator.clipboard.writeText(text).then(function() {
+            alert('¡Datos del solicitante copiados al portapapeles!');
+        });
+    });
+
+    // Copiar datos de un beneficiario individual
+    $('.btn-copiar-ben-row').on('click', function() {
+        const d = $(this).data();
+        const text = [
+            "DATOS DEL BENEFICIARIO:",
+            "Nombre: " + (d.nombre || '-'),
+            "RUT: " + (d.rut || '-'),
+            "Establecimiento: " + (d.establecimiento || '-'),
+            "Cargo: " + (d.cargo || '-'),
+            "Teléfono: " + (d.telefono || '-'),
+            "Email: " + (d.email || '-')
+        ].join("\n");
+
+        navigator.clipboard.writeText(text).then(function() {
+            alert('¡Datos del beneficiario copiados al portapapeles!');
+        });
+    });
+});
+</script>
+{% endblock %}

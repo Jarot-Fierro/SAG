@@ -14,6 +14,7 @@ urlpatterns = [
     path('gestion/', include('gestion_tic.urls')),
     path('bodega/', include('bodega.urls')),
     path('solicitudes-correo/', include('solicitud_correo.urls')),
+    path('solicitudes-vpn/', include('solicitud_vpn.urls')),
 ]
 
 handler404 = 'core.views.errors.handler404'

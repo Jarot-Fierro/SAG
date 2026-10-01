@@ -1,0 +1,29 @@
+{% if request.user.perfil_vpn.bandeja_vpn or request.user.is_superuser %}
+    <li class="nav-item">
+        <a href="{% url 'solicitud_vpn:bandeja_tic' %}" class="nav-link">
+            <i class="nav-icon bi bi-hdd-network-fill text-warning"></i>
+            <p>Bandeja TIC / Informática</p>
+        </a>
+    </li>
+{% endif %}
+<hr class="my-2 border-secondary">
+<li class="nav-item">
+    <a href="{% url 'solicitud_vpn:mis_solicitudes' %}" class="nav-link">
+        <i class="nav-icon bi bi-shield-lock-fill"></i>
+        <p>Mis Solicitudes</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_vpn:crear' %}" class="nav-link">
+        <i class="nav-icon bi bi-plus-circle-fill text-success"></i>
+        <p>Generar Requerimiento</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_vpn:perfil' %}" class="nav-link">
+        <i class="nav-icon bi bi-person-gear"></i>
+        <p>Mi Perfil Referente</p>
+    </a>
+</li>

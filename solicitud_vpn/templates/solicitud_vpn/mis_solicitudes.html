@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load query_tags %}
+
+{% block sidebar %}
+    {% include 'solicitud_vpn/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'solicitud_vpn:crear' %}" class="btn btn-sm btn-success">
+        <i class="bi bi-plus-circle me-1"></i> Generar requerimiento
+    </a>
+{% endblock %}
+
+{% block title %}Mis Solicitudes de Acceso VPN{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon text-bg-info text-white"><i class="bi bi-folder2-open"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Total</span>
+                    <span class="info-box-number fs-5">{{ total_solicitudes }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon text-bg-warning text-dark"><i class="bi bi-clock-history"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Pendientes</span>
+                    <span class="info-box-number fs-5">{{ total_pendientes }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon text-bg-primary text-white"><i class="bi bi-search"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">En Revisión</span>
+                    <span class="info-box-number fs-5">{{ total_en_revision }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon text-bg-purple text-white" style="background-color: #6f42c1 !important;"><i class="bi bi-send-check"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">eConecta</span>
+                    <span class="info-box-number fs-5">{{ total_enviadas_econecta }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon text-bg-success text-white"><i class="bi bi-check-circle-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Completadas</span>
+                    <span class="info-box-number fs-5">{{ total_completadas }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="info-box shadow-sm mb-0">
+                <span class="info-box-icon bg-danger text-white"><i class="bi bi-x-circle-fill"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Rechazadas</span>
+                    <span class="info-box-number fs-5">{{ total_rechazadas }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-funnel me-1"></i> Filtros de Búsqueda</span>
+                {% if request.GET.urlencode %}
+                    <a href="{% url 'solicitud_vpn:mis_solicitudes' %}" class="btn btn-xs btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Limpiar filtros
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold mb-1">Folio / Número</label>
+                    {{ filter_form.numero_solicitud }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold mb-1">Estado</label>
+                    {{ filter_form.estado }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold mb-1">Acción</label>
+                    {{ filter_form.accion }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold mb-1">Beneficiario (RUT o Nombre)</label>
+                    {{ filter_form.beneficiario_busqueda }}
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Solicitudes -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold">
+                <i class="bi bi-list-task text-primary me-2"></i>Listado de Solicitudes
+            </h5>
+            <span class="badge bg-secondary">{{ paginator.count }} registros</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Folio Solicitud</th>
+                            <th>Fecha</th>
+                            <th>Establecimiento</th>
+                            <th>Acción</th>
+                            <th>Beneficiarios</th>
+                            <th>Estado</th>
+                            <th class="text-center" style="width: 140px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sol in solicitudes %}
+                            <tr>
+                                <td class="text-center text-muted fw-bold">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                <td>
+                                    <a href="{% url 'solicitud_vpn:detalle' sol.pk %}" class="fw-bold text-decoration-none">
+                                        {{ sol.numero_solicitud }}
+                                    </a>
+                                    {% if sol.grupo_vpn %}
+                                        <small class="d-block text-muted">Grupo: {{ sol.grupo_vpn }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>{{ sol.fecha_solicitud|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ sol.fecha_solicitud|date:"H:i" }} hrs</small>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">{{ sol.establecimiento.nombre|default:sol.tecnico_establecimiento|default:'-' }}</span>
+                                    {% if sol.departamento_nombre %}
+                                        <small class="d-block text-muted">{{ sol.departamento_nombre }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if sol.accion == 'CREAR' %}
+                                        <span class="badge bg-success">Crear</span>
+                                    {% elif sol.accion == 'ACTUALIZAR' %}
+                                        <span class="badge bg-warning text-dark">Actualizar</span>
+                                    {% elif sol.accion == 'ELIMINAR' %}
+                                        <span class="badge bg-danger">Eliminar</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ sol.get_accion_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-people-fill me-1"></i>{{ sol.total_beneficiarios }} pers.
+                                    </span>
+                                    <small class="text-muted ms-1">({{ sol.total_accesos }} accesos)</small>
+                                </td>
+                                <td>
+                                    {% if sol.estado == 'BORRADOR' %}
+                                        <span class="badge bg-secondary"><i class="bi bi-pencil me-1"></i>Borrador</span>
+                                    {% elif sol.estado == 'PENDIENTE' %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pendiente</span>
+                                    {% elif sol.estado == 'EN_REVISION' %}
+                                        <span class="badge bg-primary"><i class="bi bi-search me-1"></i>En revisión</span>
+                                    {% elif sol.estado == 'ENVIADO_ECONECTA' %}
+                                        <span class="badge text-white" style="background-color: #6f42c1;"><i class="bi bi-send me-1"></i>Enviado a eConecta</span>
+                                    {% elif sol.estado == 'COMPLETADO' %}
+                                        <span class="badge bg-success"><i class="bi bi-check-all me-1"></i>Completado</span>
+                                    {% elif sol.estado == 'RECHAZADO' %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rechazado</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ sol.get_estado_display }}</span>
+                                    {% endif %}
+                                    {% if sol.ticket_econecta %}
+                                        <small class="d-block text-muted">Ticket: {{ sol.ticket_econecta }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'solicitud_vpn:detalle' sol.pk %}" class="btn btn-sm btn-outline-primary" title="Ver Detalle">
+                                        <i class="bi bi-eye me-1"></i> Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-shield-x display-4 d-block mb-3 text-secondary"></i>
+                                    <h5>No se encontraron solicitudes</h5>
+                                    <p class="small mb-3">No hay solicitudes de acceso VPN registradas con los filtros aplicados.</p>
+                                    <a href="{% url 'solicitud_vpn:crear' %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-plus-circle me-1"></i> Generar requerimiento ahora
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if is_paginated %}
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+                <span class="small text-muted">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ paginator.count }}
+                </span>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% query_transform page=page_obj.previous_page_number %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% query_transform page=num %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
