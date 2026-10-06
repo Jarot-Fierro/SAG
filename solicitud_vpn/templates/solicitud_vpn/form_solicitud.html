@@ -1,5 +1,28 @@
 {% extends 'base.html' %}
 
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Soporte visual de validación Bootstrap para Select2 */
+    .was-validated .select2-container--bootstrap-5.is-invalid .select2-selection,
+    .was-validated select:invalid + .select2-container--bootstrap-5 .select2-selection {
+        border-color: #dc3545 !important;
+        padding-right: 2.25rem;
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    .was-validated .select2-container--bootstrap-5.is-valid .select2-selection,
+    .was-validated select:valid + .select2-container--bootstrap-5 .select2-selection {
+        border-color: #198754 !important;
+    }
+    /* Estilos para Flatpickr dentro de Bootstrap 5 */
+    .flatpickr-input[readonly] {
+        background-color: #ffffff;
+    }
+</style>
+{% endblock %}
+
 {% block sidebar %}
     {% include 'solicitud_vpn/sidebar.html' %}
 {% endblock %}
@@ -14,330 +37,331 @@
 
 {% block content %}
 <div class="container-fluid px-3" data-user-establecimiento="{{ request.user.establecimiento.nombre|default:'' }}">
-    <form method="post" id="form-solicitud-vpn">
+    <form method="post" class="needs-validation" novalidate id="form-solicitud-vpn">
         {% csrf_token %}
         <input type="hidden" name="guardar_borrador" id="input_guardar_borrador" value="0">
 
-        <!-- 1. Datos Generales de la Solicitud -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header text-bg-danger text-white py-3">
-                <h5 class="card-title mb-0 fw-bold">
-                    <i class="bi bi-card-checklist me-2"></i>1. Datos Generales de la Solicitud
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Establecimiento Solicitante</label>
-                        <input type="text" class="form-control" value="{{ request.user.establecimiento.nombre|default:'Servicio de Salud Arauco' }}" readonly disabled>
-                        <div class="form-text small">Obtenido automáticamente del usuario autenticado.</div>
-                    </div>
-                    <div class="col-md-5">
-                        <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold">
-                            Departamento / Unidad Solicitante <span class="text-danger">*</span>
-                        </label>
-                        {{ form.departamento_solicitante }}
-                        {% if form.departamento_solicitante.errors %}
-                            <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
-                        {% endif %}
-                        <div class="form-text small">Determinado por la jerarquía de departamentos del establecimiento.</div>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="{{ form.accion.id_for_label }}" class="form-label fw-bold">
-                            Acción <span class="text-danger">*</span>
-                        </label>
-                        {{ form.accion }}
-                        {% if form.accion.errors %}
-                            <div class="text-danger small mt-1">{{ form.accion.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
+        <!-- Card Principal Unificada -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body p-4">
 
-                <hr class="my-3 text-muted">
-
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="{{ form.grupo_vpn.id_for_label }}" class="form-label fw-bold">Nombre del Grupo VPN</label>
-                        {{ form.grupo_vpn }}
-                        {% if form.grupo_vpn.errors %}
-                            <div class="text-danger small mt-1">{{ form.grupo_vpn.errors }}</div>
-                        {% endif %}
-                        <div class="form-text small">Grupo asignado o perfil VPN en red MINSAL.</div>
+                <!-- 1. Datos Generales de la Solicitud -->
+                <div class="mb-5">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <i class="bi bi-card-checklist fs-5 text-secondary me-2"></i>
+                        <h5 class="mb-0 fw-bold  text-dark">1. Datos Generales de la Solicitud</h5>
                     </div>
-                    <div class="col-md-4">
-                        <label for="{{ form.fecha_expiracion.id_for_label }}" class="form-label fw-bold">Fecha de Expiración</label>
-                        {{ form.fecha_expiracion }}
-                        {% if form.fecha_expiracion.errors %}
-                            <div class="text-danger small mt-1">{{ form.fecha_expiracion.errors }}</div>
-                        {% endif %}
-                        <div class="form-text small">Dejar en blanco si es de duración indefinida.</div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="{{ form.timeout_vpn.id_for_label }}" class="form-label fw-bold">Time Out VPN</label>
-                        {{ form.timeout_vpn }}
-                        {% if form.timeout_vpn.errors %}
-                            <div class="text-danger small mt-1">{{ form.timeout_vpn.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-12">
-                        <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold">Observación / Justificación General</label>
-                        {{ form.observacion }}
-                        {% if form.observacion.errors %}
-                            <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. Datos del Técnico / Solicitante -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header text-bg-secondary text-white py-3">
-                <h5 class="card-title mb-0 fw-bold">
-                    <i class="bi bi-person-badge me-2"></i>2. Datos del Solicitante / Referente Técnico Informático
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                        {{ form.tecnico_nombre }}
-                        {% if form.tecnico_nombre.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_nombre.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold">RUT <span class="text-danger">*</span></label>
-                        {{ form.tecnico_rut }}
-                        {% if form.tecnico_rut.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_rut.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Establecimiento <span class="text-danger">*</span></label>
-                        {{ form.tecnico_establecimiento }}
-                        {% if form.tecnico_establecimiento.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_establecimiento.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Cargo</label>
-                        {{ form.tecnico_cargo }}
-                        {% if form.tecnico_cargo.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_cargo.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Teléfono</label>
-                        {{ form.tecnico_telefono }}
-                        {% if form.tecnico_telefono.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_telefono.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
-                        {{ form.tecnico_email }}
-                        {% if form.tecnico_email.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_email.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Fecha Requerimiento <span class="text-danger">*</span></label>
-                        {{ form.tecnico_fecha }}
-                        {% if form.tecnico_fecha.errors %}
-                            <div class="text-danger small mt-1">{{ form.tecnico_fecha.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3 d-flex align-items-center">
-                        <div class="form-check mt-3">
-                            {{ form.es_proveedor }}
-                            <label class="form-check-label fw-bold" for="{{ form.es_proveedor.id_for_label }}">
-                                {{ form.es_proveedor.label }}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted">Establecimiento Solicitante</label>
+                            <input type="text" class="form-control" value="{{ request.user.establecimiento.nombre|default:'Servicio de Salud Arauco' }}" readonly disabled>
+                            <div class="form-text small">Obtenido automáticamente del usuario autenticado.</div>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold small text-muted">
+                                Departamento / Unidad Solicitante <span class="text-danger">*</span>
                             </label>
+                            {{ form.departamento_solicitante }}
+                            <div class="invalid-feedback">Seleccione el departamento o unidad solicitante.</div>
+                            {% if form.departamento_solicitante.errors %}
+                                <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
+                            {% endif %}
+                            <div class="form-text small">Determinado por la jerarquía de departamentos del establecimiento.</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.accion.id_for_label }}" class="form-label fw-bold small text-muted">
+                                Acción <span class="text-danger">*</span>
+                            </label>
+                            {{ form.accion }}
+                            <div class="invalid-feedback">Seleccione una acción.</div>
+                            {% if form.accion.errors %}
+                                <div class="text-danger small mt-1">{{ form.accion.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label for="{{ form.grupo_vpn.id_for_label }}" class="form-label fw-bold small text-muted">Nombre del Grupo VPN</label>
+                            {{ form.grupo_vpn }}
+                            {% if form.grupo_vpn.errors %}
+                                <div class="text-danger small mt-1">{{ form.grupo_vpn.errors }}</div>
+                            {% endif %}
+                            <div class="form-text small">Grupo asignado o perfil VPN en red MINSAL.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.fecha_expiracion.id_for_label }}" class="form-label fw-bold small text-muted">Fecha de Expiración</label>
+                            {{ form.fecha_expiracion }}
+                            {% if form.fecha_expiracion.errors %}
+                                <div class="text-danger small mt-1">{{ form.fecha_expiracion.errors }}</div>
+                            {% endif %}
+                            <div class="form-text small">Dejar en blanco si es de duración indefinida.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.timeout_vpn.id_for_label }}" class="form-label fw-bold small text-muted">Time Out VPN</label>
+                            {{ form.timeout_vpn }}
+                            {% if form.timeout_vpn.errors %}
+                                <div class="text-danger small mt-1">{{ form.timeout_vpn.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold small text-muted">Observación / Justificación General</label>
+                            {{ form.observacion }}
+                            {% if form.observacion.errors %}
+                                <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 3. Beneficiarios de la Solicitud (FormSet) -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="bi bi-people-fill me-2"></i>3. Beneficiarios de la Solicitud VPN
-                    </h5>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-sm btn-success fw-bold" id="btn-agregar-beneficiario">
-                        <i class="bi bi-person-plus-fill me-1"></i> Agregar Beneficiario
-                    </button>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                {{ beneficiarios_formset.management_form }}
-                {% if beneficiarios_formset.non_form_errors %}
-                    <div class="alert alert-danger m-3 mb-0">
-                        {{ beneficiarios_formset.non_form_errors }}
+                <!-- 2. Datos del Técnico / Solicitante -->
+                <div class="mb-5">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <i class="bi bi-person-badge fs-5 text-secondary me-2"></i>
+                        <h5 class="mb-0 fw-bold text-dark">2. Datos del Solicitante / Referente Técnico Informático</h5>
                     </div>
-                {% endif %}
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="tabla-beneficiarios">
-                        <thead class="table-light small text-uppercase">
-                            <tr>
-                                <th style="width: 40px;" class="text-center">#</th>
-                                <th style="width: 220px;">Funcionario (Opcional)</th>
-                                <th style="width: 130px;">RUT <span class="text-danger">*</span></th>
-                                <th style="width: 140px;">Nombres <span class="text-danger">*</span></th>
-                                <th style="width: 140px;">Apellidos</th>
-                                <th style="width: 160px;">Establecimiento</th>
-                                <th style="width: 140px;">Cargo</th>
-                                <th style="width: 120px;">Teléfono</th>
-                                <th style="width: 160px;">Email</th>
-                                <th style="width: 60px;" class="text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contenedor-filas-beneficiarios">
-                            {% for b_form in beneficiarios_formset %}
-                                <tr class="fila-beneficiario" data-index="{{ forloop.counter0 }}">
-                                    <td class="text-center fw-bold col-numero-ben">{{ forloop.counter }}</td>
-                                    <td>
-                                        {% for hidden in b_form.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-                                        {{ b_form.funcionario }}
-                                        {% if b_form.funcionario.errors %}
-                                            <div class="text-danger small">{{ b_form.funcionario.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.rut }}
-                                        {% if b_form.rut.errors %}
-                                            <div class="text-danger small">{{ b_form.rut.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.nombres }}
-                                        {% if b_form.nombres.errors %}
-                                            <div class="text-danger small">{{ b_form.nombres.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.apellidos }}
-                                        {% if b_form.apellidos.errors %}
-                                            <div class="text-danger small">{{ b_form.apellidos.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.establecimiento }}
-                                        {% if b_form.establecimiento.errors %}
-                                            <div class="text-danger small">{{ b_form.establecimiento.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.cargo }}
-                                        {% if b_form.cargo.errors %}
-                                            <div class="text-danger small">{{ b_form.cargo.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.telefono }}
-                                        {% if b_form.telefono.errors %}
-                                            <div class="text-danger small">{{ b_form.telefono.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ b_form.email }}
-                                        {% if b_form.email.errors %}
-                                            <div class="text-danger small">{{ b_form.email.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <div style="display: none;">
-                                            {{ b_form.DELETE }}
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario" title="Eliminar fila">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer bg-light py-2">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos manualmente.
-                </small>
-            </div>
-        </div>
-
-        <!-- 4. Accesos VPN Solicitados (FormSet ManyToMany) -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title mb-0 fw-bold">
-                        <i class="bi bi-hdd-network-fill me-2"></i>4. Accesos VPN Solicitados (Catálogo / Mantenedor)
-                    </h5>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-sm btn-light fw-bold text-primary" id="btn-agregar-acceso">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Agregar Acceso
-                    </button>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                {{ accesos_formset.management_form }}
-                {% if accesos_formset.non_form_errors %}
-                    <div class="alert alert-danger m-3 mb-0">
-                        {{ accesos_formset.non_form_errors }}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted">Nombre Completo <span class="text-danger">*</span></label>
+                            {{ form.tecnico_nombre }}
+                            <div class="invalid-feedback">El nombre completo es obligatorio.</div>
+                            {% if form.tecnico_nombre.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_nombre.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold small text-muted">RUT <span class="text-danger">*</span></label>
+                            {{ form.tecnico_rut }}
+                            <div class="invalid-feedback">El RUT es obligatorio.</div>
+                            {% if form.tecnico_rut.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_rut.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Establecimiento <span class="text-danger">*</span></label>
+                            {{ form.tecnico_establecimiento }}
+                            <div class="invalid-feedback">El establecimiento es obligatorio.</div>
+                            {% if form.tecnico_establecimiento.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_establecimiento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Cargo</label>
+                            {{ form.tecnico_cargo }}
+                            {% if form.tecnico_cargo.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_cargo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Teléfono</label>
+                            {{ form.tecnico_telefono }}
+                            {% if form.tecnico_telefono.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Email <span class="text-danger">*</span></label>
+                            {{ form.tecnico_email }}
+                            <div class="invalid-feedback">Ingrese un correo electrónico válido.</div>
+                            {% if form.tecnico_email.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Fecha Requerimiento <span class="text-danger">*</span></label>
+                            {{ form.tecnico_fecha }}
+                            <div class="invalid-feedback">La fecha de requerimiento es obligatoria.</div>
+                            {% if form.tecnico_fecha.errors %}
+                                <div class="text-danger small mt-1">{{ form.tecnico_fecha.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <div class="form-check mt-3">
+                                {{ form.es_proveedor }}
+                                <label class="form-check-label fw-bold small text-muted" for="{{ form.es_proveedor.id_for_label }}">
+                                    {{ form.es_proveedor.label }}
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="tabla-accesos">
-                        <thead class="table-light small text-uppercase">
-                            <tr>
-                                <th style="width: 50px;" class="text-center">#</th>
-                                <th>Sistema / Plataforma y Dirección IP (Mantenedor) <span class="text-danger">*</span></th>
-                                <th style="width: 80px;" class="text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contenedor-filas-accesos">
-                            {% for a_form in accesos_formset %}
-                                <tr class="fila-acceso" data-index="{{ forloop.counter0 }}">
-                                    <td class="text-center fw-bold col-numero-acc">{{ forloop.counter }}</td>
-                                    <td>
-                                        {% for hidden in a_form.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-                                        {{ a_form.acceso }}
-                                        {% if a_form.acceso.errors %}
-                                            <div class="text-danger small">{{ a_form.acceso.errors }}</div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <div style="display: none;">
-                                            {{ a_form.DELETE }}
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-acceso" title="Eliminar acceso">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-            <div class="card-footer bg-light py-2">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Seleccione los sistemas o recursos a los que se requiere acceso desde el catálogo mantenedor. No se permiten accesos duplicados.
-                </small>
+
+                <!-- 3. Beneficiarios de la Solicitud (FormSet) -->
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-people fs-5 text-secondary me-2"></i>
+                            <h5 class="mb-0 fw-bold text-dark">3. Beneficiarios de la Solicitud VPN</h5>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="btn-agregar-beneficiario">
+                                <i class="bi bi-person-plus me-1"></i> Agregar Beneficiario
+                            </button>
+                        </div>
+                    </div>
+
+                    {{ beneficiarios_formset.management_form }}
+                    {% if beneficiarios_formset.non_form_errors %}
+                        <div class="alert alert-danger mb-3">
+                            {{ beneficiarios_formset.non_form_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="table-responsive border rounded-2 mb-2">
+                        <table class="table table-hover align-middle mb-0" id="tabla-beneficiarios">
+                            <thead class="table-light small text-uppercase text-secondary">
+                                <tr>
+                                    <th style="width: 40px;" class="text-center">#</th>
+                                    <th style="width: 220px;">Funcionario (Opcional)</th>
+                                    <th style="width: 130px;">RUT <span class="text-danger">*</span></th>
+                                    <th style="width: 140px;">Nombres <span class="text-danger">*</span></th>
+                                    <th style="width: 140px;">Apellidos</th>
+                                    <th style="width: 160px;">Establecimiento</th>
+                                    <th style="width: 140px;">Cargo</th>
+                                    <th style="width: 120px;">Teléfono</th>
+                                    <th style="width: 160px;">Email</th>
+                                    <th style="width: 60px;" class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contenedor-filas-beneficiarios">
+                                {% for b_form in beneficiarios_formset %}
+                                    <tr class="fila-beneficiario" data-index="{{ forloop.counter0 }}">
+                                        <td class="text-center fw-bold col-numero-ben">{{ forloop.counter }}</td>
+                                        <td>
+                                            {% for hidden in b_form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                            {{ b_form.funcionario }}
+                                            {% if b_form.funcionario.errors %}
+                                                <div class="text-danger small">{{ b_form.funcionario.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.rut }}
+                                            <div class="invalid-feedback">RUT obligatorio.</div>
+                                            {% if b_form.rut.errors %}
+                                                <div class="text-danger small">{{ b_form.rut.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.nombres }}
+                                            <div class="invalid-feedback">Nombres obligatorios.</div>
+                                            {% if b_form.nombres.errors %}
+                                                <div class="text-danger small">{{ b_form.nombres.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.apellidos }}
+                                            {% if b_form.apellidos.errors %}
+                                                <div class="text-danger small">{{ b_form.apellidos.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.establecimiento }}
+                                            {% if b_form.establecimiento.errors %}
+                                                <div class="text-danger small">{{ b_form.establecimiento.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.cargo }}
+                                            {% if b_form.cargo.errors %}
+                                                <div class="text-danger small">{{ b_form.cargo.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.telefono }}
+                                            {% if b_form.telefono.errors %}
+                                                <div class="text-danger small">{{ b_form.telefono.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ b_form.email }}
+                                            {% if b_form.email.errors %}
+                                                <div class="text-danger small">{{ b_form.email.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div style="display: none;">
+                                                {{ b_form.DELETE }}
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario" title="Eliminar fila">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos manualmente.
+                    </div>
+                </div>
+
+                <!-- 4. Accesos VPN Solicitados (FormSet ManyToMany) -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-hdd-network fs-5 text-secondary me-2"></i>
+                            <h5 class="mb-0 fw-bold text-dark">4. Accesos VPN Solicitados (Catálogo / Mantenedor)</h5>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="btn-agregar-acceso">
+                                <i class="bi bi-plus-circle me-1"></i> Agregar Acceso
+                            </button>
+                        </div>
+                    </div>
+
+                    {{ accesos_formset.management_form }}
+                    {% if accesos_formset.non_form_errors %}
+                        <div class="alert alert-danger mb-3">
+                            {{ accesos_formset.non_form_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="table-responsive border rounded-2 mb-2">
+                        <table class="table table-hover align-middle mb-0" id="tabla-accesos">
+                            <thead class="table-light small text-uppercase text-secondary">
+                                <tr>
+                                    <th style="width: 50px;" class="text-center">#</th>
+                                    <th>Sistema / Plataforma y Dirección IP (Mantenedor) <span class="text-danger">*</span></th>
+                                    <th style="width: 80px;" class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contenedor-filas-accesos">
+                                {% for a_form in accesos_formset %}
+                                    <tr class="fila-acceso" data-index="{{ forloop.counter0 }}">
+                                        <td class="text-center fw-bold col-numero-acc">{{ forloop.counter }}</td>
+                                        <td>
+                                            {% for hidden in a_form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                            {{ a_form.acceso }}
+                                            <div class="invalid-feedback">Seleccione un acceso válido del catálogo.</div>
+                                            {% if a_form.acceso.errors %}
+                                                <div class="text-danger small">{{ a_form.acceso.errors }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div style="display: none;">
+                                                {{ a_form.DELETE }}
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-acceso" title="Eliminar acceso">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Seleccione los sistemas o recursos a los que se requiere acceso desde el catálogo mantenedor. No se permiten accesos duplicados.
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -454,9 +478,11 @@
         </td>
         <td>
             {{ beneficiarios_formset.empty_form.rut }}
+            <div class="invalid-feedback">RUT obligatorio.</div>
         </td>
         <td>
             {{ beneficiarios_formset.empty_form.nombres }}
+            <div class="invalid-feedback">Nombres obligatorios.</div>
         </td>
         <td>
             {{ beneficiarios_formset.empty_form.apellidos }}
@@ -489,6 +515,7 @@
         <td class="text-center fw-bold col-numero-acc">0</td>
         <td>
             {{ accesos_formset.empty_form.acceso }}
+            <div class="invalid-feedback">Seleccione un acceso válido del catálogo.</div>
         </td>
         <td class="text-center">
             <div style="display: none;">
@@ -503,12 +530,36 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script>
 $(document).ready(function() {
+    // Configuración e Inicialización de Flatpickr (Calendario AdminLTE/Bootstrap)
+    const flatpickrConfig = {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        allowInput: true,
+        locale: typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.es ? flatpickr.l10ns.es : 'default'
+    };
+
+    if (document.getElementById('id_tecnico_fecha')) {
+        flatpickr('#id_tecnico_fecha', flatpickrConfig);
+    }
+    if (document.getElementById('id_fecha_expiracion')) {
+        flatpickr('#id_fecha_expiracion', flatpickrConfig);
+    }
+
     // Inicializar Select2 en los selectores generales
     $('.select2').select2({
         theme: 'bootstrap-5',
         width: '100%'
+    });
+
+    // Soporte para validación interactiva con Select2
+    $('.select2, .select2-funcionario, .select2-acceso').on('change', function() {
+        if ($(this).val()) {
+            $(this).removeClass('is-invalid');
+        }
     });
 
     function initSelect2Beneficiarios(context) {
@@ -602,20 +653,22 @@ $(document).ready(function() {
     });
 
     // Cargar datos automáticamente al seleccionar funcionario existente
+    const funcionarioApiUrlBase = "{% url 'solicitud_vpn:api_funcionario' pk=0 %}".replace('/0/', '/');
+
     $(document).on('change select2:select', '.select-func-existente', function() {
         const funcId = $(this).val();
         const $fila = $(this).closest('tr.fila-beneficiario');
 
         if (funcId) {
             $.ajax({
-                url: '/solicitud-vpn/api/funcionario/' + funcId + '/',
+                url: funcionarioApiUrlBase + funcId + '/',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
                     if (response && response.status === 'ok') {
                         const d = response.data;
-                        $fila.find('.input-rut').val(formatearRut(d.rut || ''));
-                        $fila.find('.input-nombres').val(d.nombres || '');
+                        $fila.find('.input-rut').val(formatearRut(d.rut || '')).trigger('input');
+                        $fila.find('.input-nombres').val(d.nombres || '').trigger('input');
                         $fila.find('.input-apellidos').val(d.apellidos || '');
                         $fila.find('.input-nombre-completo').val(d.nombre_completo || '');
                         $fila.find('.input-establecimiento').val(d.establecimiento || defaultEstablecimiento);
@@ -694,13 +747,22 @@ $(document).ready(function() {
     // ==========================================
 
     function validarFormulario() {
+        const form = document.getElementById('form-solicitud-vpn');
+        $('#form-solicitud-vpn').addClass('was-validated');
+
+        // Validar formulario principal
+        let esValido = form.checkValidity();
+
+        const depto = $('#id_departamento_solicitante').val();
+        const accion = $('#id_accion').val();
         const tecNombre = ($('#id_tecnico_nombre').val() || '').trim();
         const tecRut = ($('#id_tecnico_rut').val() || '').trim();
+        const tecEstablecimiento = ($('#id_tecnico_establecimiento').val() || '').trim();
         const tecEmail = ($('#id_tecnico_email').val() || '').trim();
+        const tecFecha = ($('#id_tecnico_fecha').val() || '').trim();
 
-        if (!tecNombre || !tecRut || !tecEmail) {
-            alert('Por favor complete los datos obligatorios del técnico/solicitante (Nombre, RUT, Email).');
-            return false;
+        if (!depto || !accion || !tecNombre || !tecRut || !tecEstablecimiento || !tecEmail || !tecFecha) {
+            esValido = false;
         }
 
         let totalBeneficiariosVisibles = 0;
@@ -712,6 +774,11 @@ $(document).ready(function() {
             const nombres = ($(this).find('.input-nombres').val() || '').trim();
             if (!rut || !nombres) {
                 faltaDatosBeneficiario = true;
+                $(this).find('.input-rut, .input-nombres').each(function() {
+                    if (!$(this).val()) {
+                        $(this).addClass('is-invalid');
+                    }
+                });
             }
         });
 
@@ -720,8 +787,16 @@ $(document).ready(function() {
             return false;
         }
 
-        if (faltaDatosBeneficiario) {
-            alert('Por favor complete los campos obligatorios (RUT y Nombres) de todos los beneficiarios.');
+        if (!esValido || faltaDatosBeneficiario) {
+            // Scroll hacia el primer error visible
+            const $primerInvalido = $('.is-invalid, :invalid').first();
+            if ($primerInvalido.length) {
+                $('html, body').animate({
+                    scrollTop: $primerInvalido.offset().top - 100
+                }, 300);
+                $primerInvalido.focus();
+            }
+            alert('Por favor complete todos los campos obligatorios marcados en rojo.');
             return false;
         }
 

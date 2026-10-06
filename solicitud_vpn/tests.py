@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
@@ -580,3 +582,114 @@ class SolicitudVPNViewsTests(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['data']['rut'], '14.555.666-7')
+        self.assertEqual(data['data']['nombres'], 'Esteban')
+        self.assertEqual(data['data']['apellidos'], 'Dido')
+        self.assertEqual(data['data']['establecimiento'], 'Hospital Arauco')
+        self.assertEqual(data['data']['cargo'], 'Técnico Informático')
+        self.assertEqual(data['data']['email'], 'edido@ssarauco.cl')
+
+    def test_fbv_solicitud_marcar_econecta(self):
+        solicitud = SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            estado="PENDIENTE"
+        )
+        self.client.login(username="gestor_tic", password="password123")
+        response = self.client.post(
+            reverse('solicitud_vpn:marcar_econecta', kwargs={'pk': solicitud.pk}),
+            {'ticket_econecta': 'TK-MINSAL-8822'}
+        )
+        self.assertEqual(response.status_code, 302)
+        solicitud.refresh_from_db()
+        self.assertEqual(solicitud.estado, 'ENVIADO_ECONECTA')
+        self.assertEqual(solicitud.ticket_econecta, 'TK-MINSAL-8822')
+        self.assertIsNotNone(solicitud.fecha_envio_econecta)
+
+    def test_fbv_solicitud_marcar_completado(self):
+        solicitud = SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            estado="ENVIADO_ECONECTA"
+        )
+        self.client.login(username="gestor_tic", password="password123")
+        response = self.client.post(reverse('solicitud_vpn:marcar_completado', kwargs={'pk': solicitud.pk}))
+        self.assertEqual(response.status_code, 302)
+        solicitud.refresh_from_db()
+        self.assertEqual(solicitud.estado, 'COMPLETADO')
+        self.assertIsNotNone(solicitud.fecha_finalizacion)
+
+    def test_fbv_solicitud_eliminar(self):
+        solicitud = SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            estado="PENDIENTE"
+        )
+        self.client.login(username="gestor_tic", password="password123")
+        response = self.client.post(reverse('solicitud_vpn:eliminar', kwargs={'pk': solicitud.pk}))
+        self.assertEqual(response.status_code, 302)
+        solicitud.refresh_from_db()
+        self.assertFalse(solicitud.is_active)
+
+    @patch('core.services.email_service.EmailService.send_email_with_config')
+    def test_fbv_solicitud_notificar(self, mock_send_email):
+        mock_send_email.return_value = True
+
+        # Crear configuración de correo para el establecimiento del usuario gestor
+        from core.models.configuracion_correo import ConfiguracionCorreo
+        ConfiguracionCorreo.objects.create(
+            establecimiento=self.est_arauco,
+            nombre_remitente="TIC Hospital Arauco",
+            email_remitente="tic@ssarauco.cl",
+            smtp_host="smtp.ssarauco.cl",
+            smtp_port=587,
+            smtp_tls=True,
+            smtp_usuario="tic@ssarauco.cl",
+            _smtp_password="password_secret",
+            activo=True
+        )
+
+        solicitud = SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            estado="COMPLETADO"
+        )
+        self.client.login(username="gestor_tic", password="password123")
+        response = self.client.post(
+            reverse('solicitud_vpn:notificar', kwargs={'pk': solicitud.pk}),
+            {'mensaje': 'Su solicitud de VPN ya está lista para su uso.'}
+        )
+        self.assertEqual(response.status_code, 302)
+        mock_send_email.assert_called_once()
+        args, kwargs = mock_send_email.call_args
+        self.assertEqual(kwargs['recipient_list'], ['edido@ssarauco.cl'])
+        self.assertEqual(kwargs['template_name'], 'solicitud_vpn/emails/notificacion_solicitante.html')
+        self.assertEqual(kwargs['config'].establecimiento, self.est_arauco)
+
+    def test_fbv_permiso_denegado_usuario_comun(self):
+        solicitud = SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            estado="PENDIENTE"
+        )
+        self.client.login(username="solicitante_arauco", password="password123")
+        response = self.client.post(reverse('solicitud_vpn:eliminar', kwargs={'pk': solicitud.pk}))
+        # Redirige a mis_solicitudes por falta de permiso
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('solicitud_vpn:mis_solicitudes'), response.url)
+        solicitud.refresh_from_db()
+        self.assertTrue(solicitud.is_active)

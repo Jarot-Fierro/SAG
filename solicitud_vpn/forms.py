@@ -35,7 +35,11 @@ class SolicitudVPNForm(forms.ModelForm):
     fecha_expiracion = forms.DateField(
         required=False,
         label='Fecha de Expiración',
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.DateInput(attrs={
+            'class': 'form-control flatpickr-date',
+            'placeholder': 'dd/mm/aaaa',
+            'autocomplete': 'off'
+        })
     )
     timeout_vpn = forms.CharField(
         max_length=50,
@@ -94,7 +98,12 @@ class SolicitudVPNForm(forms.ModelForm):
     tecnico_fecha = forms.DateField(
         required=True,
         label='Fecha de Creación',
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.DateInput(attrs={
+            'class': 'form-control flatpickr-date',
+            'placeholder': 'dd/mm/aaaa',
+            'autocomplete': 'off',
+            'required': 'required'
+        })
     )
 
     class Meta:
@@ -185,7 +194,7 @@ class BeneficiarioVPNForm(forms.ModelForm):
     )
     apellidos = forms.CharField(
         max_length=150,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-sm input-apellidos',
             'placeholder': 'Apellidos'
@@ -194,7 +203,7 @@ class BeneficiarioVPNForm(forms.ModelForm):
     )
     nombre_completo = forms.CharField(
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-sm input-nombre-completo',
             'placeholder': 'Nombre Completo'
@@ -203,7 +212,7 @@ class BeneficiarioVPNForm(forms.ModelForm):
     )
     establecimiento = forms.CharField(
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-sm input-establecimiento',
             'placeholder': 'Establecimiento'
@@ -212,7 +221,7 @@ class BeneficiarioVPNForm(forms.ModelForm):
     )
     cargo = forms.CharField(
         max_length=255,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-sm input-cargo',
             'placeholder': 'Cargo'
@@ -230,7 +239,7 @@ class BeneficiarioVPNForm(forms.ModelForm):
     )
     email = forms.CharField(
         max_length=254,
-        required=False,
+        required=True,
         widget=forms.EmailInput(attrs={
             'class': 'form-control form-control-sm input-email',
             'placeholder': 'Email'

@@ -6,10 +6,14 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, View
 
+from core.models.configuracion_correo import ConfiguracionCorreo
 from core.models.funcionario import Funcionario
+from core.services.email_service import EmailService
 from solicitud_vpn.forms import (
     SolicitudVPNForm,
     BeneficiarioVPNFormSet,
@@ -19,7 +23,7 @@ from solicitud_vpn.forms import (
     PerfilVPNForm,
 )
 from solicitud_vpn.models import SolicitudVPN, AccesoVPN, PerfilVPN
-from solicitud_vpn.permissions import user_is_vpn_gestor, VPNRequiredMixin
+from solicitud_vpn.permissions import user_is_vpn_gestor, VPNRequiredMixin, vpn_required
 from solicitud_vpn.utils import obtener_datos_tecnico_solicitante
 
 logger = logging.getLogger(__name__)
@@ -424,6 +428,10 @@ class FuncionarioDataAPIView(LoginRequiredMixin, View):
     def get(self, request, pk):
         try:
             f = Funcionario.objects.get(pk=pk, is_active=True)
+            telefono = ''
+            if hasattr(f, 'anexo') and f.anexo and getattr(f.anexo, 'numero', None):
+                telefono = str(f.anexo.numero)
+
             data = {
                 'id': f.id,
                 'rut': f.rut or '',
@@ -433,9 +441,164 @@ class FuncionarioDataAPIView(LoginRequiredMixin, View):
                 'establecimiento': f.establecimiento.nombre if f.establecimiento else '',
                 'cargo': f.cargo or '',
                 'email': f.email or '',
-                'telefono': '',
+                'telefono': telefono,
                 'fecha': timezone.now().date().strftime('%Y-%m-%d')
             }
             return JsonResponse({'status': 'ok', 'data': data})
         except Funcionario.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Funcionario no encontrado'}, status=404)
+
+
+# ==============================================================================
+# VISTAS BASADAS EN FUNCIONES (ACCIONES TIC)
+# ==============================================================================
+
+@vpn_required
+@require_POST
+def solicitud_marcar_econecta(request, pk):
+    """
+    Cambia el estado de la solicitud a 'ENVIADO_ECONECTA' (Enviado a eConecta).
+    Opcionalmente actualiza el ticket de eConecta si es provisto.
+    """
+    solicitud = get_object_or_404(SolicitudVPN, pk=pk, is_active=True)
+    ticket = request.POST.get('ticket_econecta', '').strip()
+    if ticket:
+        solicitud.ticket_econecta = ticket
+
+    now = timezone.now()
+    if not solicitud.fecha_revision:
+        solicitud.fecha_revision = now
+    solicitud.fecha_envio_econecta = now
+    solicitud.estado = 'ENVIADO_ECONECTA'
+    solicitud.usuario_revision = request.user
+    solicitud.updated_by = request.user
+    solicitud.save()
+
+    messages.success(
+        request,
+        f"La solicitud {solicitud.numero_solicitud} ha sido cambiada a estado 'Enviado a eConecta'."
+    )
+    return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_vpn:bandeja_tic'))
+
+
+@vpn_required
+@require_POST
+def solicitud_marcar_completado(request, pk):
+    """
+    Cambia el estado de la solicitud a 'COMPLETADO'.
+    """
+    solicitud = get_object_or_404(SolicitudVPN, pk=pk, is_active=True)
+    now = timezone.now()
+    if not solicitud.fecha_revision:
+        solicitud.fecha_revision = now
+    solicitud.fecha_finalizacion = now
+    solicitud.estado = 'COMPLETADO'
+    solicitud.usuario_revision = request.user
+    solicitud.updated_by = request.user
+    solicitud.save()
+
+    messages.success(
+        request,
+        f"La solicitud {solicitud.numero_solicitud} ha sido marcada como 'Completado'."
+    )
+    return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_vpn:bandeja_tic'))
+
+
+@vpn_required
+@require_POST
+def solicitud_eliminar(request, pk):
+    """
+    Realiza la eliminación lógica de la solicitud de VPN dejando `is_active=False`.
+    """
+    solicitud = get_object_or_404(SolicitudVPN, pk=pk, is_active=True)
+    solicitud.is_active = False
+    solicitud.updated_by = request.user
+    solicitud.save()
+
+    messages.warning(
+        request,
+        f"La solicitud {solicitud.numero_solicitud} ha sido eliminada del sistema."
+    )
+    return redirect('solicitud_vpn:bandeja_tic')
+
+
+@vpn_required
+@require_POST
+def solicitud_notificar_solicitante(request, pk):
+    """
+    Notifica al usuario solicitante / TIC del establecimiento que realizó la solicitud de VPN
+    utilizando la configuración de correo activa del establecimiento del usuario conectado.
+    """
+    solicitud = get_object_or_404(SolicitudVPN, pk=pk, is_active=True)
+    mensaje_adicional = request.POST.get('mensaje', '').strip()
+
+    # Determinar el email de destino (técnico solicitante o usuario solicitante)
+    email_destinatario = (
+        solicitud.tecnico_email or
+        (solicitud.usuario_solicitante.email if solicitud.usuario_solicitante else None)
+    )
+
+    nombre_destinatario = (
+        solicitud.tecnico_nombre or
+        (solicitud.usuario_solicitante.get_full_name() if solicitud.usuario_solicitante else 'Referente TIC')
+    )
+
+    enviado_email = False
+    if email_destinatario:
+        # Buscar el establecimiento del usuario logueado (gestor TIC / técnico)
+        establecimiento_usuario = getattr(request.user, 'establecimiento', None)
+        config = None
+        if establecimiento_usuario:
+            config = ConfiguracionCorreo.objects.filter(establecimiento=establecimiento_usuario, activo=True).first()
+
+        # Si el usuario logueado no tiene establecimiento o no tiene config activa, buscar por el establecimiento de la solicitud
+        if not config and solicitud.establecimiento:
+            config = ConfiguracionCorreo.objects.filter(establecimiento=solicitud.establecimiento, activo=True).first()
+
+        # Fallback a cualquier configuración activa si aplica
+        if not config:
+            config = ConfiguracionCorreo.objects.filter(activo=True).first()
+
+        if config:
+            try:
+                asunto = f"Actualización de Solicitud VPN {solicitud.numero_solicitud} - Estado: {solicitud.get_estado_display()}"
+                contexto_correo = {
+                    'solicitud': solicitud,
+                    'nombre_destinatario': nombre_destinatario,
+                    'email_destinatario': email_destinatario,
+                    'observacion': mensaje_adicional,
+                    'beneficiarios': list(solicitud.beneficiarios.all()),
+                    'establecimiento_remitente': config.establecimiento,
+                }
+
+                resultado = EmailService.send_email_with_config(
+                    config=config,
+                    subject=asunto,
+                    recipient_list=[email_destinatario],
+                    template_name='solicitud_vpn/emails/notificacion_solicitante.html',
+                    context=contexto_correo,
+                )
+                enviado_email = bool(resultado)
+            except Exception as e:
+                logger.error(f"Error al enviar correo de notificación a {email_destinatario}: {str(e)}")
+        else:
+            logger.warning(f"No se encontró una configuración SMTP activa para enviar la notificación.")
+
+    if enviado_email:
+        messages.success(
+            request,
+            f"Se ha notificado exitosamente al referente TIC ({nombre_destinatario}) al correo {email_destinatario}."
+        )
+    else:
+        if email_destinatario:
+            messages.info(
+                request,
+                f"Notificación registrada para {nombre_destinatario} ({email_destinatario}). (No se pudo despachar por correo o no hay servidor configurado)."
+            )
+        else:
+            messages.warning(
+                request,
+                f"No se encontró un correo electrónico registrado para el referente TIC de la solicitud {solicitud.numero_solicitud}."
+            )
+
+    return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_vpn:bandeja_tic'))

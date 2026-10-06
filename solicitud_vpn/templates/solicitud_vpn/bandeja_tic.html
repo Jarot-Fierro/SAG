@@ -109,7 +109,6 @@
                 <h5 class="card-title mb-0 fw-bold">
                     <i class="bi bi-hdd-network text-primary me-2"></i>Solicitudes VPN de la Red Asistencial Arauco
                 </h5>
-                <small class="text-muted">Gestión y preparación de requerimientos para la plataforma central eConecta</small>
             </div>
             <span class="badge bg-secondary">{{ paginator.count }} solicitudes</span>
         </div>
@@ -126,7 +125,7 @@
                             <th>Acción</th>
                             <th>Beneficiarios</th>
                             <th>Estado</th>
-                            <th class="text-center" style="width: 170px;">Acción TIC</th>
+                            <th class="text-center" style="width: 220px;">Acción TIC</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,6 +152,7 @@
                                         <small class="d-block text-muted">{{ sol.departamento_nombre }}</small>
                                     {% endif %}
                                 </td>
+
                                 <td>
                                     <div class="fw-bold">{{ sol.tecnico_nombre|default:sol.usuario_solicitante.get_full_name }}</div>
                                     <small class="text-muted d-block">
@@ -161,6 +161,15 @@
                                             <span class="badge bg-warning text-dark ms-1">Proveedor</span>
                                         {% endif %}
                                     </small>
+                                </td>
+                                <td>
+                                    <span class="badge text-light ms-1
+                                        {% if sol.accion == 'CREAR' %}bg-success
+                                        {% elif sol.accion == 'ACTUALIZAR' %}bg-primary
+                                        {% elif sol.accion == 'ELIMINAR' %}bg-danger
+                                        {% endif %}">
+                                        {{ sol.accion }}
+                                    </span>
                                 </td>
                                 <td>
                                     <span class="badge bg-info text-dark">
@@ -189,9 +198,65 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'solicitud_vpn:detalle' sol.pk %}" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-card-checklist me-1"></i> Revisar / eConecta
-                                    </a>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <!-- Ver / Revisar Detalle -->
+                                        <a href="{% url 'solicitud_vpn:detalle' sol.pk %}" 
+                                           class="btn btn-outline-primary" 
+                                           data-bs-toggle="tooltip" 
+                                           data-bs-placement="top" 
+                                           title="Ver y revisar detalle de la solicitud">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <!-- Botón eConecta -->
+                                        <button type="button" 
+                                                class="btn btn-outline-purple text-white btn-econecta-modal" 
+                                                style="background-color: #6f42c1; border-color: #6f42c1;"
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="Cambiar estado a Enviado a eConecta"
+                                                data-sol-id="{{ sol.pk }}"
+                                                data-sol-folio="{{ sol.numero_solicitud }}"
+                                                data-sol-ticket="{{ sol.ticket_econecta|default:'' }}">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+
+                                        <!-- Botón Completado -->
+                                        <button type="button" 
+                                                class="btn btn-outline-success btn-completar-modal" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="Marcar solicitud como Completada"
+                                                data-sol-id="{{ sol.pk }}"
+                                                data-sol-folio="{{ sol.numero_solicitud }}">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+
+                                        <!-- Botón Notificar Usuario / Referente TIC -->
+                                        <button type="button" 
+                                                class="btn btn-outline-info btn-notificar-modal" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="Notificar por correo al solicitante / referente TIC"
+                                                data-sol-id="{{ sol.pk }}"
+                                                data-sol-folio="{{ sol.numero_solicitud }}"
+                                                data-sol-destinatario="{{ sol.tecnico_nombre|default:sol.usuario_solicitante.get_full_name }}"
+                                                data-sol-email="{{ sol.tecnico_email|default:sol.usuario_solicitante.email|default:'' }}"
+                                                data-sol-estado="{{ sol.get_estado_display }}">
+                                            <i class="bi bi-bell"></i>
+                                        </button>
+
+                                        <!-- Botón Eliminar (Desactivar is_active=False) -->
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-eliminar-modal" 
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="top" 
+                                                title="Eliminar solicitud"
+                                                data-sol-id="{{ sol.pk }}"
+                                                data-sol-folio="{{ sol.numero_solicitud }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         {% empty %}
@@ -243,4 +308,198 @@
     </div>
 
 </div>
+
+<!-- Modal eConecta -->
+<div class="modal fade" id="modalEconecta" tabindex="-1" aria-labelledby="modalEconectaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background-color: #6f42c1;">
+                <h6 class="modal-title fw-bold" id="modalEconectaLabel">
+                    <i class="bi bi-send me-2"></i>Enviar a eConecta
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-marcar-econecta" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-3">
+                        ¿Desea cambiar el estado de la solicitud <strong id="modal-econecta-folio"></strong> a <strong>'Enviado a eConecta'</strong>?
+                    </p>
+                    <div class="mb-3">
+                        <label for="input-modal-ticket" class="form-label small fw-bold">Número de Ticket eConecta (Opcional):</label>
+                        <input type="text" name="ticket_econecta" id="input-modal-ticket" class="form-control form-control-sm" placeholder="Ej: INC-123456">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm text-white" style="background-color: #6f42c1;">
+                        <i class="bi bi-check-circle me-1"></i> Confirmar y Cambiar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Completar -->
+<div class="modal fade" id="modalCompletar" tabindex="-1" aria-labelledby="modalCompletarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h6 class="modal-title fw-bold" id="modalCompletarLabel">
+                    <i class="bi bi-check2-all me-2"></i>Completar Solicitud VPN
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-marcar-completar" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-0">
+                        ¿Está seguro que desea marcar la solicitud <strong id="modal-completar-folio"></strong> como <strong>'Completada'</strong>?
+                    </p>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i> Marcar Completada
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Notificar -->
+<div class="modal fade" id="modalNotificar" tabindex="-1" aria-labelledby="modalNotificarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-info text-white">
+                <h6 class="modal-title fw-bold" id="modalNotificarLabel">
+                    <i class="bi bi-bell me-2"></i>Notificar al Referente TIC del Establecimiento
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-notificar-solicitante" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-2">
+                        Se enviará una notificación sobre la solicitud <strong id="modal-notificar-folio"></strong> al solicitante:
+                    </p>
+                    <div class="bg-light p-2 rounded mb-3 small">
+                        <div><strong>Destinatario:</strong> <span id="modal-notificar-destinatario">-</span></div>
+                        <div><strong>Correo:</strong> <span id="modal-notificar-email" class="text-primary">-</span></div>
+                        <div><strong>Estado Actual:</strong> <span id="modal-notificar-estado" class="badge bg-secondary">-</span></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="input-modal-mensaje" class="form-label small fw-bold">Mensaje u Observación Adicional (Opcional):</label>
+                        <textarea name="mensaje" id="input-modal-mensaje" rows="3" class="form-control form-control-sm" placeholder="Ej: Su requerimiento ha sido gestionado con éxito en eConecta..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-info text-white">
+                        <i class="bi bi-send me-1"></i> Enviar Notificación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title fw-bold" id="modalEliminarLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Eliminar Solicitud VPN
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form-eliminar-solicitud" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-0">
+                        ¿Está seguro que desea eliminar la solicitud <strong id="modal-eliminar-folio"></strong>? Esta acción la desactivará del sistema.
+                    </p>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-danger">
+                        <i class="bi bi-trash me-1"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Inicializar tooltips de Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Abrir Modal eConecta
+    $('.btn-econecta-modal').on('click', function() {
+        var id = $(this).data('sol-id');
+        var folio = $(this).data('sol-folio');
+        var ticket = $(this).data('sol-ticket');
+
+        $('#modal-econecta-folio').text(folio);
+        $('#input-modal-ticket').val(ticket || '');
+        $('#form-marcar-econecta').attr('action', "{% url 'solicitud_vpn:marcar_econecta' 0 %}".replace('0', id));
+        
+        var modal = new bootstrap.Modal(document.getElementById('modalEconecta'));
+        modal.show();
+    });
+
+    // Abrir Modal Completar
+    $('.btn-completar-modal').on('click', function() {
+        var id = $(this).data('sol-id');
+        var folio = $(this).data('sol-folio');
+
+        $('#modal-completar-folio').text(folio);
+        $('#form-marcar-completar').attr('action', "{% url 'solicitud_vpn:marcar_completado' 0 %}".replace('0', id));
+
+        var modal = new bootstrap.Modal(document.getElementById('modalCompletar'));
+        modal.show();
+    });
+
+    // Abrir Modal Notificar
+    $('.btn-notificar-modal').on('click', function() {
+        var id = $(this).data('sol-id');
+        var folio = $(this).data('sol-folio');
+        var destinatario = $(this).data('sol-destinatario');
+        var email = $(this).data('sol-email');
+        var estado = $(this).data('sol-estado');
+
+        $('#modal-notificar-folio').text(folio);
+        $('#modal-notificar-destinatario').text(destinatario || '-');
+        $('#modal-notificar-email').text(email || 'No registrado');
+        $('#modal-notificar-estado').text(estado);
+        $('#input-modal-mensaje').val('');
+        $('#form-notificar-solicitante').attr('action', "{% url 'solicitud_vpn:notificar' 0 %}".replace('0', id));
+
+        var modal = new bootstrap.Modal(document.getElementById('modalNotificar'));
+        modal.show();
+    });
+
+    // Abrir Modal Eliminar
+    $('.btn-eliminar-modal').on('click', function() {
+        var id = $(this).data('sol-id');
+        var folio = $(this).data('sol-folio');
+
+        $('#modal-eliminar-folio').text(folio);
+        $('#form-eliminar-solicitud').attr('action', "{% url 'solicitud_vpn:eliminar' 0 %}".replace('0', id));
+
+        var modal = new bootstrap.Modal(document.getElementById('modalEliminar'));
+        modal.show();
+    });
+});
+</script>
 {% endblock %}

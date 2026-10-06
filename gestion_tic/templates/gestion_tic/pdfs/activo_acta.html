@@ -66,6 +66,14 @@
             padding-top: 5px;
             font-size: 14px;
         }
+        .signature-line-2 {
+            border-top: 1px solid #000;
+            width: 300px;
+            text-align: center;
+            margin: 30px auto 0 auto;
+            padding-top: 5px;
+            font-size: 14px;
+        }
 
         footer {
             text-align: center;
@@ -165,9 +173,11 @@
 
     <div class="row" style="margin-top: 100px">
         <div class="col-6 text-center">
-            <div class="signature-line">
+            <div class="signature-line-2">
                 {% if ultimo_movimiento.funcionario.cargo %}
                     {{ ultimo_movimiento.funcionario.cargo|upper }}<br>
+                {% elif ultimo_movimiento.funcionario.unidad_organizacional %}
+                    {{ ultimo_movimiento.funcionario.unidad_organizacional|upper }}<br>
                 {% endif %}
                 {% if ultimo_movimiento.funcionario %}
                     {{ ultimo_movimiento.funcionario|upper }}

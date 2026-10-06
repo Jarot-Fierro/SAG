@@ -2,11 +2,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from gestion_tic.filters.activo import ActivoFormFilter
-from gestion_tic.forms.movimientos import MovimientoActivoForm
-from gestion_tic.models import Activo
+from gestion_tic.forms.movimientos import MovimientoActivoForm, RecepcionConformeForm
+from gestion_tic.models import Activo, MovimientoActivo
 
 
 @login_required
@@ -25,10 +25,11 @@ def movimientos_activo(request):
     query = request.GET.get('q')
 
     if query:
-        activo = Activo.objects.filter(
-            Q(codigo_barra=query),
+        activo = get_object_or_404(
+            Activo.objects.select_related('tipo', 'marca', 'modelo'),
+            codigo_barra=query,
             establecimiento=establecimiento,
-        ).select_related('tipo', 'marca', 'modelo').first()
+        )
 
         if not activo.is_active or activo.de_baja:
             messages.warning(
@@ -100,7 +101,8 @@ def movimientos_activo_list(request):
 
     list_activo = Activo.objects.filter(
         establecimiento=establecimiento,
-        is_active=True
+        is_active=True,
+        de_baja=False,
     ).select_related('tipo', 'marca', 'modelo', 'contrato').order_by('codigo_barra')
 
     if filter_form.is_valid():
@@ -191,4 +193,28 @@ def movimientos_activo_list(request):
         'is_paginated': page_obj.has_other_pages(),
         'per_page': per_page,
         'filter_form': filter_form
+    })
+
+
+@login_required
+def recepcion_conforme(request, pk):
+    title = 'Recepción Conforme'
+    establecimiento = request.user.establecimiento
+    movimiento = get_object_or_404(MovimientoActivo, pk=pk, establecimiento=establecimiento)
+
+    if request.method == 'POST':
+        form = RecepcionConformeForm(request.POST, instance=movimiento, establecimiento=establecimiento)
+        if form.is_valid():
+            movimiento = form.save(commit=False)
+            movimiento.recepcionado = True
+            movimiento.save()
+            messages.success(request, "Recepción conforme registrada exitosamente.")
+            return redirect('gestion_tic:movimientos_activo_list')
+    else:
+        form = RecepcionConformeForm(instance=movimiento, establecimiento=establecimiento)
+
+    return render(request, 'gestion_tic/activos/recepcion_conforme.html', {
+        'title': title,
+        'movimiento': movimiento,
+        'form': form,
     })

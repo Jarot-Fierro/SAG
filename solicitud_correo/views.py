@@ -731,10 +731,11 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
             det_records = list(det.history.all().order_by('history_date', 'history_id'))
             prev_d = None
             for drec in det_records:
+                nombre_comp = f"{drec.nombres or ''} {drec.apellidos or ''}".strip() or drec.rut or f"Funcionario #{drec.id or ''}"
                 if prev_d is None:
                     eventos.append({
                         'fecha': drec.history_date,
-                        'titulo': f"Funcionario Agregado: {drec.nombre_completo}",
+                        'titulo': f"Funcionario Agregado: {nombre_comp}",
                         'detalle': f"RUT: {drec.rut or 'S/R'}, Departamento: {drec.departamento or 'S/D'}",
                         'usuario': drec.history_user,
                         'icono': 'bi bi-person-plus-fill',
@@ -745,7 +746,7 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
                         if drec.estado == 'APROBADO_RRHH':
                             eventos.append({
                                 'fecha': drec.history_date,
-                                'titulo': f"RR.HH. Aprobó: {drec.nombre_completo}",
+                                'titulo': f"RR.HH. Aprobó: {nombre_comp}",
                                 'detalle': f"Aprobado por {drec.history_user or drec.usuario_rrhh}.",
                                 'usuario': drec.history_user or drec.usuario_rrhh,
                                 'icono': 'bi bi-check-circle-fill',
@@ -754,7 +755,7 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
                         elif drec.estado == 'RECHAZADO_RRHH':
                             eventos.append({
                                 'fecha': drec.history_date,
-                                'titulo': f"RR.HH. Rechazó: {drec.nombre_completo}",
+                                'titulo': f"RR.HH. Rechazó: {nombre_comp}",
                                 'detalle': f"Motivo: {drec.motivo_rechazo or 'Sin motivo'}",
                                 'usuario': drec.history_user or drec.usuario_rrhh,
                                 'icono': 'bi bi-x-circle-fill',
@@ -763,7 +764,7 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
                         elif drec.estado == 'CREADO':
                             eventos.append({
                                 'fecha': drec.history_date,
-                                'titulo': f"TIC Creó Cuenta: {drec.nombre_completo}",
+                                'titulo': f"TIC Creó Cuenta: {nombre_comp}",
                                 'detalle': f"Correo: {drec.correo_creado} | Ref MINSAL: {drec.referencia_externa or 'S/R'} | Obs: {drec.observacion_tic or 'Ninguna'}",
                                 'usuario': drec.history_user or drec.tecnico_responsable,
                                 'icono': 'bi bi-envelope-check-fill',
@@ -772,7 +773,7 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
                         elif drec.estado == 'ERROR':
                             eventos.append({
                                 'fecha': drec.history_date,
-                                'titulo': f"TIC Registró Error: {drec.nombre_completo}",
+                                'titulo': f"TIC Registró Error: {nombre_comp}",
                                 'detalle': f"Detalle error: {drec.observacion_tic or 'Sin observación'}",
                                 'usuario': drec.history_user or drec.tecnico_responsable,
                                 'icono': 'bi bi-exclamation-triangle-fill',
@@ -782,7 +783,7 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
                     if not prev_d.notificado and drec.notificado:
                         eventos.append({
                             'fecha': drec.fecha_notificacion or drec.history_date,
-                            'titulo': f"Notificación Registrada: {drec.nombre_completo}",
+                            'titulo': f"Notificación Registrada: {nombre_comp}",
                             'detalle': f"Notificado por {drec.notificado_por or drec.history_user}. Obs: {drec.observacion_notificacion or 'Ninguna'}",
                             'usuario': drec.notificado_por or drec.history_user,
                             'icono': 'bi bi-bell-fill',

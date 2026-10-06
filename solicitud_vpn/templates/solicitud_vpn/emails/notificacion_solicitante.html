@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Source Sans 3', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .header {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 0 0 5px 0;
+            color: #0d6efd;
+            font-size: 20px;
+        }
+        .header h4 {
+            margin: 0;
+            color: #495057;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .bg-info { background-color: #0dcaf0; color: #000 !important; }
+        .bg-success { background-color: #198754; }
+        .bg-warning { background-color: #ffc107; color: #000 !important; }
+        .bg-primary { background-color: #0d6efd; }
+        .bg-purple { background-color: #6f42c1; }
+        .bg-secondary { background-color: #6c757d; }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .beneficiarios-list {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin-top: 10px;
+        }
+        .beneficiarios-list li {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 25px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>SAG - Sistema de Administración y Gestión</h2>
+        <h4>Notificación de Estado: Solicitud de Acceso VPN</h4>
+    </div>
+
+    <p>Estimado(a) <strong>{{ nombre_destinatario }}</strong>,</p>
+
+    <p>
+        Le informamos que la solicitud de acceso VPN <strong>{{ solicitud.numero_solicitud }}</strong>
+        correspondiente al establecimiento <strong>{{ solicitud.establecimiento.nombre|default:solicitud.tecnico_establecimiento|default:'Red Asistencial Arauco' }}</strong>
+        se encuentra actualmente en estado:
+    </p>
+
+    <div style="margin: 10px 0;">
+        <span class="status-badge 
+            {% if solicitud.estado == 'COMPLETADO' %}bg-success
+            {% elif solicitud.estado == 'ENVIADO_ECONECTA' %}bg-purple
+            {% elif solicitud.estado == 'EN_REVISION' %}bg-primary
+            {% elif solicitud.estado == 'PENDIENTE' %}bg-warning
+            {% else %}bg-secondary{% endif %}">
+            {{ solicitud.get_estado_display }}
+        </span>
+    </div>
+
+    <div class="info-box">
+        <p><strong>N° Folio Solicitud:</strong> {{ solicitud.numero_solicitud }}</p>
+        <p><strong>Acción Solicitada:</strong> {{ solicitud.get_accion_display }}</p>
+        {% if solicitud.grupo_vpn %}
+            <p><strong>Grupo VPN:</strong> {{ solicitud.grupo_vpn }}</p>
+        {% endif %}
+        {% if solicitud.ticket_econecta %}
+            <p><strong>N° Ticket eConecta:</strong> <span style="font-weight: bold; color: #6f42c1;">{{ solicitud.ticket_econecta }}</span></p>
+        {% endif %}
+        {% if observacion %}
+            <p><strong>Observación / Mensaje TIC:</strong> {{ observacion }}</p>
+        {% endif %}
+
+        {% if beneficiarios %}
+            <div class="beneficiarios-list">
+                <strong>Beneficiarios incluidos ({{ beneficiarios|length }}):</strong>
+                <ul style="margin: 5px 0 0 0; padding-left: 20px;">
+                    {% for ben in beneficiarios %}
+                        <li>{{ ben.get_nombre_completo }} (RUT: {{ ben.rut|default:'N/A' }}) - {{ ben.cargo|default:'Funcionario' }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <p>
+        Puede realizar el seguimiento o revisar los antecedentes de esta solicitud ingresando a la plataforma SAG con sus credenciales institucionales.
+    </p>
+
+    <div class="footer">
+        <p>Este es un correo automático generado por el módulo de Solicitudes VPN de la plataforma SAG.</p>
+        <p>&copy; 2026 {{ establecimiento_remitente.nombre|default:'Servicio de Salud Arauco' }} - Unidad de Informática y TIC.</p>
+    </div>
+</div>
+</body>
+</html>

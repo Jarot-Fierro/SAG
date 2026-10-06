@@ -453,6 +453,43 @@ class SolicitudCorreoPermissionsAndViewsTests(TestCase):
         solicitud.refresh_from_db()
         self.assertEqual(solicitud.estado, "CANCELADA")
 
+    def test_historial_solicitud_view(self):
+        # Crear solicitud y detalles con diferentes transiciones
+        solicitud = SolicitudCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            departamento_solicitante=self.depto_clinico,
+            usuario_solicitante=self.user_normal,
+            estado="PENDIENTE_RRHH"
+        )
+        detalle = SolicitudCorreoDetalle.objects.create(
+            solicitud=solicitud,
+            rut="12.345.678-9",
+            nombres="Andrea",
+            apellidos="Castillo",
+            departamento="Medicina",
+            estado="PENDIENTE_RRHH"
+        )
+
+        detalle.estado = "APROBADO_RRHH"
+        detalle.usuario_rrhh = self.user_rrhh
+        detalle.save()
+
+        detalle.estado = "CREADO"
+        detalle.correo_creado = "andrea.castillo@redsalud.gob.cl"
+        detalle.tecnico_responsable = self.user_tic
+        detalle.save()
+
+        detalle.notificado = True
+        detalle.notificado_por = self.user_tic
+        detalle.save()
+
+        self.client.login(username="usuario_normal", password="password123")
+        url_historial = reverse("solicitud_correo:historial", args=[solicitud.pk])
+        response = self.client.get(url_historial)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('eventos', response.context)
+        self.assertGreater(len(response.context['eventos']), 0)
+
     def test_api_funcionario_info(self):
         self.client.login(username="usuario_normal", password="password123")
         url_api = reverse("solicitud_correo:api_funcionario_info", args=[self.funcionario_ejemplo.pk])

@@ -23,7 +23,7 @@
 {% block content %}
 <div class="container-fluid px-3">
 
-    <!-- Encabezado de la Solicitud -->
+    <!-- Encabezado de la Solicitud (Sección superior conservada) -->
     <div class="card shadow-sm mb-4 border-primary">
         <div class="card-body p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -75,255 +75,403 @@
         </div>
     </div>
 
-    <!-- 1. Datos del Solicitante / Referente Técnico (para eConecta) -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0 fw-bold fs-6">
-                <i class="bi bi-person-lines-fill me-2"></i>1. Datos del Solicitante / Informático Referente (para Requerimiento eConecta)
-            </h5>
-            <button type="button" class="btn btn-xs btn-light fw-bold" id="btn-copiar-solicitante" title="Copiar datos del solicitante al portapapeles">
-                <i class="bi bi-clipboard me-1"></i> Copiar Datos Solicitante
-            </button>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="text-muted small fw-bold">Nombre Completo</label>
-                    <div class="fs-6 fw-bold text-dark">{{ solicitud.tecnico_nombre|default:'-' }}</div>
-                </div>
-                <div class="col-md-2">
-                    <label class="text-muted small fw-bold">RUT</label>
-                    <div><code class="fs-6">{{ solicitud.tecnico_rut|default:'-' }}</code></div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Establecimiento</label>
-                    <div class="fw-semibold text-primary">
-                        <i class="bi bi-hospital me-1"></i>{{ solicitud.tecnico_establecimiento|default:solicitud.establecimiento.nombre|default:'-' }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Departamento / Unidad</label>
-                    <div>{{ solicitud.departamento_nombre|default:solicitud.departamento_solicitante|default:'-' }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Cargo</label>
-                    <div>{{ solicitud.tecnico_cargo|default:'-' }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Teléfono</label>
-                    <div>{{ solicitud.tecnico_telefono|default:'-' }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Email</label>
-                    <div><a href="mailto:{{ solicitud.tecnico_email }}">{{ solicitud.tecnico_email|default:'-' }}</a></div>
-                </div>
-                <div class="col-md-2">
-                    <label class="text-muted small fw-bold">Fecha Requerimiento</label>
-                    <div>{{ solicitud.tecnico_fecha|date:"d/m/Y"|default:solicitud.fecha_solicitud|date:"d/m/Y" }}</div>
-                </div>
-                <div class="col-md-1">
-                    <label class="text-muted small fw-bold">¿Proveedor?</label>
-                    <div>
-                        {% if solicitud.es_proveedor %}
-                            <span class="badge bg-warning text-dark">SÍ</span>
-                        {% else %}
-                            <span class="badge bg-light text-muted border">NO</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Contenedor Principal en Diseño Compacto y Sobrio con Labels al Lado -->
+    <div class="row">
+        <div class="col-lg-10 col-xl-9 mx-auto">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
 
-    <!-- 2. Parámetros Técnicos de la VPN -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-secondary text-white py-2">
-            <h5 class="card-title mb-0 fw-bold fs-6">
-                <i class="bi bi-shield-check me-2"></i>2. Parámetros Técnicos de VPN
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Nombre del Grupo VPN</label>
-                    <div class="fw-bold">{{ solicitud.grupo_vpn|default:'(No especificado)' }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Fecha de Expiración</label>
-                    <div>{{ solicitud.fecha_expiracion|date:"d/m/Y"|default:'Indefinida / Sin límite' }}</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Time Out VPN</label>
-                    <div><span class="badge bg-light text-dark border">{{ solicitud.timeout_vpn|default:'1 hora' }}</span></div>
-                </div>
-                <div class="col-md-3">
-                    <label class="text-muted small fw-bold">Ticket / eConecta ID</label>
-                    <div>
-                        {% if solicitud.ticket_econecta %}
-                            <code class="fs-6 fw-bold text-success">{{ solicitud.ticket_econecta }}</code>
-                        {% else %}
-                            <span class="text-muted">(Pendiente de asignación)</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% if solicitud.observacion %}
-                    <div class="col-12">
-                        <label class="text-muted small fw-bold">Observaciones Generales</label>
-                        <div class="p-2 bg-light rounded border">{{ solicitud.observacion|linebreaksbr }}</div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+                    <!-- Información General (Establecimiento y Acción) -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                            <i class="bi bi-info-circle fs-5 text-secondary me-2"></i>
+                            <h6 class="mb-0 fw-bold text-dark text-uppercase">Información General</h6>
+                        </div>
 
-    <!-- 3. Beneficiarios de la Solicitud -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0 fw-bold fs-6">
-                <i class="bi bi-people-fill me-2"></i>3. Beneficiarios de la Solicitud ({{ solicitud.beneficiarios.count }})
-            </h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light small text-uppercase">
-                        <tr>
-                            <th style="width: 40px;" class="text-center">#</th>
-                            <th>Nombre Completo</th>
-                            <th>RUT</th>
-                            <th>Establecimiento</th>
-                            <th>Cargo</th>
-                            <th>Teléfono</th>
-                            <th>Email</th>
-                            <th>Fecha</th>
-                            <th style="width: 80px;" class="text-center">Copiar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ben in solicitud.beneficiarios.all %}
-                            <tr>
-                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
-                                <td class="fw-bold">{{ ben.get_nombre_completo }}</td>
-                                <td><code>{{ ben.rut|default:'-' }}</code></td>
-                                <td>{{ ben.establecimiento|default:'-' }}</td>
-                                <td>{{ ben.cargo|default:'-' }}</td>
-                                <td>{{ ben.telefono|default:'-' }}</td>
-                                <td>
-                                    {% if ben.email %}
-                                        <a href="mailto:{{ ben.email }}">{{ ben.email }}</a>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>{{ ben.fecha|date:"d/m/Y"|default:solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-copiar-ben-row"
-                                            data-nombre="{{ ben.get_nombre_completo }}"
-                                            data-rut="{{ ben.rut|default:'' }}"
-                                            data-establecimiento="{{ ben.establecimiento|default:'' }}"
-                                            data-cargo="{{ ben.cargo|default:'' }}"
-                                            data-telefono="{{ ben.telefono|default:'' }}"
-                                            data-email="{{ ben.email|default:'' }}"
-                                            title="Copiar datos del beneficiario">
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Establecimiento:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.establecimiento.nombre|default:solicitud.tecnico_establecimiento|default:'Servicio de Salud Arauco' }}" id="campo-establecimiento">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="campo-establecimiento" title="Copiar Establecimiento">
                                         <i class="bi bi-clipboard"></i>
                                     </button>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="9" class="p-4 text-center text-muted">No se encontraron beneficiarios registrados en esta solicitud.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                                </div>
+                            </div>
+                        </div>
 
-    <!-- 4. Accesos VPN Solicitados (ManyToMany) -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0 fw-bold fs-6">
-                <i class="bi bi-hdd-network me-2"></i>4. Accesos VPN Solicitados ({{ solicitud.accesos.count }})
-            </h5>
-            <span class="badge bg-light text-primary fw-bold">{{ solicitud.accesos.count }} acceso{{ solicitud.accesos.count|pluralize }}</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light small text-uppercase">
-                        <tr>
-                            <th style="width: 50px;" class="text-center">#</th>
-                            <th>Sistema / Plataforma / Recurso</th>
-                            <th>Dirección IP o Segmento</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for acc in solicitud.accesos.all %}
-                            <tr>
-                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
-                                <td class="fw-bold text-primary">{{ acc.plataforma }}</td>
-                                <td><code class="fs-6">{{ acc.ip }}</code></td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="3" class="p-4 text-center text-muted">
-                                    <em>(No se registraron accesos específicos del mantenedor para esta solicitud)</em>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. Panel de Gestión TIC (Sólo visible para Gestores TIC / Superuser) -->
-    {% if es_gestor_vpn %}
-        <div class="card shadow-sm mb-4 border-warning">
-            <div class="card-header bg-warning text-dark py-2 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold fs-6">
-                    <i class="bi bi-gear-wide-connected me-2"></i>5. Gestión de Solicitud en eConecta (Bandeja TIC)
-                </h5>
-                <span class="badge bg-dark text-white">Exclusivo Informática / TIC</span>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'solicitud_vpn:cambiar_estado' solicitud.pk %}">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Actualizar Estado <span class="text-danger">*</span></label>
-                            {{ gestion_form.estado }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Ticket / Folio eConecta</label>
-                            {{ gestion_form.ticket_econecta }}
-                            <div class="form-text small">Número de ticket generado tras registrar la solicitud en eConecta.</div>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">Observación de Gestión / Revisión TIC</label>
-                            {{ gestion_form.observacion_revision }}
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-warning fw-bold text-dark px-4">
-                                <i class="bi bi-check2-circle me-1"></i> Guardar Gestión TIC
-                            </button>
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Acción:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.get_accion_display }}" id="campo-accion">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="campo-accion" title="Copiar Acción">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
+
+                    <!-- ------------ Datos Solicitante ------------ -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-badge fs-5 text-secondary me-2"></i>
+                                <h6 class="mb-0 fw-bold text-dark text-uppercase">Datos Solicitante</h6>
+                            </div>
+                            <button type="button" class="btn btn-xs btn-outline-secondary" id="btn-copiar-solicitante" title="Copiar todos los datos del solicitante">
+                                <i class="bi bi-clipboard-check me-1"></i> Copiar Bloque
+                            </button>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Nombre completo:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_nombre|default:'' }}" id="sol-nombre">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-nombre" title="Copiar Nombre">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">RUT:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_rut|default:'' }}" id="sol-rut">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-rut" title="Copiar RUT">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Establecimiento:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_establecimiento|default:solicitud.establecimiento.nombre|default:'' }}" id="sol-establecimiento">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-establecimiento" title="Copiar Establecimiento">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Teléfono:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_telefono|default:'' }}" id="sol-telefono">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-telefono" title="Copiar Teléfono">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Cargo:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_cargo|default:'' }}" id="sol-cargo">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-cargo" title="Copiar Cargo">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Fecha:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_fecha|date:'d/m/Y'|default:solicitud.fecha_solicitud|date:'d/m/Y' }}" id="sol-fecha">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-fecha" title="Copiar Fecha">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Email:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.tecnico_email|default:'' }}" id="sol-email">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="sol-email" title="Copiar Email">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ----------- Datos Beneficiarios ----------- -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-people fs-5 text-secondary me-2"></i>
+                                <h6 class="mb-0 fw-bold text-dark text-uppercase">Datos Beneficiarios ({{ solicitud.beneficiarios.count }})</h6>
+                            </div>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-expandir-beneficiarios" title="Expandir todos">
+                                    <i class="bi bi-arrows-expand"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-colapsar-beneficiarios" title="Colapsar todos">
+                                    <i class="bi bi-arrows-collapse"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="accordion accordion-flush border rounded-2" id="accordionBeneficiarios">
+                            {% for ben in solicitud.beneficiarios.all %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingBen{{ forloop.counter }}">
+                                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} py-2 px-3 bg-light text-dark fw-bold small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBen{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapseBen{{ forloop.counter }}">
+                                            <div class="d-flex w-100 justify-content-between align-items-center pe-2">
+                                                <span>
+                                                    <span class="badge bg-secondary me-2">{{ forloop.counter }}</span>
+                                                    {{ ben.get_nombre_completo|default:'Beneficiario sin nombre' }}
+                                                </span>
+                                                <small class="text-muted fw-normal">RUT: {{ ben.rut|default:'-' }}</small>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseBen{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="headingBen{{ forloop.counter }}" data-bs-parent="#accordionBeneficiarios">
+                                        <div class="accordion-body p-3 bg-white">
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-copiar-ben-bloque"
+                                                        data-nombre="{{ ben.get_nombre_completo }}"
+                                                        data-rut="{{ ben.rut|default:'' }}"
+                                                        data-establecimiento="{{ ben.establecimiento|default:'' }}"
+                                                        data-telefono="{{ ben.telefono|default:'' }}"
+                                                        data-cargo="{{ ben.cargo|default:'' }}"
+                                                        data-fecha="{{ ben.fecha|date:'d/m/Y'|default:solicitud.fecha_solicitud|date:'d/m/Y' }}"
+                                                        data-email="{{ ben.email|default:'' }}"
+                                                        title="Copiar datos completos de este beneficiario">
+                                                    <i class="bi bi-clipboard-check me-1"></i> Copiar Datos Beneficiario
+                                                </button>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Nombre completo:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.get_nombre_completo }}" id="ben-nom-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-nom-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">RUT:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.rut|default:'' }}" id="ben-rut-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-rut-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Establecimiento:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.establecimiento|default:'' }}" id="ben-est-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-est-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Teléfono:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.telefono|default:'' }}" id="ben-tel-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-tel-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Cargo:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.cargo|default:'' }}" id="ben-car-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-car-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Fecha:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.fecha|date:'d/m/Y'|default:solicitud.fecha_solicitud|date:'d/m/Y' }}" id="ben-fec-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-fec-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-2 align-items-center">
+                                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Email:</label>
+                                                <div class="col-sm-9">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ ben.email|default:'' }}" id="ben-ema-{{ forloop.counter }}">
+                                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="ben-ema-{{ forloop.counter }}" title="Copiar">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="p-3 text-center text-muted small">
+                                    No se registraron beneficiarios en esta solicitud.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- ------------ Datos Técnicos ------------ -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                            <i class="bi bi-hdd-network fs-5 text-secondary me-2"></i>
+                            <h6 class="mb-0 fw-bold text-dark text-uppercase">Datos Técnicos</h6>
+                        </div>
+
+                        <!-- Nombre de grupo VPN -->
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Nombre de grupo VPN:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.grupo_vpn|default:'(No especificado)' }}" id="tec-grupo-vpn">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="tec-grupo-vpn" title="Copiar Grupo VPN">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fecha expiración -->
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Fecha expiración:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.fecha_expiracion|date:'d/m/Y'|default:'Indefinida / Sin límite' }}" id="tec-fecha-exp">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="tec-fecha-exp" title="Copiar Fecha Expiración">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Listado de Ip a acceder y la lista del nombre del sistema y la dirección url o ip -->
+                        <div class="row g-2 mb-2 align-items-start">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted pt-2">Listado de IP a acceder y sistemas:</label>
+                            <div class="col-sm-9">
+                                {% if solicitud.accesos.all %}
+                                    <div class="list-group list-group-flush border rounded-2 mb-1">
+                                        {% for acc in solicitud.accesos.all %}
+                                            <div class="list-group-item p-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="small fw-bold text-dark">{{ acc.plataforma }}</span>
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-copiar-campo" data-target="acc-row-{{ forloop.counter }}" title="Copiar Sistema e IP">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control form-control-sm bg-light font-monospace" readonly value="{{ acc.plataforma }} - {{ acc.ip }}" id="acc-row-{{ forloop.counter }}">
+                                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="acc-row-ip-{{ forloop.counter }}" title="Copiar solo IP">
+                                                        <span class="small">IP</span>
+                                                    </button>
+                                                    <input type="hidden" id="acc-row-ip-{{ forloop.counter }}" value="{{ acc.ip }}">
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm bg-light" readonly value="Sin accesos específicos definidos" id="tec-accesos-vacio">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Time out vpn -->
+                        <div class="row g-2 mb-2 align-items-center">
+                            <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Time out VPN:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm bg-light" readonly value="{{ solicitud.timeout_vpn|default:'1 hora' }}" id="tec-timeout">
+                                    <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="tec-timeout" title="Copiar Time Out">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if solicitud.observacion %}
+                            <div class="row g-2 mb-2 align-items-start mt-2">
+                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted pt-2">Observaciones Generales:</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group input-group-sm">
+                                        <textarea class="form-control form-control-sm bg-light" rows="2" readonly id="tec-observacion">{{ solicitud.observacion }}</textarea>
+                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="tec-observacion" title="Copiar Observación">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if solicitud.ticket_econecta %}
+                            <div class="row g-2 mb-2 align-items-center mt-2">
+                                <label class="col-sm-3 col-form-label col-form-label-sm fw-bold text-muted">Ticket / eConecta ID:</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm bg-light fw-bold text-success" readonly value="{{ solicitud.ticket_econecta }}" id="tec-ticket">
+                                        <button class="btn btn-outline-secondary btn-copiar-campo" type="button" data-target="tec-ticket" title="Copiar Ticket">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
             </div>
         </div>
-    {% endif %}
+    </div>
 
     <!-- Modal para ver y copiar texto plano eConecta -->
     <div class="modal fade" id="modalTextoEconecta" tabindex="-1" aria-labelledby="modalTextLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold" id="modalTextLabel">
-                        <i class="bi bi-file-earmark-text me-2"></i>Texto Formateado para Requerimiento eConecta
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold text-dark" id="modalTextLabel">
+                        <i class="bi bi-file-earmark-text me-2 text-secondary"></i>Texto Formateado para Requerimiento eConecta
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <p class="small text-muted mb-2">
@@ -331,9 +479,9 @@
                     </p>
                     <textarea class="form-control font-monospace text-dark bg-light" id="textarea-econecta-texto" rows="18" readonly style="font-size: 0.85rem;">{{ texto_econecta_completo }}</textarea>
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-success fw-bold" id="btn-copiar-textarea">
+                <div class="modal-footer d-flex justify-content-between border-top">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-sm btn-primary fw-bold" id="btn-copiar-textarea">
                         <i class="bi bi-clipboard-check me-1"></i> Copiar al Portapapeles
                     </button>
                 </div>
@@ -347,6 +495,89 @@
 {% block scripts %}
 <script>
 $(document).ready(function() {
+    // Función auxiliar robusta para copiar texto (compatible con HTTPS, HTTP e intranet)
+    function copiarTexto(texto, elementoBtn) {
+        texto = (texto === undefined || texto === null) ? '' : String(texto);
+
+        function feedbackExito() {
+            if (!elementoBtn) return;
+            const $btn = $(elementoBtn);
+            const originalHtml = $btn.html();
+            
+            if ($btn.text().trim().length > 0) {
+                $btn.html('<i class="bi bi-check2 text-success me-1"></i> Copiado!');
+            } else {
+                $btn.html('<i class="bi bi-check2 text-success"></i>');
+            }
+            
+            setTimeout(function() {
+                $btn.html(originalHtml);
+            }, 1500);
+        }
+
+        function copiarFallback(str) {
+            try {
+                const textarea = document.createElement("textarea");
+                textarea.value = str;
+                textarea.setAttribute("readonly", "");
+                textarea.style.position = "fixed";
+                textarea.style.top = "0";
+                textarea.style.left = "0";
+                textarea.style.opacity = "0";
+                textarea.style.pointerEvents = "none";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                const exitoso = document.execCommand("copy");
+                document.body.removeChild(textarea);
+                if (exitoso) {
+                    feedbackExito();
+                } else {
+                    prompt("Copie el texto manualmente:", str);
+                }
+            } catch (err) {
+                console.error("Error al copiar texto con fallback:", err);
+                prompt("Copie el texto:", str);
+            }
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texto).then(function() {
+                feedbackExito();
+            }).catch(function() {
+                copiarFallback(texto);
+            });
+        } else {
+            copiarFallback(texto);
+        }
+    }
+
+    // Copiar campo individual
+    $(document).on('click', '.btn-copiar-campo', function(e) {
+        e.preventDefault();
+        const targetId = $(this).attr('data-target') || $(this).data('target');
+        const $target = $('#' + targetId);
+        let val = '';
+        if ($target.length) {
+            if ($target.is('input') || $target.is('textarea') || $target.is('select')) {
+                val = $target.val();
+            } else {
+                val = $target.text();
+            }
+        }
+        copiarTexto((val || '').trim(), this);
+    });
+
+    // Expandir / Colapsar beneficiarios
+    $('#btn-expandir-beneficiarios').on('click', function() {
+        $('#accordionBeneficiarios .accordion-collapse').collapse('show');
+    });
+
+    $('#btn-colapsar-beneficiarios').on('click', function() {
+        $('#accordionBeneficiarios .accordion-collapse').collapse('hide');
+    });
+
     // Copiar all para eConecta
     $('#btn-copiar-todo-econecta').on('click', function() {
         $('#modalTextoEconecta').modal('show');
@@ -354,51 +585,75 @@ $(document).ready(function() {
 
     $('#btn-copiar-textarea').on('click', function() {
         const copyText = document.getElementById("textarea-econecta-texto");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value).then(function() {
-            alert('¡Texto completo copiado al portapapeles!');
-        }).catch(function() {
-            document.execCommand('copy');
-            alert('¡Texto copiado!');
-        });
+        if (copyText) {
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            copiarTexto(copyText.value, this);
+        }
     });
 
-    // Copiar datos del solicitante
-    $('#btn-copiar-solicitante').on('click', function() {
+    // Copiar bloque solicitante
+    $(document).on('click', '#btn-copiar-solicitante', function(e) {
+        e.preventDefault();
+        const nom = $('#sol-nombre').val() || "{{ solicitud.tecnico_nombre|default:''|escapejs }}";
+        const rut = $('#sol-rut').val() || "{{ solicitud.tecnico_rut|default:''|escapejs }}";
+        const est = $('#sol-establecimiento').val() || "{{ solicitud.tecnico_establecimiento|default:solicitud.establecimiento.nombre|default:''|escapejs }}";
+        const tel = $('#sol-telefono').val() || "{{ solicitud.tecnico_telefono|default:''|escapejs }}";
+        const car = $('#sol-cargo').val() || "{{ solicitud.tecnico_cargo|default:''|escapejs }}";
+        const fec = $('#sol-fecha').val() || "{{ solicitud.tecnico_fecha|date:'d/m/Y'|default:solicitud.fecha_solicitud|date:'d/m/Y'|escapejs }}";
+        const ema = $('#sol-email').val() || "{{ solicitud.tecnico_email|default:''|escapejs }}";
+
         const text = [
             "DATOS DEL SOLICITANTE:",
-            "Nombre: {{ solicitud.tecnico_nombre|default:''|escapejs }}",
-            "RUT: {{ solicitud.tecnico_rut|default:''|escapejs }}",
-            "Establecimiento: {{ solicitud.tecnico_establecimiento|default:''|escapejs }}",
-            "Cargo: {{ solicitud.tecnico_cargo|default:''|escapejs }}",
-            "Teléfono: {{ solicitud.tecnico_telefono|default:''|escapejs }}",
-            "Email: {{ solicitud.tecnico_email|default:''|escapejs }}",
-            "Fecha: {{ solicitud.tecnico_fecha|date:'d/m/Y'|escapejs }}",
-            "Proveedor: {% if solicitud.es_proveedor %}SÍ{% else %}NO{% endif %}"
+            "Nombre: " + nom,
+            "RUT: " + rut,
+            "Establecimiento: " + est,
+            "Teléfono: " + tel,
+            "Cargo: " + car,
+            "Fecha: " + fec,
+            "Email: " + ema
         ].join("\n");
 
-        navigator.clipboard.writeText(text).then(function() {
-            alert('¡Datos del solicitante copiados al portapapeles!');
-        });
+        copiarTexto(text, this);
     });
 
-    // Copiar datos de un beneficiario individual
-    $('.btn-copiar-ben-row').on('click', function() {
-        const d = $(this).data();
+    // Copiar bloque beneficiario individual
+    $(document).on('click', '.btn-copiar-ben-bloque', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const $body = $btn.closest('.accordion-body');
+        
+        let nom = '', rut = '', est = '', tel = '', car = '', fec = '', ema = '';
+        if ($body.length) {
+            nom = $body.find('input[id^="ben-nom-"]').val() || $btn.attr('data-nombre') || '';
+            rut = $body.find('input[id^="ben-rut-"]').val() || $btn.attr('data-rut') || '';
+            est = $body.find('input[id^="ben-est-"]').val() || $btn.attr('data-establecimiento') || '';
+            tel = $body.find('input[id^="ben-tel-"]').val() || $btn.attr('data-telefono') || '';
+            car = $body.find('input[id^="ben-car-"]').val() || $btn.attr('data-cargo') || '';
+            fec = $body.find('input[id^="ben-fec-"]').val() || $btn.attr('data-fecha') || '';
+            ema = $body.find('input[id^="ben-ema-"]').val() || $btn.attr('data-email') || '';
+        } else {
+            nom = $btn.attr('data-nombre') || '';
+            rut = $btn.attr('data-rut') || '';
+            est = $btn.attr('data-establecimiento') || '';
+            tel = $btn.attr('data-telefono') || '';
+            car = $btn.attr('data-cargo') || '';
+            fec = $btn.attr('data-fecha') || '';
+            ema = $btn.attr('data-email') || '';
+        }
+
         const text = [
             "DATOS DEL BENEFICIARIO:",
-            "Nombre: " + (d.nombre || '-'),
-            "RUT: " + (d.rut || '-'),
-            "Establecimiento: " + (d.establecimiento || '-'),
-            "Cargo: " + (d.cargo || '-'),
-            "Teléfono: " + (d.telefono || '-'),
-            "Email: " + (d.email || '-')
+            "Nombre: " + (nom || '-'),
+            "RUT: " + (rut || '-'),
+            "Establecimiento: " + (est || '-'),
+            "Teléfono: " + (tel || '-'),
+            "Cargo: " + (car || '-'),
+            "Fecha: " + (fec || '-'),
+            "Email: " + (ema || '-')
         ].join("\n");
 
-        navigator.clipboard.writeText(text).then(function() {
-            alert('¡Datos del beneficiario copiados al portapapeles!');
-        });
+        copiarTexto(text, this);
     });
 });
 </script>

@@ -12,6 +12,11 @@
            class="btn btn-outline-danger btn-sm" target="_blank">
             <i class="bi bi-file-earmark-pdf"></i> Acta PDF
         </a>
+        {% if not ultimo_movimiento.recepcionado %}
+             <a href="{% url 'gestion_tic:recepcion_conforme' ultimo_movimiento.pk %}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-file-earmark-pdf"></i> Recepción Conforme
+            </a>
+        {% endif %}
     {% endif %}
 {% endblock %}
 {% block content %}

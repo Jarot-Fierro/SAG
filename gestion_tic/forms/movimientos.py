@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.db.models.expressions import RawSQL
 
 from core.models.funcionario import Funcionario
+from core.models.unidad_organizacional import UnidadOrganizacional
 from gestion_tic.models import MovimientoActivo, TipoMovimiento
 from gestion_tic.models.catalogo import Ips, JefeTic
 
@@ -88,3 +89,43 @@ class MovimientoActivoForm(forms.ModelForm):
             )
             self.fields['jefe_firmante'].queryset = JefeTic.objects.filter(establecimiento=establecimiento,
                                                                            is_active=True)
+
+
+class RecepcionConformeForm(forms.ModelForm):
+    departamento = forms.ModelChoiceField(
+        label='Departamento',
+        empty_label='Seleccione un departamento',
+        required=True,
+        queryset=UnidadOrganizacional.objects.none(),
+        widget=forms.Select(attrs={'class': 'tom-select'})
+    )
+
+    class Meta:
+        model = MovimientoActivo
+        fields = ['nombre_completo', 'departamento']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese nombre completo',
+                'required': 'required'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        establecimiento = kwargs.pop('establecimiento', None)
+        super().__init__(*args, **kwargs)
+        if establecimiento:
+            departamentos_qs = UnidadOrganizacional.objects.filter(
+                establecimiento=establecimiento,
+                is_active=True,
+                es_departamento=True
+            )
+            self.fields['departamento'].queryset = departamentos_qs
+
+    def clean_departamento(self):
+        depto = self.cleaned_data.get('departamento')
+        if isinstance(depto, UnidadOrganizacional):
+            return str(depto.nombre)
+        elif depto:
+            return str(depto)
+        return ''

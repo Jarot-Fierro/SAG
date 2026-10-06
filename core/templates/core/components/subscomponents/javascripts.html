@@ -27,6 +27,13 @@
 <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
 <script src="{% static 'core/js/validation_forms.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Tom Select -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+<script>
+        document.querySelectorAll('.tom-select').forEach((el) => {
+            new TomSelect(el);
+        });
+    </script>
 <script>
     const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
     const Default = {

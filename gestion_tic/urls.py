@@ -78,4 +78,6 @@ urlpatterns = [
 
     path('equipos-baja/', equipos_baja.equipos_baja, name='equipos_baja'),
 
+    path('recepcion-conforme/<int:pk>', movimientos_activo.recepcion_conforme, name='recepcion_conforme')
+
 ]

@@ -47,6 +47,21 @@ class MovimientoActivo(StandardModelEstablishment):
         null=True,
         blank=True
     )
+    recepcionado = models.BooleanField(
+        default=False,
+        verbose_name="Recepcionado"
+    )
+    nombre_completo = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+    departamento = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+
 
     unidad_organizacional = models.ForeignKey(
         UnidadOrganizacional,

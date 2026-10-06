@@ -23,10 +23,6 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="alert alert-info py-2 small mb-4">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Estos datos se utilizarán por defecto al generar requerimientos de acceso VPN para su establecimiento y quedarán registrados como datos del solicitante para tramitación en <strong>eConecta</strong>.
-                    </div>
 
                     <form method="post">
                         {% csrf_token %}
@@ -74,22 +70,6 @@
                                     <div class="text-danger small">{{ form.email.errors }}</div>
                                 {% endif %}
                             </div>
-
-                            {% if request.user.is_superuser %}
-                                <div class="col-12 mt-3 p-3 bg-light rounded border">
-                                    <h6 class="fw-bold mb-2"><i class="bi bi-shield-lock me-1"></i> Permisos de Administración (Superusuario)</h6>
-                                    <div class="form-check">
-                                        {{ form.bandeja_vpn }}
-                                        <label class="form-check-label fw-bold" for="{{ form.bandeja_vpn.id_for_label }}">
-                                            Acceso a Bandeja de Gestión VPN (TIC / Informática)
-                                        </label>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="d-none">
-                                    {{ form.bandeja_vpn }}
-                                </div>
-                            {% endif %}
 
                             <div class="col-12 text-end mt-4">
                                 <button type="submit" class="btn btn-primary px-4 fw-bold">
