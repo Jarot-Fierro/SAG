@@ -8,9 +8,7 @@ from core.standard.models import StandardModel
 class PerfilCorreo(StandardModel):
     PERMISION_CHOICES = [
         (0, 'Sin Acceso'),
-        (1, 'Solo Ver'),
-        (2, 'Crear y Modificar'),
-        (3, 'Administrador')
+        (1, 'Con Acceso'),
     ]
 
     usuario = models.OneToOneField(

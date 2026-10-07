@@ -11,7 +11,7 @@ class SolicitudCorreoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         deptos_qs = UnidadOrganizacional.objects.filter(is_active=True)
         if request and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
-            deptos_qs = deptos_qs.filter(establecimiento=request.user.establecimiento)
+            deptos_qs = deptos_qs.filter(establecimiento=request.user.establecimiento, es_departamento=True)
             # Intentar seleccionar por defecto el departamento del usuario si lo tiene
             if not self.instance.pk and hasattr(request.user, 'funcionario') and request.user.funcionario:
                 if request.user.funcionario.unidad_organizacional:
@@ -23,7 +23,7 @@ class SolicitudCorreoForm(forms.ModelForm):
         queryset=UnidadOrganizacional.objects.none(),
         label='Departamento Solicitante',
         empty_label='Seleccione un departamento',
-        widget=forms.Select(attrs={'class': 'form-control form-select select2'}),
+        widget=forms.Select(attrs={'class': 'form-control form-select tom-select'}),
         required=True
     )
     observacion = forms.CharField(
