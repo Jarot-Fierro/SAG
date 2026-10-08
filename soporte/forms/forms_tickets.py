@@ -131,7 +131,7 @@ class FormTicketParaFuncionario(forms.ModelForm):
         label='Departamento / Subdepartamento',
         empty_label='Selecciona una opción',
         widget=forms.Select(attrs={
-            'class': 'form-control form-select select2'
+            'class': 'form-control form-select tom-select'
         }),
         required=True
     )
