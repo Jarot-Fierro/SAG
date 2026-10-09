@@ -35,3 +35,27 @@ MYSQL = {
         'PORT': os.getenv('DB_PORT', '3307'),
     }
 }
+
+_oracle_host = os.getenv('DB_HOST', '127.0.0.1')
+_oracle_port = os.getenv('DB_PORT', '1521')
+_oracle_name = os.getenv('DB_NAME', 'FREEPDB1')
+
+if '/' in _oracle_name:
+    _oracle_dsn = _oracle_name
+elif _oracle_host and _oracle_port:
+    _oracle_dsn = f"{_oracle_host}:{_oracle_port}/{_oracle_name}"
+elif _oracle_host:
+    _oracle_dsn = f"{_oracle_host}/{_oracle_name}"
+else:
+    _oracle_dsn = _oracle_name
+
+ORACLE = {
+    'default': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': _oracle_dsn,
+        'USER': os.getenv('DB_USER', 'SAGIS_DEV'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': '',
+        'PORT': '',
+    }
+}

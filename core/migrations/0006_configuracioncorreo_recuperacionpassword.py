@@ -36,12 +36,12 @@ class Migration(migrations.Migration):
             name='RecuperacionPassword',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token_hash', models.CharField(db_index=True, max_length=64, unique=True)),
+                ('token_hash', models.CharField( max_length=64, unique=True)),
                 ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
                 ('fecha_expiracion', models.DateTimeField()),
                 ('utilizado', models.BooleanField(default=False)),
                 ('fecha_utilizacion', models.DateTimeField(blank=True, null=True)),
-                ('estado', models.CharField(choices=[('PENDIENTE', 'Pendiente'), ('UTILIZADO', 'Utilizado'), ('EXPIRADO', 'Expirado'), ('CANCELADO', 'Cancelado')], db_index=True, default='PENDIENTE', max_length=20)),
+                ('estado', models.CharField(choices=[('PENDIENTE', 'Pendiente'), ('UTILIZADO', 'Utilizado'), ('EXPIRADO', 'Expirado'), ('CANCELADO', 'Cancelado')], default='PENDIENTE', max_length=20)),
                 ('ip_solicitud', models.GenericIPAddressField(blank=True, null=True)),
                 ('user_agent_solicitud', models.TextField(blank=True, null=True)),
                 ('navegador_solicitud', models.CharField(blank=True, max_length=100, null=True)),
@@ -74,7 +74,6 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Recuperación de Contraseña',
                 'verbose_name_plural': 'Recuperaciones de Contraseña',
                 'ordering': ['-fecha_creacion'],
-                'indexes': [models.Index(fields=['token_hash'], name='core_recupe_token_h_a7901d_idx'), models.Index(fields=['estado'], name='core_recupe_estado_b44a2a_idx')],
             },
         ),
     ]

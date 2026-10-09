@@ -14,12 +14,12 @@ class RecuperacionPassword(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='recuperaciones_password')
     establecimiento = models.ForeignKey('core.Establecimiento', on_delete=models.CASCADE)
-    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    token_hash = models.CharField(max_length=64, unique=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_expiracion = models.DateTimeField()
     utilizado = models.BooleanField(default=False)
     fecha_utilizacion = models.DateTimeField(null=True, blank=True)
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDIENTE', db_index=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDIENTE')
 
     # Información de la solicitud
     ip_solicitud = models.GenericIPAddressField(null=True, blank=True)
@@ -65,6 +65,5 @@ class RecuperacionPassword(models.Model):
         verbose_name_plural = 'Recuperaciones de Contraseña'
         ordering = ['-fecha_creacion']
         indexes = [
-            models.Index(fields=['token_hash']),
             models.Index(fields=['estado']),
         ]

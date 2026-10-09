@@ -150,6 +150,8 @@ if DB_TYPE == 'POSTGRESQL':
     DATABASES = db.POSTGRESQL
 elif DB_TYPE == 'MYSQL':
     DATABASES = db.MYSQL
+elif DB_TYPE == 'ORACLE':
+    DATABASES = db.ORACLE
 else:
     DATABASES = db.SQLITE
 
