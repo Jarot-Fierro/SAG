@@ -132,6 +132,7 @@ urlpatterns = [
     path('bodega/', include('bodega.urls')),
     path('solicitudes-correo/', include('solicitud_correo.urls')),
     path('solicitudes-vpn/', include('solicitud_vpn.urls')),
+    path('solicitudes-codigo/', include('solicitud_codigo.urls')),
     path('api/funcionarios/', funcionarios_api),
 ]
 

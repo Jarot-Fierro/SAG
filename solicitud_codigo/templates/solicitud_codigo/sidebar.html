@@ -1,0 +1,33 @@
+{% if request.user.perfil_codigo.es_referente %}
+    <li class="nav-item">
+        <a href="{% url 'solicitud_codigo:bandeja_referente' %}" class="nav-link {% if request.resolver_match.url_name == 'bandeja_referente' %}active{% endif %}">
+            <i class="nav-icon bi bi-shield-check text-warning"></i>
+            <p>Bandeja Referente</p>
+        </a>
+    </li>
+{% endif %}
+
+{% if request.user.perfil_codigo.puede_crear_codigos %}
+    <li class="nav-item">
+        <a href="{% url 'solicitud_codigo:bandeja_creacion' %}" class="nav-link {% if request.resolver_match.url_name == 'bandeja_creacion' %}active{% endif %}">
+            <i class="nav-icon bi bi-patch-check-fill text-success"></i>
+            <p>Creación de Códigos</p>
+        </a>
+    </li>
+{% endif %}
+
+<hr class="my-2 border-secondary">
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_codigo:mis_solicitudes' %}" class="nav-link {% if request.resolver_match.url_name == 'mis_solicitudes' or request.resolver_match.url_name == 'mis_solicitudes_alias' %}active{% endif %}">
+        <i class="nav-icon bi bi-card-checklist"></i>
+        <p>Mis Solicitudes</p>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{% url 'solicitud_codigo:crear' %}" class="nav-link {% if request.resolver_match.url_name == 'crear' %}active{% endif %}">
+        <i class="nav-icon bi bi-plus-circle text-primary"></i>
+        <p>Nueva Solicitud</p>
+    </a>
+</li>

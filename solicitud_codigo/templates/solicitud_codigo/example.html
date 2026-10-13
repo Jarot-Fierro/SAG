@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}{{ view_title }}{% endblock %}
+{% block sidebar %}
+
+{% endblock %}
+{% block styles %}
+    <style>
+
+        /* Comportamiento normal: tabla desplazable en móviles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* Cuando ColumnControl abre un menú, permitir que sobresalga */
+        .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
+            overflow: visible !important;
+        }
+
+    </style>
+{% endblock %}
+
+{% block buttons %}
+
+    {#    <a href="{% url 'agenda:list_anexos_edit' %}"#}
+    {#       class="btn btn-sm btn-primary"#}
+    {#       title="Nuevo Registro">#}
+    {#        <i class="bi bi-person-plus-fill me-1"></i>#}
+    {#        Mis Anexos#}
+    {#    </a>#}
+{% endblock %}
+
+
+{% block content %}
+    <div class="card shadow-sm mx-2">
+
+        <!-- Tabla -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Anexo</th>
+                        <th>Anexo Público</th>
+                        <th>Teléfono</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Departamento</th>
+                        <th>Dirección</th>
+                        <th>Puesto</th>
+                        <th>Cargo</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pie: estado de actualización -->
+        <div class="card-footer bg-body-tertiary py-2">
+            <div class="d-flex flex-wrap justify-content-between
+                            align-items-center gap-2">
+
+                <div class="d-flex align-items-center gap-2">
+                        <span class="spinner-grow spinner-grow-sm text-success"
+                              role="status"
+                              aria-hidden="true"></span>
+
+                    <small class="text-body-secondary">
+                        Actualización automática en
+                    </small>
+
+                    <span class="badge bg-primary font-monospace"
+                          id="countdown">
+                            3:00
+                        </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-clock-history text-secondary"></i>
+
+                    <small class="text-body-secondary"
+                           id="last-update">
+                        Esperando actualización...
+                    </small>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            const table = initDataTable({
+                selector: '.table-datatable',
+                ajaxUrl: "{{ ajax_url|default:request.path|escapejs }}",
+
+
+                columns: [
+                    {
+                        data: 'anexo',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'anexo_publico',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'numero_telefonico',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'funcionario__nombre',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'funcionario__email',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'unidad_organizacional__nombre',
+                        columnControl: [
+                            'order',
+                            [
+                                {
+                                    extend: 'searchList',
+                                    search: true,
+                                    select: true
+                                },
+                                'spacer',
+                                'orderAsc',
+                                'orderDesc',
+                                'orderClear'
+                            ]
+                        ]
+                    },
+                    {
+                        data: 'unidad_organizacional__direccion__nombre',
+                        columnControl: ['order', 'searchDropdown'],
+                        render: function (data, type, row) {
+                            const url = row.unidad_organizacional__direccion__enlace_google_maps;
+
+                            if (type !== 'display') {
+                                return data || '';
+                            }
+
+                            if (!data || !url) {
+                                return data || '';
+                            }
+
+                            return `
+                                        <a href="${url}" target="_blank" rel="noopener noreferrer">
+                                            ${data}
+                                        </a>
+                                    `;
+                        }
+                    },
+                    {
+                        data: 'funcionario__rol_organizacional__nombre',
+                        columnControl: ['order', 'searchDropdown']
+                    },
+                    {
+                        data: 'funcionario__cargo',
+                        columnControl: ['order', 'searchDropdown']
+                    },
+                ],
+
+                order: [[0, 'desc']],
+
+                // Opciones específicas de esta tabla
+                extraConfig: {
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100]
+                }
+            });
+
+            // Actualización automática cada 3 minutos
+            let seconds = 180;
+
+            $('#countdown').text(seconds);
+
+            setInterval(function () {
+                seconds--;
+
+                if (seconds <= 0) {
+                    seconds = 180;
+
+                    table.ajax.reload(function () {
+                        $('#last-update').text(
+                            'Actualizado: ' +
+                            new Date().toLocaleTimeString('es-CL')
+                        );
+                    }, false);
+                }
+
+                $('#countdown').text(seconds);
+            }, 1000);
+        });
+    </script>
+{% endblock %}

@@ -99,7 +99,9 @@ INSTALLED_APPS = [
     # SOLICITUD CORREO
     'solicitud_correo.apps.SolicitudCorreoConfig',
     # SOLICITUD VPN
-    'solicitud_vpn.apps.SolicitudVpnConfig'
+    'solicitud_vpn.apps.SolicitudVpnConfig',
+    # SOLICITUD CODIGO
+    'solicitud_codigo.apps.SolicitudCodigoConfig'
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

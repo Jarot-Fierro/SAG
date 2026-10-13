@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% block title %}{{ view_title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'solicitud_codigo/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <div class="d-flex gap-2">
+        {% if request.user.perfil_codigo.es_referente %}
+            <a href="{% url 'solicitud_codigo:bandeja_referente' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Bandeja Referente
+            </a>
+        {% endif %}
+        <a href="{% url 'solicitud_codigo:mis_solicitudes' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-list-task me-1"></i> Mis Solicitudes
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3">
+    <!-- Fila de Encabezado y Acciones Principales -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="text-muted small d-block">Folio de Solicitud:</span>
+                    <h3 class="fw-bold font-monospace text-primary mb-0">
+                        {{ solicitud.numero_solicitud|default:"SIN FOLIO" }}
+                    </h3>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="fs-6 me-2">
+                        {% if solicitud.estado == 'PENDIENTE_VALIDACION' %}
+                            <span class="badge bg-warning text-dark p-2"><i class="bi bi-hourglass-split me-1"></i>Pendiente de Validación</span>
+                        {% elif solicitud.estado == 'OBSERVADA' %}
+                            <span class="badge bg-info text-dark p-2"><i class="bi bi-exclamation-circle me-1"></i>Observada</span>
+                        {% elif solicitud.estado == 'VALIDADA' %}
+                            <span class="badge bg-primary p-2"><i class="bi bi-check2-circle me-1"></i>Validada</span>
+                        {% elif solicitud.estado == 'PENDIENTE_CREACION' %}
+                            <span class="badge bg-secondary p-2"><i class="bi bi-gear-wide-connected me-1"></i>Pendiente de Creación</span>
+                        {% elif solicitud.estado == 'RECHAZADA' %}
+                            <span class="badge bg-danger p-2"><i class="bi bi-x-circle me-1"></i>Rechazada</span>
+                        {% elif solicitud.estado == 'CODIGO_CREADO' %}
+                            <span class="badge bg-success p-2"><i class="bi bi-check-all me-1"></i>Código Creado</span>
+                        {% endif %}
+                    </span>
+
+                    <!-- Botón de Corrección para el solicitante -->
+                    {% if puede_corregir %}
+                        <a href="{% url 'solicitud_codigo:corregir' solicitud.pk %}" class="btn btn-warning shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Corregir y Reenviar
+                        </a>
+                    {% endif %}
+
+                    <!-- Botones de Gestión para el referente -->
+                    {% if puede_gestionar_referente %}
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalObservar">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Observar
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                            <i class="bi bi-x-circle me-1"></i> Rechazar
+                        </button>
+                        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalValidar">
+                            <i class="bi bi-check2-circle me-1"></i> Validar Solicitud
+                        </button>
+                    {% endif %}
+
+                    <!-- Botón de Creación Efectiva de Código -->
+                    {% if puede_crear_codigo %}
+                        <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearCodigo">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Registrar Código SISSA Creado
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas contextuales de estado -->
+    {% if solicitud.estado == 'OBSERVADA' and solicitud.observaciones_referente %}
+        <div class="alert alert-warning border-warning shadow-sm mb-4">
+            <h5 class="alert-heading fw-bold mb-2">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Solicitud Devuelta con Observaciones
+            </h5>
+            <p class="mb-1 text-dark">{{ solicitud.observaciones_referente|linebreaksbr }}</p>
+            {% if solicitud.fecha_observacion %}
+                <hr class="my-2">
+                <small class="text-muted">
+                    Observada el {{ solicitud.fecha_observacion|date:"d/m/Y H:i" }} por {{ solicitud.usuario_referente.get_full_name|default:solicitud.usuario_referente.username }}.
+                </small>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if solicitud.estado == 'RECHAZADA' and solicitud.motivo_rechazo %}
+        <div class="alert alert-danger border-danger shadow-sm mb-4">
+            <h5 class="alert-heading fw-bold mb-2">
+                <i class="bi bi-x-octagon-fill me-2"></i>
+                Solicitud Rechazada
+            </h5>
+            <p class="mb-1 text-dark">{{ solicitud.motivo_rechazo|linebreaksbr }}</p>
+            {% if solicitud.fecha_rechazo %}
+                <hr class="my-2">
+                <small class="text-muted">
+                    Rechazada el {{ solicitud.fecha_rechazo|date:"d/m/Y H:i" }} por {{ solicitud.usuario_referente.get_full_name|default:solicitud.usuario_referente.username }}.
+                </small>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if solicitud.estado == 'CODIGO_CREADO' %}
+        <div class="alert alert-success border-success shadow-sm mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Código SISSA Registrado con Éxito
+                    </h5>
+                    <div class="fs-4 fw-bold font-monospace text-success mt-2">
+                        {{ solicitud.codigo_creado }}
+                    </div>
+                    {% if solicitud.observaciones_creacion %}
+                        <p class="text-muted small mt-2 mb-0">{{ solicitud.observaciones_creacion }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-end text-muted small">
+                    {% if solicitud.fecha_creacion_codigo %}
+                        <div>Fecha: {{ solicitud.fecha_creacion_codigo|date:"d/m/Y H:i" }}</div>
+                    {% endif %}
+                    {% if solicitud.usuario_creador_codigo %}
+                        <div>Registrado por: {{ solicitud.usuario_creador_codigo.get_full_name|default:solicitud.usuario_creador_codigo.username }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Antecedentes de la Solicitud -->
+    <div class="row g-4 mb-4">
+        <!-- Columna Izquierda: Datos del Requerimiento -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light py-3 border-bottom">
+                    <h6 class="card-title fw-bold mb-0 text-secondary">
+                        <i class="bi bi-card-text me-2 text-primary"></i>
+                        Detalle del Requerimiento
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <span class="text-muted small d-block">Área:</span>
+                            <span class="fw-bold fs-6 text-dark">{{ solicitud.area.nombre }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted small d-block">Subárea:</span>
+                            <span class="fw-semibold text-dark">{{ solicitud.subarea.nombre|default:"—" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <span class="text-muted small d-block">Producto Base:</span>
+                            <span class="fw-bold fs-5 text-dark">{{ solicitud.producto_base }}</span>
+                        </div>
+                        <div class="col-md-5">
+                            <span class="text-muted small d-block">Presentación:</span>
+                            <span class="fw-semibold text-dark">{{ solicitud.presentacion }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Descripción del Requerimiento:</span>
+                        <div class="p-3 bg-light rounded border mt-1 text-dark" style="white-space: pre-wrap;">{{ solicitud.descripcion_requerimiento }}</div>
+                    </div>
+
+                    {% if solicitud.antecedentes_complementarios %}
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">Antecedentes Complementarios / Justificación:</span>
+                            <div class="p-3 bg-light rounded border mt-1 text-dark" style="white-space: pre-wrap;">{{ solicitud.antecedentes_complementarios }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Datos de Identificación y Auditoría -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light py-3 border-bottom">
+                    <h6 class="card-title fw-bold mb-0 text-secondary">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>
+                        Identificación y Trazabilidad
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Establecimiento de Origen:</span>
+                            <span class="fw-bold text-dark text-end">
+                                {{ solicitud.establecimiento.nombre }}
+                                {% if solicitud.establecimiento.alias %}
+                                    <span class="badge bg-secondary ms-1">{{ solicitud.establecimiento.alias }}</span>
+                                {% endif %}
+                            </span>
+                        </li>
+
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Usuario Solicitante:</span>
+                            <span class="fw-semibold text-dark">
+                                {{ solicitud.usuario_solicitante.get_full_name|default:solicitud.usuario_solicitante.username }}
+                            </span>
+                        </li>
+
+                        <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Fecha de Creación:</span>
+                            <span class="font-monospace text-dark">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                        </li>
+
+                        {% if solicitud.usuario_referente %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Referente Responsable:</span>
+                                <span class="fw-semibold text-dark">
+                                    {{ solicitud.usuario_referente.get_full_name|default:solicitud.usuario_referente.username }}
+                                </span>
+                            </li>
+                        {% endif %}
+
+                        {% if solicitud.fecha_validacion %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Fecha de Validación:</span>
+                                <span class="font-monospace text-success">{{ solicitud.fecha_validacion|date:"d/m/Y H:i" }}</span>
+                            </li>
+                        {% endif %}
+
+                        {% if solicitud.fecha_reenvio %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Fecha Último Reenvío:</span>
+                                <span class="font-monospace text-dark">{{ solicitud.fecha_reenvio|date:"d/m/Y H:i" }}</span>
+                            </li>
+                        {% endif %}
+
+                        {% if solicitud.codigo_creado %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Código Asignado:</span>
+                                <span class="font-monospace fw-bold text-success">{{ solicitud.codigo_creado }}</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial de Acciones y Trazabilidad -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light py-3 border-bottom d-flex align-items-center justify-content-between">
+            <h6 class="card-title fw-bold mb-0 text-secondary">
+                <i class="bi bi-clock-history me-2 text-primary"></i>
+                Historial de Acciones y Auditoría
+            </h6>
+            <span class="badge bg-secondary text-white">{{ historial|length }} evento(s)</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 170px;">Fecha y Hora</th>
+                        <th>Acción Realizada</th>
+                        <th>Transición de Estado</th>
+                        <th>Usuario Responsable</th>
+                        <th>Detalle / Observaciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for evento in historial %}
+                        <tr>
+                            <td class="font-monospace small text-muted">{{ evento.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span class="fw-semibold text-dark">{{ evento.accion }}</span>
+                            </td>
+                            <td>
+                                {% if evento.estado_anterior %}
+                                    <span class="badge bg-light text-dark border">{{ evento.estado_anterior }}</span>
+                                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                {% endif %}
+                                <span class="badge bg-secondary">{{ evento.estado_nuevo }}</span>
+                            </td>
+                            <td>
+                                {{ evento.usuario.get_full_name|default:evento.usuario.username|default:"Sistema" }}
+                            </td>
+                            <td class="small text-secondary">{{ evento.detalle|default:"—" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No hay registros en el historial.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODALES PARA ACCIONES DE REFERENTE / TIC -->
+<!-- ========================================== -->
+
+<!-- Modal Observar -->
+{% if puede_gestionar_referente %}
+<div class="modal fade" id="modalObservar" tabindex="-1" aria-labelledby="modalObservarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'solicitud_codigo:observar' solicitud.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold" id="modalObservarLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Devolver Solicitud con Observaciones
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">
+                        Indique los motivos por los cuales la solicitud requiere correcciones. El solicitante recibirá estas indicaciones para corregir y reenviar el requerimiento.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form_observar.observaciones.label }} <span class="text-danger">*</span></label>
+                        {{ form_observar.observaciones }}
+                        {% if form_observar.observaciones.help_text %}
+                            <div class="form-text small">{{ form_observar.observaciones.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning px-4">
+                        <i class="bi bi-send me-1"></i> Confirmar Devolución
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rechazar -->
+<div class="modal fade" id="modalRechazar" tabindex="-1" aria-labelledby="modalRechazarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'solicitud_codigo:rechazar' solicitud.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold" id="modalRechazarLabel">
+                        <i class="bi bi-x-octagon-fill me-2"></i>
+                        Rechazar Solicitud de Código
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-danger mb-3">
+                        <strong>Atención:</strong> El rechazo de la solicitud es una acción terminal e impedirá continuar su tramitación.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form_rechazar.motivo_rechazo.label }} <span class="text-danger">*</span></label>
+                        {{ form_rechazar.motivo_rechazo }}
+                        {% if form_rechazar.motivo_rechazo.help_text %}
+                            <div class="form-text small">{{ form_rechazar.motivo_rechazo.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-x-circle me-1"></i> Confirmar Rechazo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Validar -->
+<div class="modal fade" id="modalValidar" tabindex="-1" aria-labelledby="modalValidarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'solicitud_codigo:validar' solicitud.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="modalValidarLabel">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Validar Solicitud de Código
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted">
+                        Al validar la solicitud, usted certifica técnicamente que la necesidad del código SISSA para <strong>{{ solicitud.producto_base }}</strong> está justificada y cumple con los estándares institucionales. La solicitud avanzará a la etapa de creación efectiva.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form_validar.observaciones.label }}</label>
+                        {{ form_validar.observaciones }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i> Confirmar Validación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Crear Código Efectivo -->
+{% if puede_crear_codigo %}
+<div class="modal fade" id="modalCrearCodigo" tabindex="-1" aria-labelledby="modalCrearCodigoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'solicitud_codigo:crear_codigo' solicitud.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="modalCrearCodigoLabel">
+                        <i class="bi bi-patch-check-fill me-2"></i>
+                        Registrar Código SISSA y Finalizar Solicitud
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-light border mb-3">
+                        <div><strong>Producto:</strong> {{ solicitud.producto_base }} ({{ solicitud.presentacion }})</div>
+                        <div><strong>Área:</strong> {{ solicitud.area.nombre }}</div>
+                        <div><strong>Establecimiento:</strong> {{ solicitud.establecimiento.nombre }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form_crear_codigo.codigo_creado.label }} <span class="text-danger">*</span></label>
+                        {{ form_crear_codigo.codigo_creado }}
+                        {% if form_crear_codigo.codigo_creado.help_text %}
+                            <div class="form-text small">{{ form_crear_codigo.codigo_creado.help_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form_crear_codigo.observaciones_creacion.label }}</label>
+                        {{ form_crear_codigo.observaciones_creacion }}
+                    </div>
+
+                    <div class="form-check mb-2">
+                        {{ form_crear_codigo.registrar_en_maestra }}
+                        <label class="form-check-label" for="{{ form_crear_codigo.registrar_en_maestra.id_for_label }}">
+                            {{ form_crear_codigo.registrar_en_maestra.label }}
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle me-1"></i> Registrar Código Creado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
