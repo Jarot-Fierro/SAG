@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ view_title }}{% endblock %}
 {% block sidebar %}
-
+    {% include 'tickets/sidebar.html' %}
 {% endblock %}
 {% block styles %}
     <style>
@@ -41,21 +41,19 @@
                     <tr>
                         <th>N.º Ticket</th>
                         <th>Título</th>
-                        <th>Solicitante</th>
-                        <th>Correo</th>
-                        <th>Departamento</th>
-                        <th>Establecimiento</th>
-                        <th>Área de Soporte</th>
+                        <th>Nombres</th>
                         <th>Estado</th>
-                        <th>Fecha de Cierre</th>
+                        <th>Área de Soporte</th>
+                        <th>Asignado a</th>
+                        <th>F.Apertura</th>
+                        <th>F.Cierre</th>
+                        <th>Acciones</th>
                     </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Pie: estado de actualización -->
         <div class="card-footer bg-body-tertiary py-2">
             <div class="d-flex flex-wrap justify-content-between
                             align-items-center gap-2">
@@ -86,7 +84,6 @@
 
             </div>
         </div>
-
     </div>
 {% endblock %}
 
@@ -111,30 +108,199 @@
                         data: 'nombres',
                         columnControl: ['order']
                     },
-                    {
-                        data: 'correo',
-                        columnControl: ['order']
-                    },
-                    {
-                        data: 'departamento',
-                        columnControl: ['order', 'searchDropdown']
-                    },
-                    {
-                        data: 'establecimiento',
-                        columnControl: ['order', 'searchDropdown']
-                    },
-                    {
-                        data: 'area_soporte',
-                        columnControl: ['order', 'searchDropdown']
-                    },
+
                     {
                         data: 'estado',
-                        columnControl: ['order', 'searchDropdown']
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            const estados = {
+                                'ABIERTO': {
+                                    texto: 'Abierto',
+                                    clase: 'bg-primary'
+                                },
+                                'EN PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'ESPERA': {
+                                    texto: 'En Espera',
+                                    clase: 'bg-info text-dark'
+                                },
+                                'CERRADO': {
+                                    texto: 'Cerrado',
+                                    clase: 'bg-danger'
+                                },
+                                'RECHAZADO': {
+                                    texto: 'Rechazado',
+                                    clase: 'bg-danger'
+                                },
+                                'CANCELADO': {
+                                    texto: 'Cancelado',
+                                    clase: 'bg-secondary'
+                                }
+                            };
+
+                            const estado = estados[data];
+
+                            if (type === 'display') {
+                                return `<span class="badge ${estado?.clase ?? 'bg-secondary'}">
+                                    ${estado?.texto ?? data ?? 'Sin estado'}
+                                </span>`;
+                            }
+
+                            if (type === 'filter') {
+                                return estado?.texto ?? data ?? '';
+                            }
+
+                            return data ?? '';
+                        }
+                    },
+
+                    {
+                        data: 'area_soporte',
+                        columnControl: ['order']
                     },
                     {
-                        data: 'fecha_cierre',
+                        data: 'asignado_a',
                         columnControl: ['order']
+                    },
+
+                    {
+                        data: 'fecha_cierre',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? 'Sin Fecha' : '';
+                            }
+
+                            const fecha = new Date(data);
+
+                            if (isNaN(fecha.getTime())) {
+                                return type === 'display' ? 'Sin Fecha' : '';
+                            }
+
+                            // Valor original para ordenar y filtrar correctamente
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const horas = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+                            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? 'Sin Fecha' : '';
+                            }
+
+                            const fecha = new Date(data);
+
+                            if (isNaN(fecha.getTime())) {
+                                return type === 'display' ? 'Sin Fecha' : '';
+                            }
+
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const horas = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+                            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        columnControl: [],
+                        render: function (data, type, row) {
+                            if (type !== 'display') {
+                                return '';
+                            }
+
+                            const historialUrl = "{% url 'soporte:ticket_historial' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            const detalleUrl = "{% url 'soporte:ticket_detail' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            let acciones = `
+                                <span data-bs-toggle="tooltip" title="Historial">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-info"
+                                            hx-get="${historialUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span class="d-none">Historial</span>
+                                    </button>
+                                </span>
+
+                                <span data-bs-toggle="tooltip" title="Ver Ticket">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            hx-get="${detalleUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-eye"></i>
+                                        <span class="d-none">Ver</span>
+                                    </button>
+                                </span>
+                            `;
+
+                            if (row.estado === 'CERRADO') {
+                                acciones += `
+                                    <span class="badge bg-danger">Cerrado</span>
+                                `;
+                            } else {
+                                const editarUrl = "{% url 'soporte:ticket_update' 0 %}"
+                                    .replace(/0\/?$/, `${row.id}`);
+
+                                acciones += `
+                                    <a href="${editarUrl}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Editar"
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-pencil"></i>
+                                        <span class="d-none">Editar</span>
+                                    </a>
+                                `;
+
+                                if (row.is_active) {
+                                    const eliminarUrl = "{% url 'soporte:ticket_delete' 0 %}"
+                                        .replace(/0\/?$/, `${row.id}`);
+
+                                    acciones += `
+                                        <a href="${eliminarUrl}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Desactivar"
+                                           data-bs-toggle="tooltip"
+                                           onclick="return confirm('¿Estás seguro de desactivar este ticket?');">
+                                            <i class="bi bi-trash"></i>
+                                            <span class="d-none">Desactivar</span>
+                                        </a>
+                                    `;
+                                }
+                            }
+
+                            return `<div class="d-flex gap-1 align-items-center">${acciones}</div>`;
+                        }
                     }
+
                 ],
 
                 order: [[0, 'desc']],
@@ -145,7 +311,23 @@
                     lengthMenu: [10, 25, 50, 100]
                 }
             });
+            function inicializarAcciones() {
+                const tbody = document.querySelector('.table-datatable tbody');
 
+                if (!tbody) {
+                    return;
+                }
+
+                // Registrar los atributos HTMX de los botones dinámicos
+                if (window.htmx) {
+                    htmx.process(tbody);
+                }
+
+                // Inicializar tooltips de Bootstrap
+                tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element => {
+                    bootstrap.Tooltip.getOrCreateInstance(element);
+                });
+            }
             // Actualización automática cada 3 minutos
             let seconds = 180;
 
@@ -167,6 +349,12 @@
 
                 $('#countdown').text(seconds);
             }, 1000);
+
+            // Después de cada actualización, paginación u ordenamiento
+            $('.table-datatable').on('draw.dt', inicializarAcciones);
+
+            // Procesar también el contenido inicial
+            inicializarAcciones();
         });
     </script>
 {% endblock %}

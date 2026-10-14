@@ -1,3 +1,5 @@
+from django.urls import reverse_lazy
+
 from core.forms.configuracion_correo import ConfiguracionCorreoForm
 from core.models.configuracion_correo import ConfiguracionCorreo
 from core.standard.views import *

@@ -60,7 +60,7 @@ class AreaSoporte(StandardModelEstablishment):
 class Ticket(StandardModel):
     ESTADOS = (
         ('ABIERTO', 'Abierto'),
-        ('EN_PROCESO', 'En Proceso'),
+        ('EN PROCESO', 'En Proceso'),
         ('ESPERA', 'En Espera'),
         ('CERRADO', 'Cerrado'),
         ('RECHAZADO', 'Rechazado'),
@@ -76,7 +76,6 @@ class Ticket(StandardModel):
     funcionario = models.ForeignKey('core.User', on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='tickets_solicitados')
     nombres = models.CharField(max_length=150, null=True, blank=True, verbose_name='Nombres')
-    apellidos = models.CharField(max_length=150, null=True, blank=True, verbose_name='Apellidos')
     correo = models.CharField(max_length=254, null=True, blank=True, verbose_name='Correo Electrónico')
     departamento = models.CharField(max_length=255, null=True, blank=True, verbose_name='Departamento')
     estado = models.CharField(max_length=20, choices=ESTADOS, default='ABIERTO')

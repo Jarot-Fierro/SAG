@@ -1,3 +1,5 @@
+from django.urls import reverse_lazy
+
 from core.forms.profesiones import ProfesionForm
 from core.models.profesion import Profesion
 from core.standard.views import *

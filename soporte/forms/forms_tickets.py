@@ -103,16 +103,7 @@ class FormTicketParaFuncionario(forms.ModelForm):
         label='Nombres',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ej: Juan'
-        }),
-        required=True
-    )
-
-    apellidos = forms.CharField(
-        label='Apellidos',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ej: Pérez'
+            'placeholder': 'Nombre Completo'
         }),
         required=True
     )
@@ -148,7 +139,6 @@ class FormTicketParaFuncionario(forms.ModelForm):
             'titulo',
             'area_soporte',
             'nombres',
-            'apellidos',
             'correo',
             'departamento',
             'descripcion',

@@ -1,3 +1,5 @@
+from django.urls import reverse_lazy
+
 from core.forms.establecimientos import EstablecimientoForm
 from core.models.establecimientos import Establecimiento
 from core.standard.views import *

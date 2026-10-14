@@ -27,7 +27,7 @@
                         <h3 class="card-title">{{ title }}</h3>
                     </div>
 
-                    <form method="post" novalidate>
+                    <form method="post" class="needs-validation" novalidate>
                         <div class="card-body">
                             {% csrf_token %}
                             {{ form.non_field_errors }}
@@ -56,22 +56,12 @@
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-8">
                                     <label class="form-label fw-bold"
                                            for="id_{{ form.nombres.name }}">{{ form.nombres.label }}</label>
                                     {{ form.nombres }}
                                     {% if form.nombres.errors %}
                                         {% for error in form.nombres.errors %}
-                                            <div class="invalid-feedback d-block text-danger">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold"
-                                           for="id_{{ form.apellidos.name }}">{{ form.apellidos.label }}</label>
-                                    {{ form.apellidos }}
-                                    {% if form.apellidos.errors %}
-                                        {% for error in form.apellidos.errors %}
                                             <div class="invalid-feedback d-block text-danger">{{ error }}</div>
                                         {% endfor %}
                                     {% endif %}

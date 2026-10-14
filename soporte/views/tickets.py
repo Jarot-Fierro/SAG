@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.text import Truncator
 from django.views.generic import TemplateView, DetailView, ListView
 
 from core.models.configuracion_correo import ConfiguracionCorreo
@@ -859,22 +860,51 @@ class SoporteListCBV(ListView):
         "numero_ticket",
         "titulo",
         "nombres",
-        "apellidos",
-        "correo",
-        "departamento",
-        "establecimiento",
-        "area_soporte",
         "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__username",
         "fecha_cierre",
-        "asignado_a",
+        "created_at",
     ]
 
-    searchable_columns = columns
+    searchable_columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__first_name",
+        "asignado_a__usuario__last_name",
+        "asignado_a__usuario__username",
+    ]
 
     def get_queryset(self):
-        return (
-            Ticket.objects.all()
-        )
+        try:
+            areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
+            if (
+                    hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
+                    and not self.request.user.is_superuser
+            ):
+                areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
+
+            queryset = super().get_queryset().select_related(
+                "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
+            ).filter(
+                area_soporte__in=areas_usuario, is_active=True
+            )
+
+            if (
+                    hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
+                    and not self.request.user.is_superuser
+            ):
+                queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        except AttributeError:
+            # Si el usuario no tiene perfil_soporte, no ve ningún ticket
+            queryset = super().get_queryset().none()
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -912,12 +942,6 @@ class SoporteListCBV(ListView):
                 )
 
             queryset = queryset.filter(search_query)
-
-        # Filtro de columna para la unidad organizacional.
-        unidad_filter = request.GET.get("columns[5][search][value]", "").strip()
-
-        if unidad_filter:
-            queryset = queryset.all()
 
         # Total después de aplicar los filtros.
         records_filtered = queryset.count()
@@ -959,19 +983,13 @@ class SoporteListCBV(ListView):
     @staticmethod
     def serialize_ticket(ticket):
         return {
+            "id": ticket.pk,
             "numero_ticket": ticket.numero_ticket,
-            "establecimiento": ticket.establecimiento.nombre if ticket.establecimiento else None,
-            "asignado_a": str(ticket.asignado_a) if ticket.asignado_a else None,
-            "funcionario": str(ticket.funcionario) if ticket.funcionario else None,
+            "titulo": Truncator(ticket.titulo).chars(30),
             "nombres": ticket.nombres,
-            "apellidos": ticket.apellidos,
-            "correo": ticket.correo,
-            "departamento": ticket.departamento,
             "estado": ticket.estado,
-            "titulo": ticket.titulo,
-            "descripcion": ticket.descripcion,
-            "area_soporte": str(ticket.area_soporte) if ticket.area_soporte else None,
-            "tipo_soporte": str(ticket.tipo_soporte) if ticket.tipo_soporte else None,
-            "solucion": ticket.solucion,
+            "area_soporte": str(ticket.area_soporte.nombre) if ticket.area_soporte else None,
+            "asignado_a": str(ticket.asignado_a) if ticket.asignado_a else None,
             "fecha_cierre": ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None,
+            "created_at": ticket.created_at.isoformat() if ticket.created_at else None,
         }

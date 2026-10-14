@@ -1,3 +1,5 @@
+from django.urls import reverse_lazy
+
 from core.forms.modulos import ModuloForm
 from core.models.modulos import Modulo
 from core.standard.views import *

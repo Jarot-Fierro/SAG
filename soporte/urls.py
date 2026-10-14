@@ -10,7 +10,7 @@ urlpatterns = [
     path('soportev2/', SoporteListCBV.as_view(), name='ticket_v2'),
 
     # TICKETS
-    path('soporte-tickets/lista/', TicketListView.as_view(), name='ticket_list'),
+    path('soporte-tickets/lista/', SoporteListCBV.as_view(), name='ticket_list'),
     path('soporte-tickets/crear/', TicketCreateView.as_view(), name='ticket_create'),
     path('soporte-tickets-funcionario/crear/', TicketParaFuncionarioCreateView.as_view(),
          name='ticket_para_funcionario_create'),
