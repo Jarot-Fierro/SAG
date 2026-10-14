@@ -5,10 +5,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, DetailView
+from django.views.generic import TemplateView, DetailView, ListView
 
 from core.models.configuracion_correo import ConfiguracionCorreo
 from core.services.email_service import EmailService
@@ -137,9 +138,9 @@ class TicketListView(StandardListView):
 
         # Aplicamos filtro de establecimiento similar a StandardBaseView
         if (
-            hasattr(self.request.user, "establecimiento")
-            and self.request.user.establecimiento
-            and not self.request.user.is_superuser
+                hasattr(self.request.user, "establecimiento")
+                and self.request.user.establecimiento
+                and not self.request.user.is_superuser
         ):
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         elif hasattr(self.request.user, "establecimiento") and self.request.user.establecimiento:
@@ -244,9 +245,9 @@ class TicketsUpdateView(StandardUpdateView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if (
-            not self.request.user.is_superuser
-            and hasattr(self.request.user, 'establecimiento')
-            and self.request.user.establecimiento
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, 'establecimiento')
+                and self.request.user.establecimiento
         ):
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
@@ -273,9 +274,9 @@ class TicketEditorListView(StandardListView):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
             if (
-                hasattr(self.request.user, "establecimiento")
-                and self.request.user.establecimiento
-                and not self.request.user.is_superuser
+                    hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
+                    and not self.request.user.is_superuser
             ):
                 areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
 
@@ -286,9 +287,9 @@ class TicketEditorListView(StandardListView):
             )
 
             if (
-                hasattr(self.request.user, "establecimiento")
-                and self.request.user.establecimiento
-                and not self.request.user.is_superuser
+                    hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
+                    and not self.request.user.is_superuser
             ):
                 queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         except AttributeError:
@@ -325,9 +326,9 @@ class TicketEditorListView(StandardListView):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
             if (
-                not self.request.user.is_superuser
-                and hasattr(self.request.user, "establecimiento")
-                and self.request.user.establecimiento
+                    not self.request.user.is_superuser
+                    and hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
             ):
                 areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
             tipos_soporte = tipos_soporte.filter(area_soporte__in=areas_usuario).distinct()
@@ -348,9 +349,9 @@ class TicketDetailView(StandardDetailView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if (
-            not self.request.user.is_superuser
-            and hasattr(self.request.user, 'establecimiento')
-            and self.request.user.establecimiento
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, 'establecimiento')
+                and self.request.user.establecimiento
         ):
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
@@ -637,7 +638,8 @@ def ticket_cerrar(request, pk):
         if tipo_soporte_id:
             try:
                 tipo_qs = TipoSoporte.objects.all()
-                if not request.user.is_superuser and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+                if not request.user.is_superuser and hasattr(request.user,
+                                                             'establecimiento') and request.user.establecimiento:
                     tipo_qs = tipo_qs.filter(establecimiento=request.user.establecimiento)
                 ticket.tipo_soporte = tipo_qs.get(pk=tipo_soporte_id)
             except TipoSoporte.DoesNotExist:
@@ -683,9 +685,9 @@ class TicketEditorInactivosListView(StandardListView):
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
             if (
-                not self.request.user.is_superuser
-                and hasattr(self.request.user, "establecimiento")
-                and self.request.user.establecimiento
+                    not self.request.user.is_superuser
+                    and hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
             ):
                 areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
             queryset = queryset.filter(
@@ -734,9 +736,9 @@ class TicketsUpdateEditorView(StandardUpdateView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if (
-            not self.request.user.is_superuser
-            and hasattr(self.request.user, 'establecimiento')
-            and self.request.user.establecimiento
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, 'establecimiento')
+                and self.request.user.establecimiento
         ):
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
@@ -843,3 +845,133 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
         context['bar_chart_data_json'] = json.dumps(bar_chart_data)
 
         return context
+
+
+class SoporteListCBV(ListView):
+    model = Ticket
+    template_name = "tickets/list_v2.html"
+    context_object_name = "anexos"
+
+    view_title = "Soporte V2"
+    view_type = "CBV"
+
+    columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "apellidos",
+        "correo",
+        "departamento",
+        "establecimiento",
+        "area_soporte",
+        "estado",
+        "fecha_cierre",
+        "asignado_a",
+    ]
+
+    searchable_columns = columns
+
+    def get_queryset(self):
+        return (
+            Ticket.objects.all()
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["view_title"] = self.view_title
+        context["view_type"] = self.view_type
+        return context
+
+    def get(self, request, *args, **kwargs):
+        # Si DataTables solicita datos mediante AJAX,
+        # devolvemos JSON en lugar de renderizar la plantilla.
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return self.datatables_response(request)
+
+        return super().get(request, *args, **kwargs)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+
+        draw = int(request.GET.get("draw", 1))
+        start = max(int(request.GET.get("start", 0)), 0)
+        length = int(request.GET.get("length", 10))
+
+        # Total de registros sin filtros.
+        records_total = queryset.count()
+
+        # Búsqueda global.
+        search_value = request.GET.get("search[value]", "").strip()
+
+        if search_value:
+            search_query = Q()
+
+            for column in self.searchable_columns:
+                search_query |= Q(
+                    **{f"{column}__icontains": search_value}
+                )
+
+            queryset = queryset.filter(search_query)
+
+        # Filtro de columna para la unidad organizacional.
+        unidad_filter = request.GET.get("columns[5][search][value]", "").strip()
+
+        if unidad_filter:
+            queryset = queryset.all()
+
+        # Total después de aplicar los filtros.
+        records_filtered = queryset.count()
+
+        # Ordenamiento solicitado por DataTables.
+        order_column = request.GET.get("order[0][column]")
+        order_dir = request.GET.get("order[0][dir]", "asc")
+
+        if order_column is not None:
+            try:
+                column_index = int(order_column)
+
+                if 0 <= column_index < len(self.columns):
+                    field = self.columns[column_index]
+
+                    if order_dir == "desc":
+                        field = f"-{field}"
+
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                pass
+
+        # Paginación.
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_ticket(ticket)
+            for ticket in queryset
+        ]
+
+        return JsonResponse({
+            "draw": draw,
+            "recordsTotal": records_total,
+            "recordsFiltered": records_filtered,
+            "data": data,
+        })
+
+    @staticmethod
+    def serialize_ticket(ticket):
+        return {
+            "numero_ticket": ticket.numero_ticket,
+            "establecimiento": ticket.establecimiento.nombre if ticket.establecimiento else None,
+            "asignado_a": str(ticket.asignado_a) if ticket.asignado_a else None,
+            "funcionario": str(ticket.funcionario) if ticket.funcionario else None,
+            "nombres": ticket.nombres,
+            "apellidos": ticket.apellidos,
+            "correo": ticket.correo,
+            "departamento": ticket.departamento,
+            "estado": ticket.estado,
+            "titulo": ticket.titulo,
+            "descripcion": ticket.descripcion,
+            "area_soporte": str(ticket.area_soporte) if ticket.area_soporte else None,
+            "tipo_soporte": str(ticket.tipo_soporte) if ticket.tipo_soporte else None,
+            "solucion": ticket.solucion,
+            "fecha_cierre": ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None,
+        }

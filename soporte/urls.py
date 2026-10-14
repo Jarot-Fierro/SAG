@@ -7,6 +7,7 @@ app_name = 'soporte'
 urlpatterns = [
     # DASHBOARD
     path('soporte-tickets/dashboard/', TicketDashboardView.as_view(), name='ticket_dashboard'),
+    path('soportev2/', SoporteListCBV.as_view(), name='ticket_v2'),
 
     # TICKETS
     path('soporte-tickets/lista/', TicketListView.as_view(), name='ticket_list'),
