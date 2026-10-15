@@ -267,7 +267,7 @@
                                     <span class="badge bg-danger">Cerrado</span>
                                 `;
                             } else {
-                                const editarUrl = "{% url 'soporte:ticket_update' 0 %}"
+                                const editarUrl = "{% url 'soporte:ticket_para_funcionario_update' 0 %}"
                                     .replace(/0\/?$/, `${row.id}`);
 
                                 acciones += `
@@ -311,6 +311,7 @@
                     lengthMenu: [10, 25, 50, 100]
                 }
             });
+
             function inicializarAcciones() {
                 const tbody = document.querySelector('.table-datatable tbody');
 
@@ -328,6 +329,7 @@
                     bootstrap.Tooltip.getOrCreateInstance(element);
                 });
             }
+
             // Actualización automática cada 3 minutos
             let seconds = 180;
 

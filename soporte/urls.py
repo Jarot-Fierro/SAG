@@ -14,6 +14,10 @@ urlpatterns = [
     path('soporte-tickets/crear/', TicketCreateView.as_view(), name='ticket_create'),
     path('soporte-tickets-funcionario/crear/', TicketParaFuncionarioCreateView.as_view(),
          name='ticket_para_funcionario_create'),
+
+    path('soporte-tickets-funcionario/editar/<int:pk>', TicketsParaFuncionarioUpdateView.as_view(),
+         name='ticket_para_funcionario_update'),
+
     path('soporte-tickets/editar/<int:pk>', TicketsUpdateView.as_view(), name='ticket_update'),
     path('soporte-tickets/eliminar/<int:pk>/', ticket_delete, name='ticket_delete'),
     path('soporte-tickets/historial/<int:pk>/', TicketHistorialView.as_view(), name='ticket_historial'),

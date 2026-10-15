@@ -234,6 +234,14 @@ class TicketParaFuncionarioCreateView(StandardCreateView):
             logger.error(f"Error al intentar enviar el correo de confirmación de ticket: {str(e)}", exc_info=True)
         return response
 
+class TicketsParaFuncionarioUpdateView(StandardUpdateView):
+    template_name = 'tickets/form_para_funcionario.html'
+    model = Ticket
+    form_class = FormTicketParaFuncionario
+    success_url = reverse_lazy('soporte:ticket_list')
+    title = 'Editar Ticket'
+    module_name = MODULE_NAME
+
 
 class TicketsUpdateView(StandardUpdateView):
     template_name = 'tickets/form.html'
