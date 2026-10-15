@@ -1,7 +1,20 @@
 {% extends 'base.html' %}
-{% load query_tags %}
+{% block title %}{{ view_title|default:"Tickets Cerrados" }}{% endblock %}
 {% block sidebar %}
     {% include 'tickets/sidebar.html' %}
+{% endblock %}
+{% block styles %}
+    <style>
+        /* Comportamiento normal: tabla desplazable en móviles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* Cuando ColumnControl abre un menú, permitir que sobresalga */
+        .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
+            overflow: visible !important;
+        }
+    </style>
 {% endblock %}
 
 {% block buttons %}
@@ -13,115 +26,306 @@
     </a>
 {% endblock %}
 
-{% block title %}Gestión de Tickets{% endblock %}
 {% block content %}
-    <div class="row mx-2">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-12">
-                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
-
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-search" aria-hidden="true"></i>
-                                    </span>
-                                    {{ filter_form.numero_ticket }}
-                                    {{ filter_form.titulo }}
-                                    {{ filter_form.area_soporte }}
-                                    {{ filter_form.estado }}
-
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-funnel-fill me-1"></i>
-                                        Filtrar
-                                    </button>
-                                    <a href="{% url 'soporte:ticket_list' %}" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>
-                                        Limpiar
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    <div class="card shadow-sm mx-2">
+        <!-- Tabla -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>N.º Ticket</th>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Funcionario</th>
+                        <th>Área</th>
+                        <th>Asignado a</th>
+                        <th>F.Creación</th>
+                        <th>F.Cierre</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-body-tertiary py-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="spinner-grow spinner-grow-sm text-success"
+                          role="status"
+                          aria-hidden="true"></span>
+                    <small class="text-body-secondary">
+                        Actualización automática en
+                    </small>
+                    <span class="badge bg-primary font-monospace"
+                          id="countdown">
+                        3:00
+                    </span>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0" role="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">N° Ticket</th>
-                                <th scope="col">Titulo</th>
-                                <th scope="col">Estado</th>
-                                <th scope="col">Funcionario</th>
-                                <th scope="col">Área</th>
-                                <th scope="col">Asignado a</th>
-                                <th scope="col">Fecha Creación</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for ticket in page_obj %}
-                                <tr>
-                                    <td>{{ ticket.numero_ticket }}</td>
-                                    <td>{{ ticket.titulo }}</td>
-                                    <td><span class="badge bg-danger">{{ ticket.estado|default:'-' }}</span></td>
-                                    <td>{{ ticket.funcionario|default:'-' }}</td>
-                                    <td>{{ ticket.area_soporte.nombre|default:'-' }}</td>
-                                    <td>{{ ticket.asignado_a|default:'-' }}</td>
-                                    <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center text-body-secondary py-4">
-                                        No se encontraron funcionarios para la búsqueda.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer clearfix">
-                    <div class="float-start pt-1 fs-7 text-body-secondary">
-                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
-                        funcionarios
-                    </div>
-                    {% if is_paginated %}
-                        <ul class="pagination pagination-sm m-0 float-end">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?{% query_transform page=page_obj.previous_page_number %}"
-                                       aria-label="Anterior">«</a>
-                                </li>
-                            {% endif %}
 
-                            {% for i in paginator.page_range %}
-                                {% if page_obj.number == i %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ i }}</span>
-                                    </li>
-                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?{% query_transform page=i %}">
-                                            {{ i }}
-                                        </a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?{% query_transform page=page_obj.next_page_number %}"
-                                       aria-label="Siguiente">»</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    {% endif %}
+                <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-clock-history text-secondary"></i>
+                    <small class="text-body-secondary"
+                           id="last-update">
+                        Esperando actualización...
+                    </small>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            const table = initDataTable({
+                selector: '.table-datatable',
+                ajaxUrl: "{{ ajax_url|default:request.path|escapejs }}",
+
+                columns: [
+                    {
+                        data: 'numero_ticket',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'titulo',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'estado',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            const estados = {
+                                'ABIERTO': {
+                                    texto: 'Abierto',
+                                    clase: 'bg-primary'
+                                },
+                                'EN PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'EN_PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'ESPERA': {
+                                    texto: 'En Espera',
+                                    clase: 'bg-info text-dark'
+                                },
+                                'CERRADO': {
+                                    texto: 'Cerrado',
+                                    clase: 'bg-danger'
+                                },
+                                'RECHAZADO': {
+                                    texto: 'Rechazado',
+                                    clase: 'bg-danger'
+                                },
+                                'CANCELADO': {
+                                    texto: 'Cancelado',
+                                    clase: 'bg-secondary'
+                                }
+                            };
+
+                            const estado = estados[data];
+
+                            if (type === 'display') {
+                                return `<span class="badge ${estado?.clase ?? 'bg-secondary'}">
+                                    ${estado?.texto ?? data ?? 'Sin estado'}
+                                </span>`;
+                            }
+
+                            if (type === 'filter') {
+                                return estado?.texto ?? data ?? '';
+                            }
+
+                            return data ?? '';
+                        }
+                    },
+                    {
+                        data: 'nombres',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'area_soporte',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'asignado_a',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            const fecha = new Date(data);
+
+                            if (isNaN(fecha.getTime())) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const horas = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+                            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+                        }
+                    },
+                    {
+                        data: 'fecha_cierre',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            const fecha = new Date(data);
+
+                            if (isNaN(fecha.getTime())) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const horas = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+                            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        columnControl: [],
+                        render: function (data, type, row) {
+                            if (type !== 'display') {
+                                return '';
+                            }
+
+                            const historialUrl = "{% url 'soporte:ticket_historial' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            const detalleUrl = "{% url 'soporte:ticket_detail' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            const acciones = `
+                                <span data-bs-toggle="tooltip" title="Historial">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-info"
+                                            hx-get="${historialUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span class="d-none">Historial</span>
+                                    </button>
+                                </span>
+
+                                <span data-bs-toggle="tooltip" title="Ver Ticket">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            hx-get="${detalleUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-eye"></i>
+                                        <span class="d-none">Ver</span>
+                                    </button>
+                                </span>
+                            `;
+
+                            return `<div class="d-flex gap-1 align-items-center">${acciones}</div>`;
+                        }
+                    }
+                ],
+
+                order: [[0, 'desc']],
+
+                extraConfig: {
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100]
+                }
+            });
+
+            function inicializarAcciones() {
+                const tbody = document.querySelector('.table-datatable tbody');
+
+                if (!tbody) {
+                    return;
+                }
+
+                // Registrar los atributos HTMX de los botones dinámicos
+                if (window.htmx) {
+                    htmx.process(tbody);
+                }
+
+                // Inicializar tooltips de Bootstrap
+                tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element => {
+                    bootstrap.Tooltip.getOrCreateInstance(element);
+                });
+            }
+
+            // Actualización automática cada 3 minutos
+            let seconds = 180;
+
+            $('#countdown').text(seconds);
+
+            setInterval(function () {
+                seconds--;
+
+                if (seconds <= 0) {
+                    seconds = 180;
+
+                    table.ajax.reload(function () {
+                        $('#last-update').text(
+                            'Actualizado: ' +
+                            new Date().toLocaleTimeString('es-CL')
+                        );
+                    }, false);
+                }
+
+                $('#countdown').text(seconds);
+            }, 1000);
+
+            // Después de cada actualización, paginación u ordenamiento
+            $('.table-datatable').on('draw.dt', inicializarAcciones);
+
+            // Procesar también el contenido inicial
+            inicializarAcciones();
+        });
+    </script>
 {% endblock %}

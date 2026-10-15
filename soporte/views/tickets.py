@@ -14,8 +14,7 @@ from django.views.generic import TemplateView, DetailView, ListView
 
 from core.models.configuracion_correo import ConfiguracionCorreo
 from core.services.email_service import EmailService
-from core.standard.views import StandardListView, StandardCreateView, StandardUpdateView, StandardDetailView
-from soporte.filters.tickets import FiltroTicket
+from core.standard.views import StandardCreateView, StandardUpdateView, StandardDetailView
 from soporte.forms.forms_tickets import FormTicket, FormTicketEditor, FormTicketParaFuncionario
 from soporte.models import Ticket, AreaSoporte, PerfilSoporte, TipoSoporte
 
@@ -90,8 +89,10 @@ def enviar_correo_ticket_creado(ticket, usuario=None, correo_destinatario=None):
         print(asunto, departamento)
 
         nombre_destinatario = None
-        if ticket.nombres or ticket.apellidos:
-            nombre_destinatario = f"{ticket.nombres or ''} {ticket.apellidos or ''}".strip()
+        nombres = getattr(ticket, 'nombres', None)
+        apellidos = getattr(ticket, 'apellidos', None)
+        if nombres or apellidos:
+            nombre_destinatario = f"{nombres or ''} {apellidos or ''}".strip()
         elif usuario:
             nombre_destinatario = usuario.get_full_name() if hasattr(usuario,
                                                                      'get_full_name') and usuario.get_full_name() else getattr(
@@ -119,71 +120,165 @@ def enviar_correo_ticket_creado(ticket, usuario=None, correo_destinatario=None):
         return False
 
 
-class TicketListView(StandardListView):
+def serialize_ticket(ticket):
+    """
+    Serializa una instancia de Ticket a un diccionario JSON simple para DataTables.
+    """
+    solicitante_nombre = None
+    if ticket.nombres:
+        solicitante_nombre = ticket.nombres
+    elif ticket.funcionario:
+        full_name = ticket.funcionario.get_full_name()
+        solicitante_nombre = full_name if full_name else ticket.funcionario.username
+
+    return {
+        "id": ticket.pk,
+        "numero_ticket": ticket.numero_ticket or f"TCK-{ticket.pk}",
+        "titulo": Truncator(ticket.titulo).chars(30) if ticket.titulo else "",
+        "titulo_completo": ticket.titulo or "",
+        "nombres": solicitante_nombre or "",
+        "funcionario": solicitante_nombre or "",
+        "estado": ticket.estado,
+        "estado_display": ticket.get_estado_display() if hasattr(ticket, 'get_estado_display') else ticket.estado,
+        "area_soporte": str(ticket.area_soporte.nombre) if ticket.area_soporte else None,
+        "area_soporte_id": ticket.area_soporte_id,
+        "tipo_soporte": str(ticket.tipo_soporte.nombre) if ticket.tipo_soporte else None,
+        "tipo_soporte_id": ticket.tipo_soporte_id,
+        "asignado_a": str(ticket.asignado_a) if ticket.asignado_a else None,
+        "asignado_a_id": ticket.asignado_a_id,
+        "fecha_cierre": ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None,
+        "created_at": ticket.created_at.isoformat() if ticket.created_at else None,
+        "duracion_cierre": ticket.duracion_cierre or None,
+        "is_active": ticket.is_active,
+    }
+
+
+class DataTableListViewMixin:
+    """
+    Mixin reutilizable para vistas de listado con DataTables y server-side processing.
+    """
+    columns = []
+    searchable_columns = []
+    serializer_function = staticmethod(serialize_ticket)
+
+    def get(self, request, *args, **kwargs):
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.GET.get("format") == "json"
+            or "draw" in request.GET
+        ):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+
+        draw = int(request.GET.get("draw", 1))
+        start = max(int(request.GET.get("start", 0)), 0)
+        length = int(request.GET.get("length", 10))
+
+        records_total = queryset.count()
+
+        # Búsqueda global
+        search_value = request.GET.get("search[value]", "").strip()
+        if search_value and self.searchable_columns:
+            search_query = Q()
+            for column in self.searchable_columns:
+                search_query |= Q(**{f"{column}__icontains": search_value})
+            queryset = queryset.filter(search_query)
+
+        # Búsqueda por columna individual si aplica
+        for i, col_name in enumerate(self.columns):
+            col_search = request.GET.get(f"columns[{i}][search][value]", "").strip()
+            if col_search and col_name:
+                queryset = queryset.filter(**{f"{col_name}__icontains": col_search})
+
+        records_filtered = queryset.count()
+
+        # Ordenamiento
+        order_column = request.GET.get("order[0][column]")
+        order_dir = request.GET.get("order[0][dir]", "asc")
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                if 0 <= col_idx < len(self.columns):
+                    field = self.columns[col_idx]
+                    if field:
+                        if order_dir == "desc":
+                            field = f"-{field}"
+                        queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                pass
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serializer_function(item)
+            for item in queryset
+        ]
+
+        return JsonResponse({
+            "draw": draw,
+            "recordsTotal": records_total,
+            "recordsFiltered": records_filtered,
+            "data": data,
+        })
+
+
+class TicketListView(LoginRequiredMixin, DataTableListViewMixin, ListView):
     model = Ticket
-    filter_form_class = FiltroTicket
     template_name = "tickets/list.html"
+    context_object_name = "tickets"
 
-    title = "Tickets"
+    view_title = "Mis Tickets"
+    title = "Mis Tickets"
+    view_type = "CBV"
 
-    list_url_name = "soporte:ticket_list"
-    create_url_name = "soporte:ticket_create"
-    update_url_name = "soporte:ticket_update"
-    delete_url_name = "soporte:ticket_delete"
+    columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__username",
+        "created_at",
+        "fecha_cierre",
+    ]
+
+    searchable_columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "funcionario__first_name",
+        "funcionario__last_name",
+        "funcionario__username",
+        "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__first_name",
+        "asignado_a__usuario__last_name",
+        "asignado_a__usuario__username",
+    ]
 
     def get_queryset(self):
-        # Sobrescribimos para mostrar tanto activos como inactivos
-        queryset = Ticket.objects.all().select_related(
+        queryset = self.model.objects.filter(is_active=True).select_related(
             "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
         )
-
-        # Aplicamos filtro de establecimiento similar a StandardBaseView
         if (
-                hasattr(self.request.user, "establecimiento")
-                and self.request.user.establecimiento
-                and not self.request.user.is_superuser
+            hasattr(self.request.user, "establecimiento")
+            and self.request.user.establecimiento
+            and not self.request.user.is_superuser
         ):
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
-        elif hasattr(self.request.user, "establecimiento") and self.request.user.establecimiento:
-            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
-
-        queryset = queryset.filter(is_active=True)
-
-        self.filter_form = self.get_filter_form()
-
-        if self.filter_form and self.filter_form.is_valid():
-            data = self.filter_form.cleaned_data
-
-            if data.get("numero_ticket"):
-                queryset = queryset.filter(numero_ticket__icontains=data["numero_ticket"])
-
-            if data.get("titulo"):
-                queryset = queryset.filter(titulo__icontains=data["titulo"])
-
-            if data.get("area_soporte"):
-                queryset = queryset.filter(area_soporte=data["area_soporte"])
-
-            if data.get("estado"):
-                queryset = queryset.filter(estado=data["estado"])
-
         return queryset
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-
-    def get_filter_form_kwargs(self):
-        kwargs = {
-            'data': self.request.GET or None,
-        }
-
-        try:
-            self.filter_form_class(**kwargs, request=self.request)
-            kwargs['request'] = self.request
-        except TypeError:
-            pass
-        return kwargs
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["view_title"] = self.view_title
+        context["title"] = self.title
+        context["view_type"] = self.view_type
+        return context
 
 
 class TicketCreateView(StandardCreateView):
@@ -242,6 +337,16 @@ class TicketsParaFuncionarioUpdateView(StandardUpdateView):
     title = 'Editar Ticket'
     module_name = MODULE_NAME
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if (
+                not self.request.user.is_superuser
+                and hasattr(self.request.user, 'establecimiento')
+                and self.request.user.establecimiento
+        ):
+            queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
+        return queryset
+
 
 class TicketsUpdateView(StandardUpdateView):
     template_name = 'tickets/form.html'
@@ -262,22 +367,38 @@ class TicketsUpdateView(StandardUpdateView):
         return queryset
 
 
-class TicketEditorListView(StandardListView):
+class TicketEditorListView(LoginRequiredMixin, DataTableListViewMixin, ListView):
     model = Ticket
-    filter_form_class = FiltroTicket
     template_name = "tickets/list_editor.html"
+    context_object_name = "tickets"
 
-    title = "Tickets"
+    view_title = "Gestión de Tickets"
+    title = "Gestión de Tickets"
+    view_type = "CBV"
 
-    list_url_name = "soporte:ticket_list"
-    create_url_name = "soporte:ticket_create"
-    update_url_name = "soporte:ticket_editor_update"
-    delete_url_name = "soporte:ticket_update"
+    columns = [
+        "numero_ticket",
+        "titulo",
+        "estado",
+        "nombres",
+        "area_soporte__nombre",
+        "asignado_a__usuario__username",
+        "created_at",
+    ]
 
-    def get_template_names(self):
-        if self.request.headers.get('HX-Request'):
-            return ["tickets/_table_list_editor.html"]
-        return [self.template_name]
+    searchable_columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "funcionario__first_name",
+        "funcionario__last_name",
+        "funcionario__username",
+        "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__first_name",
+        "asignado_a__usuario__last_name",
+        "asignado_a__usuario__username",
+    ]
 
     def get_queryset(self):
         try:
@@ -289,7 +410,7 @@ class TicketEditorListView(StandardListView):
             ):
                 areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
 
-            queryset = super().get_queryset().select_related(
+            queryset = self.model.objects.select_related(
                 "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
             ).filter(
                 area_soporte__in=areas_usuario, is_active=True
@@ -303,27 +424,16 @@ class TicketEditorListView(StandardListView):
                 queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         except AttributeError:
             # Si el usuario no tiene perfil_soporte, no ve ningún ticket
-            queryset = super().get_queryset().none()
-
-        if self.filter_form and self.filter_form.is_valid():
-            data = self.filter_form.cleaned_data
-
-            if data.get("numero_ticket"):
-                queryset = queryset.filter(numero_ticket__icontains=data["numero_ticket"])
-
-            if data.get("titulo"):
-                queryset = queryset.filter(titulo__icontains=data["titulo"])
-
-            if data.get("area_soporte"):
-                queryset = queryset.filter(area_soporte=data["area_soporte"])
-
-            if data.get("estado"):
-                queryset = queryset.filter(estado=data["estado"])
+            queryset = self.model.objects.none()
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["view_title"] = self.view_title
+        context["title"] = self.title
+        context["view_type"] = self.view_type
+
         tipos_soporte = TipoSoporte.objects.filter(is_active=True)
         if (
                 not self.request.user.is_superuser
@@ -413,7 +523,7 @@ class TicketHistorialView(LoginRequiredMixin, DetailView):
                     })
 
                 if record.estado != 'ABIERTO':
-                    if record.estado == 'EN_PROCESO':
+                    if record.estado in ('EN_PROCESO', 'EN PROCESO'):
                         eventos.append({
                             'titulo': 'En proceso',
                             'fecha': record.history_date,
@@ -497,7 +607,7 @@ class TicketHistorialView(LoginRequiredMixin, DetailView):
                 # 3. Cambio de estado
                 if prev_record.estado != record.estado:
                     hubo_evento = True
-                    if record.estado == 'EN_PROCESO':
+                    if record.estado in ('EN_PROCESO', 'EN PROCESO'):
                         detalle = 'Atención retomada' if prev_record.estado == 'ESPERA' else 'Técnico comenzó la atención'
                         eventos.append({
                             'titulo': 'En proceso',
@@ -627,7 +737,7 @@ def ticket_tomar(request, pk):
     ticket = get_object_or_404(ticket_qs, pk=pk)
     if hasattr(request.user, 'perfil_soporte') and request.user.perfil_soporte:
         ticket.asignado_a = request.user.perfil_soporte
-        ticket.estado = 'EN_PROCESO'
+        ticket.estado = 'EN PROCESO'
         ticket.save()
         messages.success(request, 'Ticket asignado correctamente')
     else:
@@ -664,33 +774,41 @@ def ticket_cerrar(request, pk):
     return redirect('soporte:ticket_editor_list')
 
 
-class TicketEditorInactivosListView(StandardListView):
+class TicketEditorInactivosListView(LoginRequiredMixin, DataTableListViewMixin, ListView):
     model = Ticket
-    filter_form_class = FiltroTicket
     template_name = "tickets/list_inactivos_editor.html"
+    context_object_name = "tickets"
 
-    title = "Tickets"
+    view_title = "Tickets Cerrados"
+    title = "Tickets Cerrados"
+    view_type = "CBV"
 
-    list_url_name = "soporte:ticket_list"
-    create_url_name = "soporte:ticket_create"
-    update_url_name = "soporte:ticket_update"
-    delete_url_name = "soporte:ticket_update"
+    columns = [
+        "numero_ticket",
+        "titulo",
+        "estado",
+        "nombres",
+        "area_soporte__nombre",
+        "asignado_a__usuario__username",
+        "created_at",
+        "fecha_cierre",
+    ]
+
+    searchable_columns = [
+        "numero_ticket",
+        "titulo",
+        "nombres",
+        "funcionario__first_name",
+        "funcionario__last_name",
+        "funcionario__username",
+        "estado",
+        "area_soporte__nombre",
+        "asignado_a__usuario__first_name",
+        "asignado_a__usuario__last_name",
+        "asignado_a__usuario__username",
+    ]
 
     def get_queryset(self):
-        queryset = self.model.objects.all()
-
-        # Filtrar por establecimiento si no es superusuario
-        if (
-                hasattr(self.model, "establecimiento")
-                and not self.request.user.is_superuser
-        ):
-            queryset = queryset.filter(
-                establecimiento=self.request.user.establecimiento
-            )
-
-        # Mostrar únicamente los desactivados
-        queryset = queryset.filter(is_active=False)
-
         try:
             areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
             if (
@@ -699,7 +817,9 @@ class TicketEditorInactivosListView(StandardListView):
                     and self.request.user.establecimiento
             ):
                 areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
-            queryset = queryset.filter(
+
+            queryset = self.model.objects.filter(
+                is_active=False,
                 area_soporte__in=areas_usuario
             ).select_related(
                 "establecimiento",
@@ -708,30 +828,24 @@ class TicketEditorInactivosListView(StandardListView):
                 "asignado_a",
                 "asignado_a__usuario"
             )
+
+            if (
+                    hasattr(self.request.user, "establecimiento")
+                    and self.request.user.establecimiento
+                    and not self.request.user.is_superuser
+            ):
+                queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         except AttributeError:
-            return queryset.none()
-
-        self.filter_form = self.get_filter_form()
-
-        if self.filter_form.is_valid():
-            data = self.filter_form.cleaned_data
-
-            if data.get("numero_ticket"):
-                queryset = queryset.filter(
-                    numero_ticket__icontains=data["numero_ticket"]
-                )
-
-            if data.get("titulo"):
-                queryset = queryset.filter(
-                    titulo__icontains=data["titulo"]
-                )
-
-            if data.get("area_soporte"):
-                queryset = queryset.filter(
-                    area_soporte=data["area_soporte"]
-                )
+            queryset = self.model.objects.none()
 
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["view_title"] = self.view_title
+        context["title"] = self.title
+        context["view_type"] = self.view_type
+        return context
 
 
 class TicketsUpdateEditorView(StandardUpdateView):
@@ -856,148 +970,14 @@ class TicketDashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class SoporteListCBV(ListView):
-    model = Ticket
+class SoporteListCBV(TicketListView):
     template_name = "tickets/list_v2.html"
     context_object_name = "anexos"
 
     view_title = "Soporte V2"
+    title = "Soporte V2"
     view_type = "CBV"
-
-    columns = [
-        "numero_ticket",
-        "titulo",
-        "nombres",
-        "estado",
-        "area_soporte__nombre",
-        "asignado_a__usuario__username",
-        "fecha_cierre",
-        "created_at",
-    ]
-
-    searchable_columns = [
-        "numero_ticket",
-        "titulo",
-        "nombres",
-        "estado",
-        "area_soporte__nombre",
-        "asignado_a__usuario__first_name",
-        "asignado_a__usuario__last_name",
-        "asignado_a__usuario__username",
-    ]
-
-    def get_queryset(self):
-        try:
-            areas_usuario = self.request.user.perfil_soporte.area_soporte.all()
-            if (
-                    hasattr(self.request.user, "establecimiento")
-                    and self.request.user.establecimiento
-                    and not self.request.user.is_superuser
-            ):
-                areas_usuario = areas_usuario.filter(establecimiento=self.request.user.establecimiento)
-
-            queryset = super().get_queryset().select_related(
-                "establecimiento", "area_soporte", "funcionario", "asignado_a", "asignado_a__usuario"
-            ).filter(
-                area_soporte__in=areas_usuario, is_active=True
-            )
-
-            if (
-                    hasattr(self.request.user, "establecimiento")
-                    and self.request.user.establecimiento
-                    and not self.request.user.is_superuser
-            ):
-                queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
-        except AttributeError:
-            # Si el usuario no tiene perfil_soporte, no ve ningún ticket
-            queryset = super().get_queryset().none()
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["view_title"] = self.view_title
-        context["view_type"] = self.view_type
-        return context
-
-    def get(self, request, *args, **kwargs):
-        # Si DataTables solicita datos mediante AJAX,
-        # devolvemos JSON en lugar de renderizar la plantilla.
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return self.datatables_response(request)
-
-        return super().get(request, *args, **kwargs)
-
-    def datatables_response(self, request):
-        queryset = self.get_queryset()
-
-        draw = int(request.GET.get("draw", 1))
-        start = max(int(request.GET.get("start", 0)), 0)
-        length = int(request.GET.get("length", 10))
-
-        # Total de registros sin filtros.
-        records_total = queryset.count()
-
-        # Búsqueda global.
-        search_value = request.GET.get("search[value]", "").strip()
-
-        if search_value:
-            search_query = Q()
-
-            for column in self.searchable_columns:
-                search_query |= Q(
-                    **{f"{column}__icontains": search_value}
-                )
-
-            queryset = queryset.filter(search_query)
-
-        # Total después de aplicar los filtros.
-        records_filtered = queryset.count()
-
-        # Ordenamiento solicitado por DataTables.
-        order_column = request.GET.get("order[0][column]")
-        order_dir = request.GET.get("order[0][dir]", "asc")
-
-        if order_column is not None:
-            try:
-                column_index = int(order_column)
-
-                if 0 <= column_index < len(self.columns):
-                    field = self.columns[column_index]
-
-                    if order_dir == "desc":
-                        field = f"-{field}"
-
-                    queryset = queryset.order_by(field)
-            except (ValueError, TypeError):
-                pass
-
-        # Paginación.
-        if length != -1:
-            queryset = queryset[start:start + min(length, 500)]
-
-        data = [
-            self.serialize_ticket(ticket)
-            for ticket in queryset
-        ]
-
-        return JsonResponse({
-            "draw": draw,
-            "recordsTotal": records_total,
-            "recordsFiltered": records_filtered,
-            "data": data,
-        })
 
     @staticmethod
     def serialize_ticket(ticket):
-        return {
-            "id": ticket.pk,
-            "numero_ticket": ticket.numero_ticket,
-            "titulo": Truncator(ticket.titulo).chars(30),
-            "nombres": ticket.nombres,
-            "estado": ticket.estado,
-            "area_soporte": str(ticket.area_soporte.nombre) if ticket.area_soporte else None,
-            "asignado_a": str(ticket.asignado_a) if ticket.asignado_a else None,
-            "fecha_cierre": ticket.fecha_cierre.isoformat() if ticket.fecha_cierre else None,
-            "created_at": ticket.created_at.isoformat() if ticket.created_at else None,
-        }
+        return serialize_ticket(ticket)

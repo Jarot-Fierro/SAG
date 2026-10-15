@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}{{ view_title }}{% endblock %}
+{% block title %}{{ view_title|default:"Soporte V2" }}{% endblock %}
 {% block sidebar %}
     {% include 'tickets/sidebar.html' %}
 {% endblock %}
 {% block styles %}
     <style>
-
         /* Comportamiento normal: tabla desplazable en móviles */
         .table-responsive {
             overflow-x: auto;
@@ -15,24 +14,27 @@
         .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
             overflow: visible !important;
         }
-
     </style>
 {% endblock %}
 
 {% block buttons %}
+    <a href="{% url 'soporte:ticket_create' %}"
+       class="btn btn-sm btn-primary mx-1"
+       title="Nuevo Registro">
+        <i class="bi bi-plus-circle me-1"></i>
+        Soporte para mi
+    </a>
 
-    {#    <a href="{% url 'agenda:list_anexos_edit' %}"#}
-    {#       class="btn btn-sm btn-primary"#}
-    {#       title="Nuevo Registro">#}
-    {#        <i class="bi bi-person-plus-fill me-1"></i>#}
-    {#        Mis Anexos#}
-    {#    </a>#}
+    <a href="{% url 'soporte:ticket_para_funcionario_create' %}"
+       class="btn btn-sm btn-success mx-1"
+       title="Nuevo Ticket Para Funcionario">
+        <i class="bi bi-person-plus me-1"></i>
+        Soporte a Funcionario
+    </a>
 {% endblock %}
-
 
 {% block content %}
     <div class="card shadow-sm mx-2">
-
         <!-- Tabla -->
         <div class="card-body">
             <div class="table-responsive">
@@ -41,7 +43,7 @@
                     <tr>
                         <th>N.º Ticket</th>
                         <th>Título</th>
-                        <th>Nombres</th>
+                        <th>Solicitante</th>
                         <th>Estado</th>
                         <th>Área de Soporte</th>
                         <th>Asignado a</th>
@@ -55,33 +57,27 @@
             </div>
         </div>
         <div class="card-footer bg-body-tertiary py-2">
-            <div class="d-flex flex-wrap justify-content-between
-                            align-items-center gap-2">
-
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="d-flex align-items-center gap-2">
-                        <span class="spinner-grow spinner-grow-sm text-success"
-                              role="status"
-                              aria-hidden="true"></span>
-
+                    <span class="spinner-grow spinner-grow-sm text-success"
+                          role="status"
+                          aria-hidden="true"></span>
                     <small class="text-body-secondary">
                         Actualización automática en
                     </small>
-
                     <span class="badge bg-primary font-monospace"
                           id="countdown">
-                            3:00
-                        </span>
+                        3:00
+                    </span>
                 </div>
 
                 <div class="d-flex align-items-center gap-1">
                     <i class="bi bi-clock-history text-secondary"></i>
-
                     <small class="text-body-secondary"
                            id="last-update">
                         Esperando actualización...
                     </small>
                 </div>
-
             </div>
         </div>
     </div>
@@ -94,7 +90,6 @@
                 selector: '.table-datatable',
                 ajaxUrl: "{{ ajax_url|default:request.path|escapejs }}",
 
-
                 columns: [
                     {
                         data: 'numero_ticket',
@@ -106,9 +101,14 @@
                     },
                     {
                         data: 'nombres',
-                        columnControl: ['order']
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
                     },
-
                     {
                         data: 'estado',
                         columnControl: ['order'],
@@ -119,6 +119,10 @@
                                     clase: 'bg-primary'
                                 },
                                 'EN PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'EN_PROCESO': {
                                     texto: 'En Proceso',
                                     clase: 'bg-warning text-dark'
                                 },
@@ -155,31 +159,40 @@
                             return data ?? '';
                         }
                     },
-
                     {
                         data: 'area_soporte',
-                        columnControl: ['order']
-                    },
-                    {
-                        data: 'asignado_a',
-                        columnControl: ['order']
-                    },
-
-                    {
-                        data: 'fecha_cierre',
                         columnControl: ['order'],
                         render: function (data, type, row) {
                             if (!data) {
-                                return type === 'display' ? 'Sin Fecha' : '';
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'asignado_a',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
                             }
 
                             const fecha = new Date(data);
 
                             if (isNaN(fecha.getTime())) {
-                                return type === 'display' ? 'Sin Fecha' : '';
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
                             }
 
-                            // Valor original para ordenar y filtrar correctamente
                             if (type !== 'display') {
                                 return data;
                             }
@@ -194,17 +207,17 @@
                         }
                     },
                     {
-                        data: 'created_at',
+                        data: 'fecha_cierre',
                         columnControl: ['order'],
                         render: function (data, type, row) {
                             if (!data) {
-                                return type === 'display' ? 'Sin Fecha' : '';
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
                             }
 
                             const fecha = new Date(data);
 
                             if (isNaN(fecha.getTime())) {
-                                return type === 'display' ? 'Sin Fecha' : '';
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
                             }
 
                             if (type !== 'display') {
@@ -267,7 +280,7 @@
                                     <span class="badge bg-danger">Cerrado</span>
                                 `;
                             } else {
-                                const editarUrl = "{% url 'soporte:ticket_para_funcionario_update' 0 %}"
+                                const editarUrl = "{% url 'soporte:ticket_update' 0 %}"
                                     .replace(/0\/?$/, `${row.id}`);
 
                                 acciones += `
@@ -282,7 +295,7 @@
 
                                 if (row.is_active) {
                                     const eliminarUrl = "{% url 'soporte:ticket_delete' 0 %}"
-                                        .replace(/0\/?$/, `${row.id}`);
+                                        .replace(/0\/?$/, `${row.id}/`);
 
                                     acciones += `
                                         <a href="${eliminarUrl}"
@@ -300,12 +313,10 @@
                             return `<div class="d-flex gap-1 align-items-center">${acciones}</div>`;
                         }
                     }
-
                 ],
 
                 order: [[0, 'desc']],
 
-                // Opciones específicas de esta tabla
                 extraConfig: {
                     pageLength: 10,
                     lengthMenu: [10, 25, 50, 100]

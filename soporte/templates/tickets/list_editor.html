@@ -1,87 +1,81 @@
 {% extends 'base.html' %}
-{% load query_tags %}
+{% block title %}{{ view_title|default:"Gestión de Tickets" }}{% endblock %}
 {% block sidebar %}
     {% include 'tickets/sidebar.html' %}
 {% endblock %}
-
 {% block styles %}
     <style>
-        .htmx-indicator {
-            display: none;
-            opacity: 0;
-            transition: opacity 200ms ease-in;
+        /* Comportamiento normal: tabla desplazable en móviles */
+        .table-responsive {
+            overflow-x: auto;
         }
 
-        .htmx-request .htmx-indicator {
-            display: inline-block;
-            opacity: 1;
-        }
-
-        .htmx-request.htmx-indicator {
-            display: inline-block;
-            opacity: 1;
+        /* Cuando ColumnControl abre un menú, permitir que sobresalga */
+        .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
+            overflow: visible !important;
         }
     </style>
 {% endblock %}
 
 {% block buttons %}
     <a href="{% url 'soporte:ticket_create' %}"
-       class="btn btn-sm btn-primary"
+       class="btn btn-sm btn-primary mx-1"
        title="Nuevo Registro">
         <i class="bi bi-plus-circle me-1"></i>
         Nuevo Registro
     </a>
 
     <a href="{% url 'soporte:ticket_inactivos_list' %}"
-       class="btn btn-sm btn-danger"
+       class="btn btn-sm btn-danger mx-1"
        title="Tickets Cerrados">
         <i class="bi bi-check2-circle me-1"></i>
         Tickets Cerrados
     </a>
 {% endblock %}
 
-{% block title %}Gestión de Tickets{% endblock %}
 {% block content %}
-    <div class="row mx-2">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-12">
-                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
-
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-search" aria-hidden="true"></i>
-                                    </span>
-                                    {{ filter_form.numero_ticket }}
-                                    {{ filter_form.titulo }}
-                                    {{ filter_form.area_soporte }}
-                                    {{ filter_form.estado }}
-
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-funnel-fill me-1"></i>
-                                        Filtrar
-                                    </button>
-                                    <a href="{% url 'soporte:ticket_list' %}" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>
-                                        Limpiar
-                                    </a>
-                                </div>
-                                <div id="table-spinner"
-                                     class="spinner-border spinner-border-sm text-primary htmx-indicator" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    <div class="card shadow-sm mx-2">
+        <!-- Tabla -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>N.º Ticket</th>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Funcionario</th>
+                        <th>Área</th>
+                        <th>Asignado a</th>
+                        <th>F.Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-body-tertiary py-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="spinner-grow spinner-grow-sm text-success"
+                          role="status"
+                          aria-hidden="true"></span>
+                    <small class="text-body-secondary">
+                        Actualización automática en
+                    </small>
+                    <span class="badge bg-primary font-monospace"
+                          id="countdown">
+                        3:00
+                    </span>
                 </div>
-                <div id="table-container"
-                     hx-get=""
-                     hx-trigger="every 60s"
-                     hx-swap="innerHTML"
-                     hx-indicator="#table-spinner">
-                    {% include 'tickets/_table_list_editor.html' %}
+
+                <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-clock-history text-secondary"></i>
+                    <small class="text-body-secondary"
+                           id="last-update">
+                        Esperando actualización...
+                    </small>
                 </div>
             </div>
         </div>
@@ -130,55 +124,327 @@
         </div>
     </div>
 {% endblock %}
+
 {% block scripts %}
     <script>
-        document.querySelectorAll(".estado-ticket").forEach(select => {
+        $(function () {
+            const csrfToken = "{{ csrf_token }}";
 
-            const valorAnterior = () => select.dataset.previous;
+            const table = initDataTable({
+                selector: '.table-datatable',
+                ajaxUrl: "{{ ajax_url|default:request.path|escapejs }}",
 
-            select.dataset.previous = select.value;
+                columns: [
+                    {
+                        data: 'numero_ticket',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'titulo',
+                        columnControl: ['order']
+                    },
+                    {
+                        data: 'estado',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            const estados = {
+                                'ABIERTO': {
+                                    texto: 'Abierto',
+                                    clase: 'bg-primary'
+                                },
+                                'EN PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'EN_PROCESO': {
+                                    texto: 'En Proceso',
+                                    clase: 'bg-warning text-dark'
+                                },
+                                'ESPERA': {
+                                    texto: 'En Espera',
+                                    clase: 'bg-info text-dark'
+                                },
+                                'CERRADO': {
+                                    texto: 'Cerrado',
+                                    clase: 'bg-danger'
+                                },
+                                'RECHAZADO': {
+                                    texto: 'Rechazado',
+                                    clase: 'bg-danger'
+                                },
+                                'CANCELADO': {
+                                    texto: 'Cancelado',
+                                    clase: 'bg-secondary'
+                                }
+                            };
 
-            select.addEventListener("focus", function () {
-                this.dataset.previous = this.value;
+                            const estado = estados[data];
+
+                            if (type === 'display') {
+                                return `<span class="badge ${estado?.clase ?? 'bg-secondary'}">
+                                    ${estado?.texto ?? data ?? 'Sin estado'}
+                                </span>`;
+                            }
+
+                            if (type === 'filter') {
+                                return estado?.texto ?? data ?? '';
+                            }
+
+                            return data ?? '';
+                        }
+                    },
+                    {
+                        data: 'nombres',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'area_soporte',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'asignado_a',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin asignar</span>' : '';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        columnControl: ['order'],
+                        render: function (data, type, row) {
+                            if (!data) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            const fecha = new Date(data);
+
+                            if (isNaN(fecha.getTime())) {
+                                return type === 'display' ? '<span class="text-muted">Sin Fecha</span>' : '';
+                            }
+
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const horas = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+                            return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        columnControl: [],
+                        render: function (data, type, row) {
+                            if (type !== 'display') {
+                                return '';
+                            }
+
+                            const historialUrl = "{% url 'soporte:ticket_historial' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            const detalleUrl = "{% url 'soporte:ticket_detail' 0 %}"
+                                .replace('/0/', `/${row.id}/`);
+
+                            let acciones = `
+                                <span data-bs-toggle="tooltip" title="Historial">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-info"
+                                            hx-get="${historialUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span class="d-none">Historial</span>
+                                    </button>
+                                </span>
+
+                                <span data-bs-toggle="tooltip" title="Ver Ticket">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            hx-get="${detalleUrl}"
+                                            hx-target="#genericModalContent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#genericModal">
+                                        <i class="bi bi-eye"></i>
+                                        <span class="d-none">Ver</span>
+                                    </button>
+                                </span>
+                            `;
+
+                            // Tomar ticket si no está asignado
+                            if (!row.asignado_a) {
+                                const tomarUrl = "{% url 'soporte:ticket_tomar' 0 %}"
+                                    .replace('/0/', `/${row.id}/`).replace(/0\/?$/, `${row.id}/`);
+
+                                acciones += `
+                                    <form method="post" action="${tomarUrl}" class="d-inline">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-success"
+                                                title="Tomar Ticket"
+                                                data-bs-toggle="tooltip">
+                                            <i class="bi bi-person-check"></i>
+                                            <span class="d-none">Tomar</span>
+                                        </button>
+                                    </form>
+                                `;
+                            }
+
+                            // Cerrar ticket
+                            const cerrarUrl = "{% url 'soporte:ticket_cerrar' 0 %}"
+                                .replace('/0/', `/${row.id}/`).replace(/0\/?$/, `${row.id}/`);
+                            const tipoSoporteId = row.tipo_soporte_id || '';
+
+                            acciones += `
+                                <span data-bs-toggle="tooltip" title="Cerrar Ticket">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-success btn-cerrar-modal"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#cerrarTicketModal"
+                                            data-url="${cerrarUrl}"
+                                            data-tipo-soporte="${tipoSoporteId}">
+                                        <i class="bi bi-check2-circle"></i>
+                                        <span class="d-none">Cerrar</span>
+                                    </button>
+                                </span>
+                            `;
+
+                            // Editar
+                            const editarUrl = "{% url 'soporte:ticket_editor_update' 0 %}"
+                                .replace(/0\/?$/, `${row.id}`);
+
+                            acciones += `
+                                <a href="${editarUrl}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="Editar"
+                                   data-bs-toggle="tooltip">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span class="d-none">Editar</span>
+                                </a>
+                            `;
+
+                            // Desactivar
+                            if (row.is_active) {
+                                const eliminarUrl = "{% url 'soporte:ticket_delete' 0 %}"
+                                    .replace(/0\/?$/, `${row.id}/`);
+
+                                acciones += `
+                                    <a href="${eliminarUrl}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       title="Desactivar"
+                                       data-bs-toggle="tooltip"
+                                       onclick="return confirm('¿Estás seguro de desactivar este ticket?');">
+                                        <i class="bi bi-trash"></i>
+                                        <span class="d-none">Desactivar</span>
+                                    </a>
+                                `;
+                            }
+
+                            return `<div class="d-flex gap-1 align-items-center">${acciones}</div>`;
+                        }
+                    }
+                ],
+
+                order: [[0, 'desc']],
+
+                extraConfig: {
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100]
+                }
             });
 
-            select.addEventListener("change", function () {
+            function inicializarAcciones() {
+                const tbody = document.querySelector('.table-datatable tbody');
 
-                const confirmado = confirm(
-                    "¿Está seguro de cambiar el estado del ticket?"
-                );
-
-                if (!confirmado) {
-                    this.value = this.dataset.previous;
+                if (!tbody) {
                     return;
                 }
 
-                // Aquí posteriormente harás el fetch o el HTMX
-                console.log("Actualizar ticket:", this.dataset.ticket, this.value);
+                // Registrar los atributos HTMX de los botones dinámicos
+                if (window.htmx) {
+                    htmx.process(tbody);
+                }
 
-            });
+                // Inicializar tooltips de Bootstrap
+                tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element => {
+                    bootstrap.Tooltip.getOrCreateInstance(element);
+                });
+            }
 
-        });
-
-        // Manejo del modal de cierre de ticket
-        document.addEventListener('DOMContentLoaded', function () {
+            // Manejo del modal de cierre de ticket
             const cerrarTicketModal = document.getElementById('cerrarTicketModal');
             if (cerrarTicketModal) {
                 cerrarTicketModal.addEventListener('show.bs.modal', function (event) {
                     const button = event.relatedTarget;
-                    const url = button.getAttribute('data-url');
-                    const tipoSoporte = button.getAttribute('data-tipo-soporte') || '';
-                    const form = document.getElementById('cerrarTicketForm');
-                    form.setAttribute('action', url);
+                    if (button) {
+                        const url = button.getAttribute('data-url');
+                        const tipoSoporte = button.getAttribute('data-tipo-soporte') || '';
+                        const form = document.getElementById('cerrarTicketForm');
+                        if (form && url) {
+                            form.setAttribute('action', url);
+                        }
 
-                    // Limpiar el campo de solución al abrir y setear tipo de soporte
-                    document.getElementById('solucion').value = '';
-                    const selectTipoSoporte = document.getElementById('tipo_soporte');
-                    if (selectTipoSoporte) {
-                        selectTipoSoporte.value = tipoSoporte;
+                        // Limpiar el campo de solución al abrir y setear tipo de soporte
+                        const solucionInput = document.getElementById('solucion');
+                        if (solucionInput) {
+                            solucionInput.value = '';
+                        }
+                        const selectTipoSoporte = document.getElementById('tipo_soporte');
+                        if (selectTipoSoporte) {
+                            selectTipoSoporte.value = tipoSoporte;
+                        }
                     }
                 });
             }
+
+            // Actualización automática cada 3 minutos
+            let seconds = 180;
+
+            $('#countdown').text(seconds);
+
+            setInterval(function () {
+                seconds--;
+
+                if (seconds <= 0) {
+                    seconds = 180;
+
+                    table.ajax.reload(function () {
+                        $('#last-update').text(
+                            'Actualizado: ' +
+                            new Date().toLocaleTimeString('es-CL')
+                        );
+                    }, false);
+                }
+
+                $('#countdown').text(seconds);
+            }, 1000);
+
+            // Después de cada actualización, paginación u ordenamiento
+            $('.table-datatable').on('draw.dt', inicializarAcciones);
+
+            // Procesar también el contenido inicial
+            inicializarAcciones();
         });
     </script>
 {% endblock %}

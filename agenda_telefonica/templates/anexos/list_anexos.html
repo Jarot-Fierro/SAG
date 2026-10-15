@@ -1,11 +1,22 @@
 {% extends 'base.html' %}
-{% load query_tags %}
+
 {% block sidebar %}
     {% include 'anexos/components/menu_sidebar.html' %}
 {% endblock %}
 
-{% block buttons %}
+{% block styles %}
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+        }
 
+        .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
+            overflow: visible !important;
+        }
+    </style>
+{% endblock %}
+
+{% block buttons %}
     <a href="{% url 'agenda:list_anexos_edit' %}"
        class="btn btn-sm btn-primary"
        title="Nuevo Registro">
@@ -15,231 +26,158 @@
 {% endblock %}
 
 {% block title %}Lista de Anexos {{ establecimiento_select.nombre }}{% endblock %}
+
 {% block content %}
     <div class="row mx-2">
         <div class="col-12">
-            <!--begin::Card-->
             <div class="card mb-4">
-                <!--begin::Card Header-->
                 <div class="card-header">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-12">
-                            <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
-
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-search" aria-hidden="true"></i>
-                                    </span>
-                                    {{ filter_form.anexo }}
-                                    {{ filter_form.anexo_publico }}
-                                    {{ filter_form.numero_telefonico }}
-                                    {{ filter_form.encargado_de }}
-
-                                    {{ filter_form.nombre }}
-                                    {{ filter_form.email }}
-                                    {{ filter_form.cargo }}
-
-                                    {{ filter_form.rol_organizacional }}
-                                    {{ filter_form.unidad_organizacional }}
-
-                                    {{ filter_form.subdepartamento }}
-
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-funnel-fill me-1"></i>
-                                        Filtrar
-                                    </button>
-                                    <a href="{% url 'agenda:list_anexos' %}" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>
-                                        Limpiar
-                                    </a>
-                                </div>
-                            </form>
+                    <form method="get" class="d-flex flex-wrap justify-content-md-end gap-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                            </span>
+                            {{ filter_form.anexo }}
+                            {{ filter_form.anexo_publico }}
+                            {{ filter_form.numero_telefonico }}
+                            {{ filter_form.nombre }}
+                            {{ filter_form.email }}
+                            {{ filter_form.cargo }}
+                            {{ filter_form.rol_organizacional }}
+                            {{ filter_form.unidad_organizacional }}
+                            {{ filter_form.subdepartamento }}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel-fill me-1"></i>
+                                Filtrar
+                            </button>
+                            <a href="{% url 'agenda:list_anexos' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                Limpiar
+                            </a>
                         </div>
-                    </div>
+                    </form>
                 </div>
-                <!--end::Card Header-->
-                <!--begin::Card Body-->
-                <div class="card-body p-0">
+
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0" role="table">
-                            <thead>
+                        <table class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0">
+                            <thead class="table-light">
                             <tr>
-                                <th scope="col">Anexo</th>
-                                <th scope="col">Público</th>
-                                <th scope="col">Teléfono</th>
-                                <th scope="col">Nombres</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Departamentos</th>
-                                <th scope="col">Dirección</th>
-                                <th scope="col">Puesto</th>
-                                <th scope="col">Cargo</th>
+                                <th>Anexo</th>
+                                <th>Publico</th>
+                                <th>Telefono</th>
+                                <th>Nombres</th>
+                                <th>Email</th>
+                                <th>Departamentos</th>
+                                <th>Direccion</th>
+                                <th>Puesto</th>
+                                <th>Cargo</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            {% for anexo in anexos %}
-                                <tr>
-                                    <td>{{ anexo.anexo|default:"-" }}</td>
-                                    <td>{{ anexo.anexo_publico|default:"-" }}</td>
-                                    <td>{{ anexo.numero_telefonico|default:"-" }}</td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {{ anexo.funcionario.nombres }} {{ anexo.funcionario.apellidos }}
-                                        {% else %}
-                                            {{ anexo.nombre_anexo|default:"-" }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {{ anexo.funcionario.email|default:"-" }}
-                                        {% else %}
-                                            {{ anexo.email|default:"-" }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {% if anexo.funcionario.unidad_organizacional %}
-                                                {% for unidad in anexo.funcionario.unidad_organizacional.get_jerarquia_reducida_invertida %}
-                                                    {% if forloop.first %}
-                                                        <strong>{{ unidad }}</strong>
-                                                    {% else %}
-                                                        <span style="font-size: 11px;">{{ unidad }}</span>
-                                                    {% endif %}
-                                                    {% if not forloop.last %}<br>{% endif %}
-                                                {% endfor %}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% else %}
-                                            {% if anexo.unidad_organizacional %}
-                                                {% for unidad in anexo.unidad_organizacional.get_jerarquia_reducida_invertida %}
-                                                    {% if forloop.first %}
-                                                        <strong>{{ unidad }}</strong>
-                                                    {% else %}
-                                                        <span style="font-size: 11px;">{{ unidad }}</span>
-                                                    {% endif %}
-                                                    {% if not forloop.last %}<br>{% endif %}
-                                                {% endfor %}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {% if anexo.funcionario.unidad_organizacional.direccion %}
-                                                {% if anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps %}
-                                                    <a href="{{ anexo.funcionario.unidad_organizacional.direccion.enlace_google_maps }}"
-                                                       class="text-decoration-none text-primary"
-                                                       target="_blank"
-                                                       rel="noopener noreferrer"
-                                                       title="Abrir ubicación en Google Maps">
-                                                        <i class="bi bi-geo-alt-fill me-1"></i>
-                                                        {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
-                                                    </a>
-                                                {% else %}
-                                                    {{ anexo.funcionario.unidad_organizacional.direccion.nombre }}
-                                                {% endif %}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% else %}
-                                            {% if anexo.unidad_organizacional.direccion %}
-                                                {% if anexo.unidad_organizacional.direccion.enlace_google_maps %}
-                                                    <a href="{{ anexo.unidad_organizacional.direccion.enlace_google_maps }}"
-                                                       class="text-decoration-none text-primary"
-                                                       target="_blank"
-                                                       rel="noopener noreferrer"
-                                                       title="Abrir ubicación en Google Maps">
-                                                        <i class="bi bi-geo-alt-fill me-1"></i>
-                                                        {{ anexo.unidad_organizacional.direccion.nombre }}
-                                                    </a>
-                                                {% else %}
-                                                    {{ anexo.unidad_organizacional.direccion.nombre }}
-                                                {% endif %}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {{ anexo.funcionario.rol_organizacional|default:"-" }}
-                                        {% else %}
-                                            {{ anexo.rol_organizacional|default:"-" }}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if anexo.funcionario %}
-                                            {{ anexo.funcionario.cargo|default:"-" }}
-                                        {% else %}
-                                            {{ anexo.encargado_de|default:"-" }}
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="9" class="text-center text-body-secondary py-4">
-                                        No se encontraron anexos para la búsqueda.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
-                    <!-- /.table-responsive -->
                 </div>
-                <!--end::Card Body-->
-                <!--begin::Card Footer-->
-                <div class="card-footer clearfix">
-                    <div class="float-start pt-1 fs-7 text-body-secondary">
-                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
-                        anexos
-                    </div>
-                    {% if is_paginated %}
-                        <ul class="pagination pagination-sm m-0 float-end">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?{% query_transform page=page_obj.previous_page_number %}"
-                                       aria-label="Anterior">«</a>
-                                </li>
-                            {% endif %}
-
-                            {% for i in paginator.page_range %}
-                                {% if page_obj.number == i %}
-                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?{% query_transform page=i %}">{{ i }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?{% query_transform page=page_obj.next_page_number %}"
-                                       aria-label="Siguiente">»</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <!--end::Card Footer-->
             </div>
-            <!--end::Card-->
         </div>
-        <!-- /.col -->
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
-        $(document).ready(function () {
+        $(function () {
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function renderText(data, type) {
+                if (!data) {
+                    return type === 'display' ? '<span class="text-body-secondary">Sin asignar</span>' : '';
+                }
+
+                if (type !== 'display') {
+                    return data;
+                }
+
+                const text = String(data);
+                const escaped = escapeHtml(text);
+                return text.length > 45 ? `${escapeHtml(text.slice(0, 45))}...` : escaped;
+            }
+
+            function renderUnidad(data, type) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    return type === 'display' ? '<span class="text-body-secondary">Sin asignar</span>' : '';
+                }
+
+                if (type !== 'display') {
+                    return data.join(' ');
+                }
+
+                return data.map(function (item, index) {
+                    const value = escapeHtml(item);
+                    return index === 0 ? `<strong>${value}</strong>` : `<span class="small">${value}</span>`;
+                }).join('<br>');
+            }
+
+            function renderDireccion(data, type, row) {
+                if (!data) {
+                    return type === 'display' ? '<span class="text-body-secondary">Sin asignar</span>' : '';
+                }
+
+                if (type !== 'display') {
+                    return data;
+                }
+
+                const label = escapeHtml(data);
+                if (!row.direccion_url) {
+                    return label;
+                }
+
+                return `<a href="${escapeHtml(row.direccion_url)}"
+                           class="text-decoration-none text-primary"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="Abrir ubicacion en Google Maps"
+                           data-bs-toggle="tooltip">
+                            <i class="bi bi-geo-alt-fill me-1"></i>${label}
+                        </a>`;
+            }
+
+            initDataTable({
+                selector: '.table-datatable',
+                ajaxUrl: "{{ request.get_full_path|escapejs }}",
+                columns: [
+                    {data: 'anexo', columnControl: ['order'], render: renderText},
+                    {data: 'anexo_publico', columnControl: ['order'], render: renderText},
+                    {data: 'numero_telefonico', columnControl: ['order'], render: renderText},
+                    {data: 'nombres', columnControl: ['order'], render: renderText},
+                    {data: 'email', columnControl: ['order'], render: renderText},
+                    {data: 'unidad_organizacional', columnControl: ['order'], render: renderUnidad},
+                    {data: 'direccion', columnControl: ['order'], render: renderDireccion},
+                    {data: 'rol_organizacional', columnControl: ['order'], render: renderText},
+                    {data: 'cargo', columnControl: ['order'], render: renderText}
+                ],
+                order: [[0, 'asc']],
+                extraConfig: {
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100]
+                }
+            });
+
+            $('.table-datatable').on('draw.dt', function () {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (element) {
+                    bootstrap.Tooltip.getOrCreateInstance(element);
+                });
+            });
+
             $('.select2').select2({
                 theme: 'bootstrap-5',
-                placeholder: 'Seleccione una opción',
+                placeholder: 'Seleccione una opcion',
                 allowClear: true
             });
         });

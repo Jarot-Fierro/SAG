@@ -24,6 +24,218 @@ from core.models import Establecimiento
 from core.models.funcionario import Funcionario
 
 
+def _as_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _format_unidad_jerarquia(unidad):
+    if not unidad:
+        return []
+    return [str(item) for item in unidad.get_jerarquia_reducida_invertida()]
+
+
+def serialize_anexo(anexo, include_actions=False, include_status=False):
+    funcionario = anexo.funcionario
+
+    if funcionario:
+        unidad = funcionario.unidad_organizacional
+        rol = funcionario.rol_organizacional
+        nombres = " ".join(
+            value for value in [funcionario.nombres, funcionario.apellidos] if value
+        ) or None
+        email = funcionario.email
+        cargo = funcionario.cargo
+        editar_url = reverse("agenda:anexo_editar", args=[anexo.pk])
+    else:
+        unidad = anexo.unidad_organizacional
+        rol = anexo.rol_organizacional
+        nombres = anexo.nombre_anexo
+        email = anexo.email
+        cargo = anexo.encargado_de
+        editar_url = reverse("agenda:anexo_sin_funcionario_editar", args=[anexo.pk])
+
+    direccion = unidad.direccion if unidad else None
+
+    data = {
+        "id": anexo.pk,
+        "anexo": anexo.anexo,
+        "anexo_publico": anexo.anexo_publico,
+        "publico": anexo.anexo_publico,
+        "numero_telefonico": anexo.numero_telefonico,
+        "telefono": anexo.numero_telefonico,
+        "nombres": nombres,
+        "email": email,
+        "unidad_organizacional": _format_unidad_jerarquia(unidad),
+        "unidad": " / ".join(_format_unidad_jerarquia(unidad)) or None,
+        "direccion": direccion.nombre if direccion else None,
+        "direccion_url": direccion.enlace_google_maps if direccion else None,
+        "rol_organizacional": str(rol) if rol else None,
+        "cargo": cargo,
+        "created_at": anexo.created_at.isoformat() if anexo.created_at else None,
+        "updated_at": anexo.updated_at.isoformat() if anexo.updated_at else None,
+    }
+
+    if include_status:
+        data["is_active"] = anexo.is_active
+
+    if include_actions:
+        eliminar_url = reverse("agenda:anexo_delete", args=[anexo.pk])
+        data.update({
+            "tiene_funcionario": bool(funcionario),
+            "editar_url": editar_url,
+            "eliminar_url": eliminar_url,
+            "acciones": (
+                f'<div class="text-center">'
+                f'<a href="{editar_url}" class="btn btn-sm btn-primary" title="Editar">'
+                f'<i class="bi bi-pencil"></i>'
+                f'</a>'
+                f'</div>'
+            ),
+        })
+
+    return data
+
+
+class AnexoDataTableMixin:
+    max_page_length = 100
+
+    columns = [
+        "anexo",
+        "anexo_publico",
+        "numero_telefonico",
+        "funcionario__nombres",
+        "funcionario__email",
+        "funcionario__unidad_organizacional__nombre",
+        "funcionario__unidad_organizacional__direccion__nombre",
+        "funcionario__rol_organizacional__nombre",
+        "funcionario__cargo",
+    ]
+
+    column_search_map = {
+        0: ["anexo"],
+        1: ["anexo_publico"],
+        2: ["numero_telefonico"],
+        3: ["funcionario__nombres", "funcionario__apellidos", "nombre_anexo"],
+        4: ["funcionario__email", "email"],
+        5: ["funcionario__unidad_organizacional__nombre", "unidad_organizacional__nombre"],
+        6: [
+            "funcionario__unidad_organizacional__direccion__nombre",
+            "unidad_organizacional__direccion__nombre",
+        ],
+        7: ["funcionario__rol_organizacional__nombre", "rol_organizacional__nombre"],
+        8: ["funcionario__cargo", "encargado_de"],
+    }
+
+    searchable_columns = [
+        "anexo",
+        "anexo_publico",
+        "numero_telefonico",
+        "nombre_anexo",
+        "email",
+        "encargado_de",
+        "rol_organizacional__nombre",
+        "unidad_organizacional__nombre",
+        "unidad_organizacional__direccion__nombre",
+        "funcionario__rut",
+        "funcionario__nombres",
+        "funcionario__apellidos",
+        "funcionario__email",
+        "funcionario__cargo",
+        "funcionario__rol_organizacional__nombre",
+        "funcionario__unidad_organizacional__nombre",
+        "funcionario__unidad_organizacional__direccion__nombre",
+    ]
+
+    include_actions = False
+    include_status = False
+
+    def get(self, request, *args, **kwargs):
+        if self.is_datatables_request(request):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    @staticmethod
+    def is_datatables_request(request):
+        return (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or "draw" in request.GET
+        )
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+
+        draw = max(_as_int(request.GET.get("draw"), 1), 1)
+        start = max(_as_int(request.GET.get("start"), 0), 0)
+        length = _as_int(request.GET.get("length"), 10)
+        if length < 1 or length > self.max_page_length:
+            length = self.max_page_length
+
+        records_total = queryset.count()
+        queryset = self.apply_datatables_search(queryset, request)
+        records_filtered = queryset.count()
+        queryset = self.apply_datatables_ordering(queryset, request)
+        queryset = queryset[start:start + length]
+
+        return JsonResponse({
+            "draw": draw,
+            "recordsTotal": records_total,
+            "recordsFiltered": records_filtered,
+            "data": [
+                serialize_anexo(
+                    anexo,
+                    include_actions=self.include_actions,
+                    include_status=self.include_status,
+                )
+                for anexo in queryset
+            ],
+        })
+
+    def apply_datatables_search(self, queryset, request):
+        search_value = request.GET.get("search[value]", "").strip()
+
+        if search_value:
+            search_query = Q()
+            for column in self.searchable_columns:
+                search_query |= Q(**{f"{column}__icontains": search_value})
+            queryset = queryset.filter(search_query)
+
+        for index, fields in self.column_search_map.items():
+            value = request.GET.get(f"columns[{index}][search][value]", "").strip()
+            if not value:
+                continue
+
+            column_query = Q()
+            for field in fields:
+                column_query |= Q(**{f"{field}__icontains": value})
+            queryset = queryset.filter(column_query)
+
+        return queryset
+
+    def apply_datatables_ordering(self, queryset, request):
+        order_column = request.GET.get("order[0][column]")
+        order_dir = request.GET.get("order[0][dir]", "asc")
+
+        if order_dir not in {"asc", "desc"}:
+            order_dir = "asc"
+
+        try:
+            column_index = int(order_column)
+        except (TypeError, ValueError):
+            return queryset
+
+        if 0 <= column_index < len(self.columns):
+            field = self.columns[column_index]
+            if field:
+                if order_dir == "desc":
+                    field = f"-{field}"
+                return queryset.order_by(field)
+
+        return queryset
+
+
 def index(request):
     establecimiento_id = request.GET.get('establecimiento')
     establecimiento = None
@@ -175,19 +387,28 @@ def anexos_view(request, pk=None):
 
     # Lógica para DataTables AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('draw'):
-        draw = int(request.GET.get('draw', 1))
-        start = int(request.GET.get('start', 0))
-        length = int(request.GET.get('length', 10))
+        endpoint = AnexoDataTableMixin()
+        endpoint.include_actions = True
+        draw = max(_as_int(request.GET.get("draw"), 1), 1)
+        start = max(_as_int(request.GET.get("start"), 0), 0)
+        length = _as_int(request.GET.get("length"), 10)
+        if length < 1 or length > endpoint.max_page_length:
+            length = endpoint.max_page_length
         search_value = request.GET.get('search[value]', '')
 
         queryset = Anexo.objects.select_related(
             'funcionario',
             'funcionario__unidad_organizacional',
+            'funcionario__unidad_organizacional__padre',
+            'funcionario__unidad_organizacional__padre__padre',
             'funcionario__unidad_organizacional__direccion',
             'funcionario__profesion',
             'funcionario__rol_organizacional',
             'rol_organizacional',
-            'unidad_organizacional'
+            'unidad_organizacional',
+            'unidad_organizacional__padre',
+            'unidad_organizacional__padre__padre',
+            'unidad_organizacional__direccion',
         )
 
         if request.user.establecimiento:
@@ -243,54 +464,14 @@ def anexos_view(request, pk=None):
 
         queryset = queryset[start:start + length]
 
-        data = []
-        for a in queryset:
-            if a.funcionario:
-                # Caso con funcionario
-                uo = a.funcionario.unidad_organizacional
-                uo_text = uo.nombre if uo else "-"
-                nombres_text = f"{a.funcionario.nombres or '-'} {a.funcionario.apellidos or '-'}"
-                email_text = a.funcionario.email or "-"
-                rol_text = a.funcionario.rol_organizacional.nombre if a.funcionario.rol_organizacional else "-"
-                cargo_text = a.funcionario.cargo if a.funcionario.cargo else "-"
-                url_editar = reverse('agenda:anexo_editar', args=[a.id])
-            else:
-                # Caso sin funcionario
-                uo = a.unidad_organizacional
-                uo_text = uo.nombre if uo else "-"
-                nombres_text = a.nombre_anexo or "-"
-                email_text = a.email or "-"
-                rol_text = a.rol_organizacional.nombre if a.rol_organizacional else "-"
-                cargo_text = a.encargado_de or "-"
-                url_editar = reverse('agenda:anexo_sin_funcionario_editar', args=[a.id])
-
-            data.append({
-                "anexo": a.anexo,
-                "publico": a.anexo_publico or "-",
-                "telefono": a.numero_telefonico or "-",
-                "nombres": nombres_text,
-                "email": email_text,
-                "unidad": uo_text,
-                "rol_organizacional": rol_text,
-                "cargo": cargo_text,
-
-                "acciones": f"""
-                    <div class="text-center">
-                        <a href="{url_editar}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar({a.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                """
-            })
-
         return JsonResponse({
             "draw": draw,
             "recordsTotal": total_records,
             "recordsFiltered": total_filtered,
-            "data": data,
+            "data": [
+                serialize_anexo(anexo, include_actions=True)
+                for anexo in queryset
+            ],
         })
 
     return render(request, 'anexos/form_anexos.html', {
@@ -445,7 +626,7 @@ def anexos_pdf_view(request):
     return response
 
 
-class AnexoListView(ListView):
+class AnexoListView(AnexoDataTableMixin, ListView):
     model = Anexo
     template_name = "anexos/list_anexos.html"
     context_object_name = "anexos"
@@ -464,11 +645,15 @@ class AnexoListView(ListView):
             "establecimiento",
             "funcionario",
             "funcionario__unidad_organizacional",
+            "funcionario__unidad_organizacional__padre",
+            "funcionario__unidad_organizacional__padre__padre",
             "funcionario__unidad_organizacional__direccion",
             "funcionario__profesion",
             "funcionario__rol_organizacional",
             "rol_organizacional",
             "unidad_organizacional",
+            "unidad_organizacional__padre",
+            "unidad_organizacional__padre__padre",
             "unidad_organizacional__direccion",
         )
 
@@ -640,11 +825,15 @@ class AnexoUpdateView(LoginRequiredMixin, AnexoBaseFormView, UpdateView):
             return self.form_invalid(form)
 
 
-class AnexoEditListView(LoginRequiredMixin, ListView):
+class AnexoEditListView(AnexoDataTableMixin, LoginRequiredMixin, ListView):
     model = Anexo
     template_name = "anexos/list_anexos_edit.html"
     context_object_name = "anexos"
     paginate_by = 10
+    include_actions = True
+    include_status = True
+    columns = AnexoDataTableMixin.columns + ["is_active", None]
+    column_search_map = AnexoDataTableMixin.column_search_map.copy()
 
     def get_queryset(self):
         establecimiento = self.request.user.establecimiento
@@ -657,10 +846,14 @@ class AnexoEditListView(LoginRequiredMixin, ListView):
                 "establecimiento",
                 "funcionario",
                 "funcionario__unidad_organizacional",
+                "funcionario__unidad_organizacional__padre",
+                "funcionario__unidad_organizacional__padre__padre",
                 "funcionario__unidad_organizacional__direccion",
                 "funcionario__rol_organizacional",
                 "rol_organizacional",
                 "unidad_organizacional",
+                "unidad_organizacional__padre",
+                "unidad_organizacional__padre__padre",
                 "unidad_organizacional__direccion"
             )
         )
