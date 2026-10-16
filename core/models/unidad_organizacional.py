@@ -45,7 +45,7 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
         level_attr = 'level'
 
     def __str__(self):
-        return self.get_jerarquia()
+        return self.nombre
 
     def get_jerarquia(self):
         return " > ".join(self.get_jerarquia_list())
