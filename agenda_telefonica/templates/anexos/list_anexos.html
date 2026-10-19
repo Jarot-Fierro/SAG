@@ -38,12 +38,9 @@
                                 <i class="bi bi-search" aria-hidden="true"></i>
                             </span>
                             {{ filter_form.anexo }}
-                            {{ filter_form.anexo_publico }}
                             {{ filter_form.numero_telefonico }}
                             {{ filter_form.nombre }}
                             {{ filter_form.email }}
-                            {{ filter_form.cargo }}
-                            {{ filter_form.rol_organizacional }}
                             {{ filter_form.unidad_organizacional }}
                             {{ filter_form.subdepartamento }}
                             <button type="submit" class="btn btn-primary">
@@ -162,7 +159,7 @@
                     {data: 'rol_organizacional', columnControl: ['order'], render: renderText},
                     {data: 'cargo', columnControl: ['order'], render: renderText}
                 ],
-                order: [[0, 'asc']],
+                order: [[0, 'desc']],
                 extraConfig: {
                     pageLength: 10,
                     lengthMenu: [10, 25, 50, 100]
