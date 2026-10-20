@@ -9,6 +9,8 @@ class AnexoAdmin(StandardAdmin):
     list_display = (
         'id',
         'anexo',
+        'nombre_anexo',
+        'unidad_organizacional',
         'funcionario',
         'establecimiento',
     )

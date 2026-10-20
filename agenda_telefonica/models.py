@@ -14,7 +14,7 @@ class Anexo(StandardModelEstablishment):
                                        on_delete=models.SET_NULL)
 
     # Sección agregada exclusivamente si el anexo no se asocia a un funcionario
-    nombre_anexo = models.CharField(max_length=20, blank=True, null=True, verbose_name="Nombre Anexo")
+    nombre_anexo = models.CharField(max_length=180, blank=True, null=True, verbose_name="Nombre Anexo")
     email = models.EmailField(blank=True, null=True, verbose_name="Correo")
     rol_organizacional = models.ForeignKey(
         "core.RolOrganizacional",
@@ -33,6 +33,16 @@ class Anexo(StandardModelEstablishment):
         blank=True,
         verbose_name="Unidad Organizacional"
     )
+
+    def save(self, *args, **kwargs):
+        if self.funcionario:
+            nombre_parts = [self.funcionario.nombres, self.funcionario.apellidos]
+            self.nombre_anexo = " ".join(p.strip() for p in nombre_parts if p and p.strip()) or self.funcionario.nombre
+            self.email = self.funcionario.email
+            self.rol_organizacional = self.funcionario.rol_organizacional
+            self.encargado_de = self.funcionario.cargo
+            self.unidad_organizacional = self.funcionario.unidad_organizacional
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.anexo:
