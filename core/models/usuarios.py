@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from django.db import models
+from django.forms import model_to_dict
 from simple_history.models import HistoricalRecords
 
 from config import settings
@@ -37,6 +38,12 @@ class User(AbstractUser):
     history = HistoricalRecords()
 
     USERNAME_FIELD = 'username'
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        item['funcionario'] = self.funcionario.toJSON()
+        return item
 
     def save(self, *args, **kwargs):
         if self.pk:

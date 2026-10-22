@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
 from django.db import models
+from django.forms import model_to_dict
 
 from core.standard.models import StandardModel, StandardModelEstablishment
 
@@ -33,6 +34,13 @@ class Anexo(StandardModelEstablishment):
         blank=True,
         verbose_name="Unidad Organizacional"
     )
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        item['funcionario'] = self.funcionario.toJSON()
+        item['rol_organizacional'] = self.rol_organizacional.toJSON()
+        item['unidad_organizacional'] = self.unidad_organizacional.toJSON()
+        return item
 
     def save(self, *args, **kwargs):
         if self.funcionario:

@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import model_to_dict
 
 from core.models import Establecimiento
 from core.standard.models import StandardModel
@@ -23,6 +24,11 @@ class Direccion(StandardModel):
         verbose_name="Establecimiento",
         related_name="direcciones_modelo"
     )
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        return item
 
     class Meta:
         ordering = ['nombre']

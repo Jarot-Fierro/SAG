@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import model_to_dict
 from mptt.models import MPTTModel, TreeForeignKey
 
 from core.models import Establecimiento
@@ -35,6 +36,13 @@ class UnidadOrganizacional(MPTTModel, StandardModel):
     rght = models.PositiveIntegerField(default=0, null=True, blank=True)
     tree_id = models.PositiveIntegerField(default=0, null=True, blank=True)
     level = models.PositiveIntegerField(default=0, null=True, blank=True)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        item['direccion'] = self.direccion.toJSON()
+        item['padre'] = self.padre.toJSON()
+        return item
 
     class MPTTMeta:
         order_insertion_by = ['nombre']

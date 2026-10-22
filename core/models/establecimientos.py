@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import model_to_dict
 
 from core.standard.models import StandardModel
 
@@ -9,6 +10,10 @@ class Establecimiento(StandardModel):
     region = models.CharField(max_length=100, blank=True, null=True)
     direccion = models.TextField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        return item
 
     def __str__(self):
         return self.nombre

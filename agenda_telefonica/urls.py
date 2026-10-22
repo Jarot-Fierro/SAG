@@ -16,7 +16,7 @@ urlpatterns = [
          name='anexo_sin_funcionario_editar'),
     path('anexos/eliminar/<int:pk>/', views.anexo_delete_view, name='anexo_delete'),
 
-    path('', views.AnexoListView.as_view(), name='list_anexos'),
+    path('', views.IndexView.as_view(), name='list_anexos'),
     path('listado-anexos-edit', views.AnexoEditListView.as_view(), name='list_anexos_edit'),
 
     path('mantenedores/<str:tipo>/', views.mantenedores_list_view, name='mantenedores'),

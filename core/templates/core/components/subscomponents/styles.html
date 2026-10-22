@@ -60,14 +60,13 @@
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"/>
 
-<link href="https://cdn.datatables.net/v/bs5/dt-3.1.3/af-3.1.2/b-4.1.2/cr-3.1.2/cc-2.1.2/date-2.1.2/fc-6.1.1/fh-5.1.2/kt-3.1.1/r-4.1.1/rg-2.1.1/rr-2.1.1/sc-3.1.1/sb-2.1.1/sl-4.1.1/datatables.min.css"
-      rel="stylesheet">
+<link rel="stylesheet" href="{% static 'core/css/datatables.css' %}">
 
 <!-- Tom Select -->
 <!-- Tom Select - Bootstrap 5 -->
 <link
-    href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.css"
-    rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.css"
+        rel="stylesheet"
 >
 <style>
     :root {
@@ -137,4 +136,49 @@
         background-color: var(--modulo-color) !important;
         color: var(--modulo-texto-color) !important;
     }
+
+    /* DATATABLE STYLES*/
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Cuando ColumnControl abre un menú, permitir que sobresalga */
+    .table-responsive:has(.dtcc-button_dropdown[aria-expanded="true"]) {
+        overflow: visible !important;
+    }
+
+    div.dtcc-dropdown {
+        width: max-content;
+        max-width: min(90vw, 650px);
+    }
+
+    div.dtcc-searchList label {
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+    }
+
+    #myTable thead th:nth-child(6) .dtcc-button_dropdown {
+        color: #084298;
+        background-color: #cfe2ff;
+        border: 1px solid #084298;
+        border-radius: 5px;
+        opacity: 1;
+    }
+
+    #myTable thead th:nth-child(6) .dtcc-button_dropdown:hover,
+    #myTable thead th:nth-child(6) .dtcc-button_dropdown:focus-visible {
+        color: #fff;
+        background-color: #084298;
+    }
+
+    #myTable tbody tr.selected > td,
+    #myTable tbody tr.selected > td * {
+        color: #fff !important;
+    }
+
+    div.dt-container div.dt-layout-table > div {
+        padding: 0;
+    }
+
+    /* TERMINO DE DATATABLE STYLES*/
 </style>

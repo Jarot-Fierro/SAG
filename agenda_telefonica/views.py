@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 from weasyprint import HTML
 
 from agenda_telefonica.decorators import user_editor_module, user_mantenedores_module
@@ -22,6 +22,7 @@ from agenda_telefonica.forms import (
 from agenda_telefonica.models import Anexo
 from core.models import Establecimiento
 from core.models.funcionario import Funcionario
+from core.models.unidad_organizacional import UnidadOrganizacional
 
 
 def _as_int(value, default=0):
@@ -160,8 +161,8 @@ class AnexoDataTableMixin:
     @staticmethod
     def is_datatables_request(request):
         return (
-            request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            or "draw" in request.GET
+                request.headers.get("X-Requested-With") == "XMLHttpRequest"
+                or "draw" in request.GET
         )
 
     def datatables_response(self, request):
@@ -975,3 +976,149 @@ def mantenedores_update_view(request, tipo, pk):
         return UnidadOrganizacionalUpdateView.as_view()(request, pk=pk)
     else:
         raise Http404
+
+
+class IndexView(TemplateView):
+    template_name = 'anexos/index.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') != 'search':
+            return JsonResponse(
+                {'error': 'Acción no válida'},
+                status=400
+            )
+
+        draw = int(request.POST.get('draw', 1))
+        start = max(0, int(request.POST.get('start', 0)))
+        length = int(request.POST.get('length', 10))
+
+        establecimiento_id = _as_int(request.GET.get('establecimiento'), 1)
+
+        if not Establecimiento.objects.filter(pk=establecimiento_id).exists():
+            establecimiento_id = 1
+
+        queryset = Anexo.objects.filter(
+            establecimiento_id=establecimiento_id
+        )
+
+        # Total sin filtros
+        records_total = queryset.count()
+
+        # Búsqueda global
+        search = request.POST.get('search[value]', '')
+
+        if search:
+            queryset = queryset.filter(
+                Q(anexo__icontains=search) |
+                Q(numero_telefonico__icontains=search) |
+                Q(nombre_anexo__icontains=search) |
+                Q(email__icontains=search) |
+                Q(unidad_organizacional__nombre__icontains=search) |
+                Q(unidad_organizacional__direccion__nombre__icontains=search) |
+                Q(encargado_de__icontains=search)
+            )
+
+        prefijo = 'columns[5][columnControl][list]'
+        departamentos = []
+
+        for key, values in request.POST.lists():
+            if key == prefijo or key.startswith(prefijo + '['):
+                departamentos.extend(values)
+
+        prefijo = 'columns[5][columnControl][list]'
+
+        departamentos = []
+
+        for key, values in request.POST.lists():
+            if key == prefijo or key.startswith(prefijo + '['):
+                departamentos.extend(values)
+
+        if departamentos:
+            queryset = queryset.filter(
+                unidad_organizacional__nombre__in=departamentos,
+                establecimiento=establecimiento_id
+            )
+
+        # Ordenamiento
+        columnas = {
+            0: 'id',
+            1: 'anexo',
+            2: 'numero_telefonico',
+            3: 'nombre_anexo',
+            4: 'email',
+            5: 'unidad_organizacional__nombre',
+            6: 'unidad_organizacional__direccion__nombre',
+            7: 'encargado_de',
+        }
+
+        order_index = int(
+            request.POST.get('order[0][column]', 0)
+        )
+
+        order_dir = request.POST.get(
+            'order[0][dir]', 'asc'
+        )
+
+        campo = columnas.get(order_index, 'id')
+
+        if order_dir == 'desc':
+            campo = f'-{campo}'
+
+        queryset = queryset.order_by(campo, 'id')
+
+        # Total después de filtrar
+        records_filtered = queryset.count()
+
+        # Paginación
+        if length != -1:
+            queryset = queryset[start:start + length]
+
+        # print(queryset.query)
+
+        data = list(queryset.values(
+            'anexo',
+            'anexo_publico',
+            'numero_telefonico',
+            'nombre_anexo',
+            'email',
+            'unidad_organizacional__nombre',
+            'unidad_organizacional__direccion__nombre',
+            'unidad_organizacional__direccion__enlace_google_maps',
+            'encargado_de',
+        ))
+
+        opciones_departamentos = [
+            {
+                'label': departamento.nombre,
+                'value': departamento.nombre
+            }
+            for departamento in
+            UnidadOrganizacional.objects.filter(establecimiento=establecimiento_id).order_by('nombre')
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'unidad_organizacional__nombre': opciones_departamentos
+            }
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        establecimiento_id = _as_int(
+            self.request.GET.get('establecimiento'), 1
+        )
+
+        establecimiento = Establecimiento.objects.filter(
+            pk=establecimiento_id
+        ).first()
+
+        if establecimiento is None:
+            establecimiento = get_object_or_404(Establecimiento, pk=1)
+
+        context['establecimiento'] = establecimiento
+        return context
