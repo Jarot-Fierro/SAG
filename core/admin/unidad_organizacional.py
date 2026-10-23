@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.db import transaction
 from django.shortcuts import render, redirect
 from mptt.admin import DraggableMPTTAdmin
 
@@ -10,13 +11,14 @@ from core.standard.admin import StandardAdmin
 @admin.register(UnidadOrganizacional)
 class UnidadOrganizacionalAdmin(DraggableMPTTAdmin, StandardAdmin):
     mptt_level_indent = 50
-    list_display = ('tree_actions', 'indented_title', 'establecimiento', 'unidad_principal', 'direccion__nombre')
+    list_display = ('tree_actions', 'indented_title', 'establecimiento', 'unidad_principal', 'es_departamento',
+                    'direccion__nombre')
     list_display_links = ('indented_title',)
     list_filter = ('is_active', 'establecimiento', 'unidad_principal', 'es_departamento', 'es_subdepartamento')
     search_fields = ('nombre', 'establecimiento__nombre')
     autocomplete_fields = ('padre', 'direccion')
     actions = ['asignar_direccion_masiva', 'marcar_como_departamento', 'marcar_como_no_departamento',
-               'marcar_como_subdepartamento', 'marcar_como_no_subdepartamento']
+               'marcar_como_subdepartamento', 'marcar_como_no_subdepartamento', 'reconstruir_arbol', ]
 
     @admin.action(description="Marcar como subdepartamento")
     def marcar_como_subdepartamento(self, request, queryset):
@@ -57,3 +59,14 @@ class UnidadOrganizacionalAdmin(DraggableMPTTAdmin, StandardAdmin):
             'direcciones': direcciones,
             'action': 'asignar_direccion_masiva'
         })
+
+    @admin.action(description="Reconstruir árbol organizacional completo")
+    def reconstruir_arbol(self, request, queryset):
+        with transaction.atomic():
+            self.model.objects.rebuild()
+
+        self.message_user(
+            request,
+            "Árbol organizacional reconstruido correctamente.",
+            messages.SUCCESS,
+        )
