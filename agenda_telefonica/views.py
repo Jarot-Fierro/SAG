@@ -1039,10 +1039,10 @@ class IndexView(TemplateView):
                 establecimiento=establecimiento_id
             )
 
-        # Ordenamiento
+        # Ordenamiento: mismo orden de columnas que en index.js
         columnas = {
-            0: 'id',
-            1: 'anexo',
+            0: 'anexo',
+            1: 'anexo_publico',
             2: 'numero_telefonico',
             3: 'nombre_anexo',
             4: 'email',
@@ -1051,20 +1051,15 @@ class IndexView(TemplateView):
             7: 'encargado_de',
         }
 
-        order_index = int(
-            request.POST.get('order[0][column]', 0)
-        )
+        order_index = _as_int(request.POST.get('order[0][column]'), 0)
+        order_dir = request.POST.get('order[0][dir]', 'asc')
 
-        order_dir = request.POST.get(
-            'order[0][dir]', 'asc'
-        )
-
-        campo = columnas.get(order_index, 'id')
+        campo = columnas.get(order_index, 'anexo')
 
         if order_dir == 'desc':
             campo = f'-{campo}'
 
-        queryset = queryset.order_by(campo, 'id')
+        queryset = queryset.order_by(campo, 'pk')
 
         # Total después de filtrar
         records_filtered = queryset.count()

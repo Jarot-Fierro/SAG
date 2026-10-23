@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Group
 from django.db import models
 from django.forms import model_to_dict
 
@@ -34,6 +33,7 @@ class Anexo(StandardModelEstablishment):
         blank=True,
         verbose_name="Unidad Organizacional"
     )
+
     def toJSON(self):
         item = model_to_dict(self)
         item['establecimiento'] = self.establecimiento.toJSON()
@@ -42,15 +42,15 @@ class Anexo(StandardModelEstablishment):
         item['unidad_organizacional'] = self.unidad_organizacional.toJSON()
         return item
 
-    def save(self, *args, **kwargs):
-        if self.funcionario:
-            nombre_parts = [self.funcionario.nombres, self.funcionario.apellidos]
-            self.nombre_anexo = " ".join(p.strip() for p in nombre_parts if p and p.strip()) or self.funcionario.nombre
-            self.email = self.funcionario.email
-            self.rol_organizacional = self.funcionario.rol_organizacional
-            self.encargado_de = self.funcionario.cargo
-            self.unidad_organizacional = self.funcionario.unidad_organizacional
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.funcionario:
+    #         nombre_parts = [self.funcionario.nombres, self.funcionario.apellidos]
+    #         self.nombre_anexo = " ".join(p.strip() for p in nombre_parts if p and p.strip()) or self.funcionario.nombre
+    #         self.email = self.funcionario.email
+    #         self.rol_organizacional = self.funcionario.rol_organizacional
+    #         self.encargado_de = self.funcionario.cargo
+    #         self.unidad_organizacional = self.funcionario.unidad_organizacional
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         if self.anexo:

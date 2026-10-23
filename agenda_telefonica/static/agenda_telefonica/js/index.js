@@ -60,7 +60,41 @@ document.addEventListener('DOMContentLoaded', function () {
         pageLength: 10,
         lengthMenu: [10, 25, 50, 100],
         keyTable: true,
-        buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+        order: [[0, 'desc']],
+        buttons: {
+            dom: {
+                button: {
+                    className: 'btn btn-sm btn-outline-secondary'
+                }
+            },
+            buttons: [
+                {
+                    extend: 'copy',
+                    text: '<i class="bi bi-copy"></i>',
+                    attr: {title: 'Copiar', 'aria-label': 'Copiar'}
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="bi bi-filetype-csv"></i>',
+                    attr: {title: 'Exportar CSV', 'aria-label': 'Exportar CSV'}
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="bi bi-file-earmark-excel"></i>',
+                    attr: {title: 'Exportar Excel', 'aria-label': 'Exportar Excel'}
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="bi bi-file-earmark-pdf"></i>',
+                    attr: {title: 'Exportar PDF', 'aria-label': 'Exportar PDF'}
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="bi bi-printer"></i>',
+                    attr: {title: 'Imprimir', 'aria-label': 'Imprimir'}
+                }
+            ]
+        },
         layout: {
             topStart: ['pageLength', 'buttons'],
             topEnd: 'search',

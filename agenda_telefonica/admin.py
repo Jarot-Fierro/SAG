@@ -22,6 +22,7 @@ class AnexoAdmin(StandardAdmin):
     search_fields = (
         'anexo',
         'establecimiento__nombre',
+        'unidad_organizacional__nombre',
         'funcionario__rut',
         'funcionario__nombres',
     )
@@ -58,9 +59,26 @@ class MenuSidebarAdmin(StandardAdmin):
 
 @admin.register(PerfilAgenda)
 class PerfilAgendaAdmin(StandardAdmin):
-    list_display = ('id', 'usuario', 'editor',)
-    search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name')
+    list_display = ('id', 'usuario', 'mostrar_unidades', 'editor')
+    search_fields = (
+        'usuario__username',
+        'usuario__first_name',
+        'usuario__last_name',
+        'unidad_organizacional__nombre',
+    )
     list_filter = ('editor', 'is_active')
     autocomplete_fields = ('usuario',)
     filter_horizontal = ('unidad_organizacional',)
     list_display_links = ('usuario',)
+
+    @admin.display(description='Unidades organizacionales')
+    def mostrar_unidades(self, obj):
+        return ', '.join(
+            unidad.nombre
+            for unidad in obj.unidad_organizacional.all()
+        ) or 'Sin asignar'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(
+            'unidad_organizacional'
+        )
