@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Agenda Telefónica {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'anexos/components/menu_sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {#    <a href="{% url 'agenda:anexos' %}" class="btn btn-primary btn-sm">Ingreso</a>#}
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="myTable" class="table display ">
+            <thead>
+            <tr>
+                <th>Anexo</th>
+                <th>Público</th>
+                <th>Teléfono</th>
+                <th>Nombres</th>
+                <th>Correo</th>
+                <th>Depto</th>
+                <th>Dirección</th>
+                <th>Cargo</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'agenda_telefonica/js/index.js' %}"></script>
+{% endblock %}

@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
-{% load query_tags %}
-{% block title %}{{ title }}{% endblock %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
 
 {% block sidebar %}
     {% include 'gestion_tic/sidebar.html' %}
@@ -10,47 +13,41 @@
     {% if ultimo_movimiento %}
         <a href="{% url 'gestion_tic:activo_acta_pdf' ultimo_movimiento.pk %}"
            class="btn btn-outline-danger btn-sm" target="_blank">
-            <i class="bi bi-file-earmark-pdf"></i> Acta PDF
+            <i class="bi bi-file-earmark-pdf me-1"></i>Acta PDF
         </a>
         {% if not ultimo_movimiento.recepcionado %}
-             <a href="{% url 'gestion_tic:recepcion_conforme' ultimo_movimiento.pk %}" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-file-earmark-pdf"></i> Recepción Conforme
+            <a href="{% url 'gestion_tic:recepcion_conforme' ultimo_movimiento.pk %}"
+               class="btn btn-outline-success btn-sm">
+                <i class="bi bi-check2-circle me-1"></i>Recepción Conforme
             </a>
         {% endif %}
     {% endif %}
 {% endblock %}
+
 {% block content %}
-    <div class="container-fluid">
+    <div class="container-fluid py-2">
         <!-- Buscador siempre visible arriba -->
         <div class="row justify-content-center mb-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm border-primary">
                     <form method="get" action="{% url 'gestion_tic:movimientos_activo_list' %}" id="form-buscador">
                         <div class="card-body">
-                            <label for="q" class="form-label fw-bold">Consultar Equipo Código</label>
+                            <label for="q" class="form-label fw-bold">Consultar Equipo por Código de Barras o
+                                Serie</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-primary text-white"><i class="bi bi-search"></i></span>
                                 <input id="q" name="q" type="search" class="form-control"
-                                       placeholder="Escanee código de barras" autofocus
+                                       placeholder="Escanee o ingrese código de barras..." autofocus
                                        value="{{ query|default:'' }}">
-                                {% if per_page %}
-                                    <input type="hidden" name="per_page" value="{{ per_page }}">
-                                {% endif %}
                                 <button type="submit" class="btn btn-primary px-4" id="btn-consultar">
                                     <i class="bi bi-arrow-right-circle me-1"></i> Consultar
                                 </button>
                                 {% if query %}
-                                    <a href="
-
-
-                                            {% url 'gestion_tic:movimientos_activo_list' %}{% if per_page %}?per_page={{ per_page }}{% endif %}"
+                                    <a href="{% url 'gestion_tic:movimientos_activo_list' %}"
                                        class="btn btn-secondary px-3" title="Limpiar búsqueda">
                                         <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
                                     </a>
                                 {% endif %}
-                            </div>
-                            <div class="form-text mt-2">
-                                La búsqueda se realiza por código de barras.
                             </div>
                         </div>
                     </form>
@@ -62,9 +59,10 @@
             <div class="row mb-4">
                 <!-- Datos del Activo (Disabled) -->
                 <div class="col-lg-4">
-                    <div class="card card-outline card-info shadow-sm">
+                    <div class="card card-outline card-info shadow-sm h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="card-title"><i class="bi bi-info-circle me-1"></i> Detalles del Equipo</h3>
+                            <h5 class="card-title mb-0"><i class="bi bi-info-circle me-1 text-info"></i> Detalles del
+                                Equipo</h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
@@ -117,39 +115,40 @@
                     <!-- Formulario Nuevo Movimiento -->
                     <div class="card card-outline card-success shadow-sm mb-4">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="bi bi-plus-circle me-1"></i> Registrar Nuevo Movimiento
-                            </h3>
+                            <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-1 text-success"></i> Registrar
+                                Nuevo Movimiento</h5>
                         </div>
                         <form method="post" id="form-movimiento" name="form-movimiento">
                             {% csrf_token %}
                             <div class="card-body">
                                 <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">{{ form_movimiento.tipo_movimiento.label }}</label>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">{{ form_movimiento.tipo_movimiento.label }}
+                                            <span class="text-danger">*</span></label>
                                         {{ form_movimiento.tipo_movimiento }}
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">{{ form_movimiento.funcionario.label }}</label>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">{{ form_movimiento.funcionario.label }}</label>
                                         {{ form_movimiento.funcionario }}
                                     </div>
                                     {% if activo.utiliza_ip %}
-                                        <div class="col-md-3">
-                                            <label class="form-label fw-bold">{{ form_movimiento.ip.label }}</label>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">{{ form_movimiento.ip.label }}</label>
                                             {{ form_movimiento.ip }}
                                         </div>
                                     {% endif %}
-
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">{{ form_movimiento.jefe_firmante.label }}</label>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">{{ form_movimiento.jefe_firmante.label }}
+                                            <span class="text-danger">*</span></label>
                                         {{ form_movimiento.jefe_firmante }}
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label fw-bold">{{ form_movimiento.observacion.label }}</label>
+                                        <label class="form-label fw-bold small">{{ form_movimiento.observacion.label }}</label>
                                         {{ form_movimiento.observacion }}
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-end">
+                            <div class="card-footer text-end bg-light">
                                 <button type="submit" class="btn btn-success">
                                     <i class="bi bi-save me-1"></i> Guardar Movimiento
                                 </button>
@@ -159,6 +158,10 @@
 
                     <!-- Historial de Movimientos -->
                     <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0"><i class="bi bi-clock-history me-1 text-primary"></i> Historial
+                                de Movimientos</h6>
+                        </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover table-striped mb-0">
@@ -177,7 +180,7 @@
                                         <tr>
                                             <td class="small">{{ mov.created_at|date:"d/m/Y H:i" }}</td>
                                             <td>
-                                                <span class="text-danger">
+                                                <span class="badge bg-info text-dark">
                                                     {{ mov.tipo_movimiento.nombre }}
                                                 </span>
                                             </td>
@@ -221,160 +224,83 @@
             </div>
         {% endif %}
 
-        <!-- Listado de Equipos con Paginación y Selector per_page -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-outline card-primary shadow-sm">
-                    <div class="card-header">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
-                            <h3 class="card-title mb-0">
-                                <i class="bi bi-list-task me-1 text-primary"></i> {{ title }}
-                            </h3>
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="per_page_select"
-                                       class="form-label mb-0 small text-muted text-nowrap">Mostrar:</label>
-                                <select name="per_page" id="per_page_select" form="form-filtro-activos"
-                                        class="form-select form-select-sm"
-                                        style="width: auto;"
-                                        onchange="document.getElementById('form-filtro-activos').submit()">
-                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10 registros</option>
-                                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25 registros</option>
-                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50 registros</option>
-                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100 registros
-                                    </option>
-                                </select>
+        <!-- Filtros avanzados y DataTables de Equipos -->
+        {% if filter_form %}
+            <div class="card card-outline card-secondary shadow-sm mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-funnel me-1"></i> Filtros de búsqueda
+                    </h6>
+                    <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseFiltros" aria-expanded="false" aria-controls="collapseFiltros">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="collapse show" id="collapseFiltros">
+                    <div class="card-body py-2">
+                        <form id="filter-form" class="row g-2">
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Código de barra</label>
+                                {{ filter_form.codigo_barra }}
                             </div>
-                        </div>
-
-                        <!-- Formulario de Filtros de Activos -->
-                        <form method="get" action="{% url 'gestion_tic:movimientos_activo_list' %}"
-                              id="form-filtro-activos">
-                            {% if q %}
-                                <input type="hidden" name="q" value="{{ q }}">
-                            {% endif %}
-                            <div class="row g-2 align-items-center">
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                                    {{ filter_form.codigo_barra }}
-                                </div>
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                                    {{ filter_form.serie }}
-                                </div>
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                                    {{ filter_form.tipo }}
-                                </div>
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                                    {{ filter_form.marca }}
-                                </div>
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                                    {{ filter_form.modelo }}
-                                </div>
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-2 d-flex gap-2">
-                                    <button type="submit" class="btn btn-sm btn-primary flex-fill">
-                                        <i class="bi bi-funnel-fill me-1"></i> Filtrar
-                                    </button>
-                                    <a href="
-
-                                            {% url 'gestion_tic:movimientos_activo_list' %}{% if q %}?q={{ q }}{% endif %}"
-                                       class="btn btn-sm btn-secondary" title="Limpiar filtros">
-                                        <i class="bi bi-arrow-clockwise"></i>
-                                    </a>
-                                </div>
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Serie</label>
+                                {{ filter_form.serie }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Tipo de Activo</label>
+                                {{ filter_form.tipo }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Marca</label>
+                                {{ filter_form.marca }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Modelo</label>
+                                {{ filter_form.modelo }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small mb-1 fw-bold">Contrato</label>
+                                {{ filter_form.contrato }}
+                            </div>
+                            <div class="col-12 text-end mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                        id="btn-limpiar-filtros">
+                                    <i class="bi bi-eraser me-1"></i>Limpiar
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-primary" id="btn-aplicar-filtros">
+                                    <i class="bi bi-search me-1"></i>Filtrar
+                                </button>
                             </div>
                         </form>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Código</th>
-                                    <th>Tipo</th>
-                                    <th>Marca / Modelo</th>
-                                    <th>Serie</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for activo_item in page_obj %}
-                                    <tr>
-                                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
-                                        <td class="fw-bold">{{ activo_item.codigo_barra }}</td>
-                                        <td>{{ activo_item.tipo.nombre }}</td>
-                                        <td>{{ activo_item.marca.nombre|default:"-" }}
-                                            / {{ activo_item.modelo.nombre|default:"-" }}</td>
-                                        <td>{{ activo_item.serie|default:"-" }}</td>
-                                        <td class="text-center">
-                                            <a href="?{% query_transform q=activo_item.codigo_barra page=1 %}"
-                                               class="btn btn-outline-info btn-sm me-1" title="Consultar / Movimientos">
-                                                <i class="bi bi-arrow-left-right"></i>
-                                            </a>
-                                            <a href="{% url 'gestion_tic:activo_edit' activo_item.pk %}"
-                                               class="btn btn-outline-primary btn-sm" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            No se encontraron activos registrados.
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer clearfix">
-                        <div class="float-start pt-1 fs-7 text-body-secondary">
-                            Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }}
-                            registros
-                        </div>
-                        {% if is_paginated %}
-                            <ul class="pagination pagination-sm m-0 float-end">
-                                {% if page_obj.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?{% query_transform page=page_obj.previous_page_number %}"
-                                           aria-label="Anterior">«</a>
-                                    </li>
-                                {% endif %}
-
-                                {% for i in paginator.page_range %}
-                                    {% if page_obj.number == i %}
-                                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                        <li class="page-item">
-                                            <a class="page-link"
-                                               href="?{% query_transform page=i %}">{{ i }}</a>
-                                        </li>
-                                    {% endif %}
-                                {% endfor %}
-
-                                {% if page_obj.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?{% query_transform page=page_obj.next_page_number %}"
-                                           aria-label="Siguiente">»</a>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
+        {% endif %}
+
+        <div class="card table-responsive p-0 shadow-sm">
+            {% csrf_token %}
+            <table id="myTable" class="table display w-100"
+                   data-ajax-url="{% url 'gestion_tic:movimientos_activo_list' %}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Marca / Modelo</th>
+                    <th>Serie</th>
+                    <th>Contrato</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+                </thead>
+                <tbody class="p-0">
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-        });
-    </script>
+    <script src="{% static 'gestion_tic/js/movimiento_activo_form.js' %}"></script>
+    <script src="{% static 'gestion_tic/js/movimiento_activo_datatable.js' %}"></script>
 {% endblock %}

@@ -14,7 +14,7 @@ class MovimientoActivoForm(forms.ModelForm):
         empty_label='Seleccione un tipo de movimiento',
         required=True,
         queryset=TipoMovimiento.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'form-select tom-select select2'})
     )
 
     funcionario = forms.ModelChoiceField(
@@ -22,21 +22,22 @@ class MovimientoActivoForm(forms.ModelForm):
         empty_label='Seleccione un funcionario',
         required=False,
         queryset=Funcionario.objects.none(),
-        widget=forms.Select(attrs={'class': 'form-select select2'})
+        widget=forms.Select(attrs={'class': 'form-select tom-select select2'})
     )
 
     ip = forms.ModelChoiceField(
         empty_label='Seleccione una IP',
         required=False,
         queryset=Ips.objects.none(),
-        widget=forms.Select(attrs={'class': 'form-select select2'})
+        widget=forms.Select(attrs={'class': 'form-select tom-select select2'})
     )
 
     jefe_firmante = forms.ModelChoiceField(
+        label='Jefe Firmante',
         empty_label='Seleccione un Firmante',
         required=True,
         queryset=JefeTic.objects.none(),
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'form-select tom-select select2'})
     )
 
     observacion = forms.CharField(

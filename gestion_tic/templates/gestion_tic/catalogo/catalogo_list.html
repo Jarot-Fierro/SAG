@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {% if create_url %}
+        <a href="{{ create_url }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nuevo Registro
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="myTable" class="table display"
+               data-url-edit="{{ edit_url_template }}"
+               data-url-delete="{{ delete_url_template }}"
+               data-resource="{{ resource_type }}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                {% if has_posicion %}
+                    <th>Posición</th>
+                {% endif %}
+                {% if has_file %}
+                    <th>Archivo</th>
+                {% endif %}
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlEditarCatalogo = "{{ edit_url_template }}";
+        const urlEliminarCatalogo = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'gestion_tic/js/catalogo_datatable.js' %}"></script>
+    <script src="{% static 'gestion_tic/js/catalogo_modal.js' %}"></script>
+{% endblock %}

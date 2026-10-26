@@ -1,7 +1,7 @@
 from django import forms
 from django.db import transaction
 
-from gestion_tic.models import Activo, ActivoCaracteristica, CampoTipoActivo
+from gestion_tic.models import Activo, ActivoCaracteristica, CampoTipoActivo, Marca, Modelo, Contrato
 
 
 class ActivoForm(forms.ModelForm):
@@ -16,18 +16,35 @@ class ActivoForm(forms.ModelForm):
         widgets = {
             'codigo_barra': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo': forms.Select(attrs={'class': 'form-select', 'style': 'pointer-events:none;background:#e9ecef;'}),
-            'marca': forms.Select(attrs={'class': 'form-select select2'}),
-            'modelo': forms.Select(attrs={'class': 'form-select select2'}),
+            'marca': forms.Select(attrs={'class': 'form-select tom-select select2'}),
+            'modelo': forms.Select(attrs={'class': 'form-select tom-select select2'}),
             'serie': forms.TextInput(attrs={'class': 'form-control'}),
-            'contrato': forms.Select(attrs={'class': 'form-select select2'}),
+            'contrato': forms.Select(attrs={'class': 'form-select tom-select select2'}),
             'observacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'de_baja': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         tipo_activo = kwargs.pop('tipo_activo', None)
+        establecimiento = kwargs.pop('establecimiento', None)
         super().__init__(*args, **kwargs)
         self.dynamic_fields = []
+
+        if establecimiento:
+            if 'marca' in self.fields:
+                self.fields['marca'].queryset = Marca.objects.filter(establecimiento=establecimiento, is_active=True)
+            if 'modelo' in self.fields:
+                self.fields['modelo'].queryset = Modelo.objects.filter(establecimiento=establecimiento, is_active=True)
+            if 'contrato' in self.fields:
+                self.fields['contrato'].queryset = Contrato.objects.filter(establecimiento=establecimiento,
+                                                                           is_active=True)
+        else:
+            if 'marca' in self.fields:
+                self.fields['marca'].queryset = Marca.objects.filter(is_active=True)
+            if 'modelo' in self.fields:
+                self.fields['modelo'].queryset = Modelo.objects.filter(is_active=True)
+            if 'contrato' in self.fields:
+                self.fields['contrato'].queryset = Contrato.objects.filter(is_active=True)
 
         # Si estamos editando y no se pasó tipo_activo, lo tomamos de la instancia
         if not tipo_activo and self.instance.pk:
@@ -84,7 +101,7 @@ class ActivoForm(forms.ModelForm):
 
                     self.fields[field_name] = forms.ChoiceField(
                         choices=opciones,
-                        widget=forms.Select(attrs={'class': 'form-select select2'}),
+                        widget=forms.Select(attrs={'class': 'form-select tom-select select2'}),
                         **field_kwargs
                     )
 

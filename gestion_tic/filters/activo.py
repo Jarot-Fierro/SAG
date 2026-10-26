@@ -28,7 +28,7 @@ class ActivoFormFilter(forms.ModelForm):
 
         if 'tipo' in self.fields:
             self.fields['tipo'].empty_label = 'Todos los tipos'
-            self.fields['tipo'].widget.attrs.update({'class': 'form-select form-select-sm'})
+            self.fields['tipo'].widget.attrs.update({'class': 'form-select form-select-sm tom-select select2'})
             if establecimiento:
                 self.fields['tipo'].queryset = TipoActivo.objects.filter(establecimiento=establecimiento,
                                                                          is_active=True)
@@ -37,7 +37,7 @@ class ActivoFormFilter(forms.ModelForm):
 
         if 'marca' in self.fields:
             self.fields['marca'].empty_label = 'Todas las marcas'
-            self.fields['marca'].widget.attrs.update({'class': 'form-select form-select-sm'})
+            self.fields['marca'].widget.attrs.update({'class': 'form-select form-select-sm tom-select select2'})
             if establecimiento:
                 self.fields['marca'].queryset = Marca.objects.filter(establecimiento=establecimiento, is_active=True)
             else:
@@ -45,7 +45,7 @@ class ActivoFormFilter(forms.ModelForm):
 
         if 'modelo' in self.fields:
             self.fields['modelo'].empty_label = 'Todos los modelos'
-            self.fields['modelo'].widget.attrs.update({'class': 'form-select form-select-sm'})
+            self.fields['modelo'].widget.attrs.update({'class': 'form-select form-select-sm tom-select select2'})
             if establecimiento:
                 self.fields['modelo'].queryset = Modelo.objects.filter(establecimiento=establecimiento, is_active=True)
             else:
@@ -53,7 +53,7 @@ class ActivoFormFilter(forms.ModelForm):
 
         if 'contrato' in self.fields:
             self.fields['contrato'].empty_label = 'Todos los contratos'
-            self.fields['contrato'].widget.attrs.update({'class': 'form-select form-select-sm'})
+            self.fields['contrato'].widget.attrs.update({'class': 'form-select form-select-sm tom-select select2'})
             if establecimiento:
                 self.fields['contrato'].queryset = Contrato.objects.filter(establecimiento=establecimiento,
                                                                            is_active=True)

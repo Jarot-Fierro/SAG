@@ -22,11 +22,14 @@
             toast: false,
             position: 'center',
             showConfirmButton: false,
-            timer: 1000,
-            timerProgressBar: true,
+            timer: undefined,
+            timerProgressBar: false,
             allowOutsideClick: true,
             allowEscapeKey: true,
-            buttonsStyling: false
+            buttonsStyling: false,
+            didOpen: (popup) => {
+                popup.addEventListener('click', () => Swal.close());
+            }
         });
 
         const titulos = {

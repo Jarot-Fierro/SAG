@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {% if create_url %}
+        <a href="{{ create_url }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nueva Dirección IP
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4 p-3">
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-12 col-md-4">
+                        {% if segmentos_ip %}
+                            <div class="input-group input-group-sm">
+                                <label class="input-group-text bg-light text-secondary" for="segmento-filter">
+                                    <i class="bi bi-diagram-3 me-1"></i>Segmento
+                                </label>
+                                <select id="segmento-filter" class="form-select form-select-sm">
+                                    <option value="">Todos los segmentos</option>
+                                    {% for segmento in segmentos_ip %}
+                                        <option value="{{ segmento }}">{{ segmento }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="table-responsive p-0">
+                    {% csrf_token %}
+                    <table id="myTable" class="table display w-100"
+                           data-url-edit="{{ edit_url_template }}"
+                           data-url-delete="{{ delete_url_template }}"
+                           data-resource="ips">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Dirección IP</th>
+                            <th>Máscara</th>
+                            <th>Gateway</th>
+                            <th>VLAN</th>
+                            <th>Estado</th>
+                            <th>Observación</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody class="p-0">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlEditarIps = "{{ edit_url_template }}";
+        const urlEliminarIps = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'gestion_tic/js/ips_datatable.js' %}"></script>
+    <script src="{% static 'gestion_tic/js/ips_modal.js' %}"></script>
+{% endblock %}

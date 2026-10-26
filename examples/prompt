@@ -1,0 +1,42 @@
+Implementa un mantenedor completo en mi proyecto Django tomando como referencia los ocho archivos examples/`example_*` y sus explicaciones.
+
+Debe incluir un listado DataTables con botones por fila para **editar y desactivar**, un botón para **crear registros**, formularios de creación y actualización con Tom Select donde corresponda, y confirmación de desactivación mediante SweetAlert2 y AJAX POST con CSRF. La desactivación debe ser lógica, sin eliminar físicamente el registro, y actualizar la tabla conservando la paginación.
+
+Replica la estructura y configuración de los ejemplos en archivos propios de la aplicación, con procesamiento DataTables del lado del servidor. Mantén explícitos el queryset, permisos, filtros, ordenamiento, paginación, server-side y guardado en cada vista. No crees nuevas clases base, mixins ni inicializadores compartidos.
+
+**Datos de la implementación:**
+
+- Aplicación y namespace: `[APP / NAMESPACE]`
+- Modelo: `[MODELO]`
+- Vista o funcionalidad que se creará o modificará: `[VISTA / FUNCIONALIDAD]`
+- Nombre base para archivos y rutas: `[RECURSO EN SNAKE_CASE]`
+- Columnas del listado y filtros: `[INDICAR]`
+- Campos del formulario y campos con Tom Select: `[INDICAR]`
+- Permisos y restricciones de acceso: `[INDICAR]`
+- Campo de desactivación: `[CAMPO, POR EJEMPLO is_active]`
+- Flujo adicional al crear: `[INDICAR O NINGUNO]`
+- Flujo adicional al actualizar: `[INDICAR O NINGUNO]`
+- Flujo adicional al desactivar: `[INDICAR O NINGUNO]`
+
+**Nombres obligatorios**, reemplazando únicamente `{recurso}` por el nombre base indicado:
+
+- Listado: `{recurso}_list.html`
+- Formulario de creación y edición: `{recurso}_form.html`
+- JavaScript del listado: `{recurso}_datatable.js`
+- JavaScript del formulario: `{recurso}_form.js`
+- JavaScript de confirmación y desactivación: `{recurso}_modal.js`
+
+Mantén los sufijos completos, especialmente `_datatable.js`, y ubica los archivos dentro de las carpetas de templates y static de la aplicación.
+
+**URLs y nombres:**
+
+| Ruta relativa                | Nombre dentro del namespace |
+| ---------------------------- | --------------------------- |
+| `{recurso}/`                 | `{recurso}_list`            |
+| `{recurso}/crear/`           | `{recurso}_create`          |
+| `{recurso}/<pk>/editar/`     | `{recurso}_update`          |
+| `{recurso}/<pk>/desactivar/` | `{recurso}_deactivate`      |
+
+Adapta el convertidor de `pk` al modelo. Genera las URLs desde Django y pásalas al JavaScript mediante atributos `data-*`.
+
+Revisa el código existente antes de implementar, conserva las reglas de negocio y no modifiques los ejemplos ni otras funcionalidades. Verifica el flujo completo y resume los archivos modificados y las comprobaciones realizadas.

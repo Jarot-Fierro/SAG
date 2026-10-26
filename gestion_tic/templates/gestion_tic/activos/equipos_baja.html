@@ -1,172 +1,129 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load query_tags %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}
+    {{ title }}
+{% endblock %}
 
 {% block sidebar %}
     {% include 'gestion_tic/sidebar.html' %}
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Activos Disponibles -->
-            <div class="col-md-6">
-                <div class="card card-outline card-info shadow-sm">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="bi bi-list-check"></i> Equipos Disponibles</h3>
+    <div class="container-fluid py-2">
+        <div class="row g-3">
+            <!-- Columna Izquierda: Activos Disponibles -->
+            <div class="col-lg-7">
+                <div class="card card-outline card-primary shadow-sm h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-check me-1 text-primary"></i> Equipos Disponibles
+                        </h5>
+                        <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseFiltrosBaja" aria-expanded="false"
+                                aria-controls="collapseFiltrosBaja">
+                            <i class="bi bi-funnel me-1"></i> Filtros
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <form method="get" action="{% url 'gestion_tic:equipos_baja' %}" class="mb-3">
-                            <div class="input-group">
-                                <input type="text" name="q" class="form-control"
-                                       placeholder="Filtrar por código de barras..." value="{{ q }}">
-                                <button class="btn btn-info" type="submit">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                                {% if q %}
-                                    <a href="{% url 'gestion_tic:equipos_baja' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </form>
-
-                        {% if page_obj %}
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover table-striped">
-                                    <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Tipo / Marca</th>
-                                        <th class="text-center">Acción</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for activo in page_obj %}
-                                        <tr>
-                                            <td>{{ activo.codigo_barra }}</td>
-                                            <td>
-                                                {{ activo.tipo.nombre }} -
-                                                <small class="text-muted">
-                                                    / {{ activo.serie|default:"-" }}
-                                                    / {{ activo.marca.nombre|default:"-" }}
-                                                    / {{ activo.modelo.nombre|default:"-" }}
-
-                                                </small>
-                                            </td>
-                                            <td class="text-center">
-                                                <form method="post" style="display:inline;">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="activo_id" value="{{ activo.id }}">
-                                                    <input type="hidden" name="action" value="add">
-                                                    <button type="submit" class="btn btn-success btn-sm"
-                                                            title="Agregar al carrito">
-                                                        <i class="bi bi-plus-circle"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="card-footer clearfix">
-                                <div class="float-start pt-1 fs-7 text-body-secondary">
-                                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }}
-                                    de {{ paginator.count }}
-                                    registros
+                    <div class="collapse show" id="collapseFiltrosBaja">
+                        <div class="card-body py-2 border-bottom bg-light">
+                            <form id="filter-form" class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1 fw-bold">Código de barra</label>
+                                    {{ filter_form.codigo_barra }}
                                 </div>
-                                {% if is_paginated %}
-                                    <ul class="pagination pagination-sm m-0 float-end">
-                                        {% if page_obj.has_previous %}
-                                            <li class="page-item">
-                                                <a class="page-link"
-                                                   href="?{% query_transform page=page_obj.previous_page_number %}"
-                                                   aria-label="Anterior">«</a>
-                                            </li>
-                                        {% endif %}
-
-                                        {% for i in paginator.page_range %}
-                                            {% if page_obj.number == i %}
-                                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                                <li class="page-item">
-                                                    <a class="page-link"
-                                                       href="?{% query_transform page=i %}">{{ i }}</a>
-                                                </li>
-                                            {% endif %}
-                                        {% endfor %}
-
-                                        {% if page_obj.has_next %}
-                                            <li class="page-item">
-                                                <a class="page-link"
-                                                   href="?{% query_transform page=page_obj.next_page_number %}"
-                                                   aria-label="Siguiente">»</a>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
-                                {% endif %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted mt-3">
-                                {% if q %}
-                                    No se encontraron equipos con el código "{{ q }}".
-                                {% else %}
-                                    No hay más equipos disponibles para dar de baja.
-                                {% endif %}
-                            </p>
-                        {% endif %}
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1 fw-bold">Serie</label>
+                                    {{ filter_form.serie }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1 fw-bold">Tipo</label>
+                                    {{ filter_form.tipo }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1 fw-bold">Marca</label>
+                                    {{ filter_form.marca }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-1 fw-bold">Modelo</label>
+                                    {{ filter_form.modelo }}
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end justify-content-end gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            id="btn-limpiar-filtros">
+                                        <i class="bi bi-eraser me-1"></i>Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary" id="btn-aplicar-filtros">
+                                        <i class="bi bi-search me-1"></i>Filtrar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            {% csrf_token %}
+                            <table id="myTable" class="table display w-100"
+                                   data-ajax-url="{% url 'gestion_tic:equipos_baja' %}">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Código</th>
+                                    <th>Tipo</th>
+                                    <th>Marca / Modelo</th>
+                                    <th>Serie</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Carrito de Bajas -->
-            <div class="col-md-6">
-                <div class="card card-outline card-warning shadow-sm">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="card-title"><i class="bi bi-cart-fill"></i> Equipos Seleccionados
-                            ({{ activos_carrito.count }})</h3>
-                        {% if activos_carrito %}
-                            <form method="post" style="display:inline;"
-                                  onsubmit="return confirm('¿Vaciar el carrito?')">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="clear">
-                                <button type="submit" class="btn btn-link btn-sm text-danger p-0">Vaciar</button>
-                            </form>
-                        {% endif %}
+            <!-- Columna Derecha: Carrito de Bajas -->
+            <div class="col-lg-5">
+                <div class="card card-outline card-danger shadow-sm h-100 d-flex flex-column">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-cart-x me-1 text-danger"></i> Equipos Seleccionados (<span
+                                id="cart-counter">{{ activos_carrito.count }}</span>)
+                        </h5>
+                        <button type="button"
+                                class="btn btn-link btn-sm text-danger p-0 text-decoration-none {% if not activos_carrito %}d-none{% endif %}"
+                                id="btn-vaciar-carrito">
+                            <i class="bi bi-trash3 me-1"></i>Vaciar
+                        </button>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card-body p-0 flex-grow-1 overflow-auto" style="max-height: 520px;">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead>
+                            <table class="table table-hover table-striped mb-0 align-middle" id="tabla-carrito">
+                                <thead class="table-light">
                                 <tr>
                                     <th>Código</th>
                                     <th>Tipo / Marca</th>
-                                    <th class="text-center">Quitar</th>
+                                    <th class="text-center" style="width: 70px;">Quitar</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tbody-carrito">
                                 {% for activo in activos_carrito %}
-                                    <tr>
-                                        <td>{{ activo.codigo_barra }}</td>
-                                        <td>{{ activo.tipo.nombre }} / {{ activo.marca.nombre|default:"-" }}</td>
+                                    <tr id="cart-row-{{ activo.id }}">
+                                        <td class="fw-bold">{{ activo.codigo_barra }}</td>
+                                        <td>{{ activo.tipo.nombre|default:"-" }}
+                                            / {{ activo.marca.nombre|default:"-" }}</td>
                                         <td class="text-center">
-                                            <form method="post" style="display:inline;">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="activo_id" value="{{ activo.id }}">
-                                                <input type="hidden" name="action" value="remove">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-cart"
+                                                    data-id="{{ activo.id }}" title="Quitar del carrito">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 {% empty %}
-                                    <tr>
+                                    <tr id="cart-empty-row">
                                         <td colspan="3" class="text-center py-4 text-muted">
-                                            No hay equipos seleccionados.
+                                            No hay equipos seleccionados en el carrito.
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -174,20 +131,19 @@
                             </table>
                         </div>
                     </div>
-                    {% if activos_carrito %}
-                        <div class="card-footer">
-                            <form method="post"
-                                  onsubmit="return confirm('¿Estás seguro de dar de baja masivamente estos equipos?')">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="procesar">
-                                <button type="submit" class="btn btn-danger btn-block w-100">
-                                    <i class="bi bi-arrow-down-circle"></i> Procesar Baja Masiva
-                                </button>
-                            </form>
-                        </div>
-                    {% endif %}
+                    <div class="card-footer bg-light p-3 {% if not activos_carrito %}d-none{% endif %}"
+                         id="cart-footer">
+                        <button type="button" class="btn btn-danger w-100" id="btn-procesar-baja">
+                            <i class="bi bi-arrow-down-circle me-1"></i> Procesar Baja Masiva
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'gestion_tic/js/equipos_baja_modal.js' %}"></script>
+    <script src="{% static 'gestion_tic/js/equipos_baja_datatable.js' %}"></script>
 {% endblock %}

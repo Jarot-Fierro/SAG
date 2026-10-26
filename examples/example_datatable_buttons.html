@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Agenda Telefónica {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'anexos/components/menu_sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'agenda:crear_anexo' %}" class="btn btn-primary btn-sm">Nuevo Anexo</a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="myTable" class="table display "
+               data-url-edit="{% url 'agenda:editar_anexo' 0 %}"
+               data-url-delete="{% url 'agenda:eliminar_anexo' 0 %}">
+            <thead>
+            <tr>
+                <th>Anexo</th>
+                <th>Público</th>
+                <th>Teléfono</th>
+                <th>Nombres</th>
+                <th>Correo</th>
+                <th>Depto</th>
+                <th>Dirección</th>
+                <th>Cargo</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        const urlEditarAnexo = "{% url 'agenda:editar_anexo' 0 %}";
+        const urlEliminarAnexo = "{% url 'agenda:eliminar_anexo' 0 %}";
+    </script>
+    <script src="{% static 'agenda_telefonica/js/list_edit_anexos_datatable.js' %}"></script>
+    <script src="{% static 'agenda_telefonica/js/list_edit_anexos_modal.js' %}"></script>
+{% endblock %}

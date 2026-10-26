@@ -14,44 +14,67 @@ urlpatterns = [
          name='generar_acta_activo_personalizada'),
 
     # Activos
-    path('activos/', activos.activo_list, name='activo_list'),
-    path('activos/nuevo/', activos.activo_create, name='activo_create'),
-    path('activos/editar/<int:pk>/', activos.activo_edit, name='activo_edit'),
+    path('activo/', activos.ActivoListView.as_view(), name='activo_list'),
+    path('activo/crear/', activos.ActivoCreateView.as_view(), name='activo_create'),
+    path('activo/<int:pk>/editar/', activos.ActivoUpdateView.as_view(), name='activo_update'),
+    path('activo/<int:pk>/desactivar/', activos.activo_desactivar, name='activo_deactivate'),
+    path('activos/', activos.ActivoListView.as_view()),
+    path('activos/nuevo/', activos.ActivoCreateView.as_view()),
+    path('activos/editar/<int:pk>/', activos.ActivoUpdateView.as_view(), name='activo_edit'),
+    path('activo/desactivar/<int:pk>/', activos.activo_desactivar, name='activo_delete'),
 
     # Marca
     path('catalogo/marca/', catalogo.MarcaListView.as_view(), name='marca_list'),
-    path('catalogo/marca/nuevo/', catalogo.MarcaCreateView.as_view(), name='marca_create'),
-    path('catalogo/marca/editar/<int:pk>/', catalogo.MarcaUpdateView.as_view(), name='marca_update'),
+    path('catalogo/marca/crear/', catalogo.MarcaCreateView.as_view(), name='marca_create'),
+    path('catalogo/marca/<int:pk>/editar/', catalogo.MarcaUpdateView.as_view(), name='marca_update'),
+    path('catalogo/marca/<int:pk>/desactivar/', catalogo.marca_desactivar, name='marca_deactivate'),
+    path('catalogo/marca/nuevo/', catalogo.MarcaCreateView.as_view()),
+    path('catalogo/marca/editar/<int:pk>/', catalogo.MarcaUpdateView.as_view()),
     path('catalogo/marca/desactivar/<int:pk>/', catalogo.marca_desactivar, name='marca_delete'),
 
     # Ips
     path('catalogo/ips/', catalogo.IpsListView.as_view(), name='ips_list'),
-    path('catalogo/ips/nuevo/', catalogo.IpsCreateView.as_view(), name='ips_create'),
-    path('catalogo/ips/editar/<int:pk>/', catalogo.IpsUpdateView.as_view(), name='ips_update'),
+    path('catalogo/ips/crear/', catalogo.IpsCreateView.as_view(), name='ips_create'),
+    path('catalogo/ips/<int:pk>/editar/', catalogo.IpsUpdateView.as_view(), name='ips_update'),
+    path('catalogo/ips/<int:pk>/desactivar/', catalogo.ips_desactivar, name='ips_deactivate'),
+    path('catalogo/ips/nuevo/', catalogo.IpsCreateView.as_view()),
+    path('catalogo/ips/editar/<int:pk>/', catalogo.IpsUpdateView.as_view()),
     path('catalogo/ips/desactivar/<int:pk>/', catalogo.ips_desactivar, name='ips_delete'),
 
     # JefeTic
     path('catalogo/jefetic/', catalogo.JefeTicListView.as_view(), name='jefetic_list'),
-    path('catalogo/jefetic/nuevo/', catalogo.JefeTicCreateView.as_view(), name='jefetic_create'),
-    path('catalogo/jefetic/editar/<int:pk>/', catalogo.JefeTicUpdateView.as_view(), name='jefetic_update'),
+    path('catalogo/jefetic/crear/', catalogo.JefeTicCreateView.as_view(), name='jefetic_create'),
+    path('catalogo/jefetic/<int:pk>/editar/', catalogo.JefeTicUpdateView.as_view(), name='jefetic_update'),
+    path('catalogo/jefetic/<int:pk>/desactivar/', catalogo.jefetic_desactivar, name='jefetic_deactivate'),
+    path('catalogo/jefetic/nuevo/', catalogo.JefeTicCreateView.as_view()),
+    path('catalogo/jefetic/editar/<int:pk>/', catalogo.JefeTicUpdateView.as_view()),
     path('catalogo/jefetic/desactivar/<int:pk>/', catalogo.jefetic_desactivar, name='jefetic_delete'),
 
     # Modelo
     path('catalogo/modelo/', catalogo.ModeloListView.as_view(), name='modelo_list'),
-    path('catalogo/modelo/nuevo/', catalogo.ModeloCreateView.as_view(), name='modelo_create'),
-    path('catalogo/modelo/editar/<int:pk>/', catalogo.ModeloUpdateView.as_view(), name='modelo_update'),
+    path('catalogo/modelo/crear/', catalogo.ModeloCreateView.as_view(), name='modelo_create'),
+    path('catalogo/modelo/<int:pk>/editar/', catalogo.ModeloUpdateView.as_view(), name='modelo_update'),
+    path('catalogo/modelo/<int:pk>/desactivar/', catalogo.modelo_desactivar, name='modelo_deactivate'),
+    path('catalogo/modelo/nuevo/', catalogo.ModeloCreateView.as_view()),
+    path('catalogo/modelo/editar/<int:pk>/', catalogo.ModeloUpdateView.as_view()),
     path('catalogo/modelo/desactivar/<int:pk>/', catalogo.modelo_desactivar, name='modelo_delete'),
 
     # Propietario
     path('catalogo/propietario/', catalogo.PropietarioListView.as_view(), name='propietario_list'),
-    path('catalogo/propietario/nuevo/', catalogo.PropietarioCreateView.as_view(), name='propietario_create'),
-    path('catalogo/propietario/editar/<int:pk>/', catalogo.PropietarioUpdateView.as_view(), name='propietario_update'),
+    path('catalogo/propietario/crear/', catalogo.PropietarioCreateView.as_view(), name='propietario_create'),
+    path('catalogo/propietario/<int:pk>/editar/', catalogo.PropietarioUpdateView.as_view(), name='propietario_update'),
+    path('catalogo/propietario/<int:pk>/desactivar/', catalogo.propietario_desactivar, name='propietario_deactivate'),
+    path('catalogo/propietario/nuevo/', catalogo.PropietarioCreateView.as_view()),
+    path('catalogo/propietario/editar/<int:pk>/', catalogo.PropietarioUpdateView.as_view()),
     path('catalogo/propietario/desactivar/<int:pk>/', catalogo.propietario_desactivar, name='propietario_delete'),
 
     # Contrato
     path('catalogo/contrato/', catalogo.ContratoListView.as_view(), name='contrato_list'),
-    path('catalogo/contrato/nuevo/', catalogo.ContratoCreateView.as_view(), name='contrato_create'),
-    path('catalogo/contrato/editar/<int:pk>/', catalogo.ContratoUpdateView.as_view(), name='contrato_update'),
+    path('catalogo/contrato/crear/', catalogo.ContratoCreateView.as_view(), name='contrato_create'),
+    path('catalogo/contrato/<int:pk>/editar/', catalogo.ContratoUpdateView.as_view(), name='contrato_update'),
+    path('catalogo/contrato/<int:pk>/desactivar/', catalogo.contrato_desactivar, name='contrato_deactivate'),
+    path('catalogo/contrato/nuevo/', catalogo.ContratoCreateView.as_view()),
+    path('catalogo/contrato/editar/<int:pk>/', catalogo.ContratoUpdateView.as_view()),
     path('catalogo/contrato/desactivar/<int:pk>/', catalogo.contrato_desactivar, name='contrato_delete'),
 
     # Tipo Activo

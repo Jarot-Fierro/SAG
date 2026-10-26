@@ -160,15 +160,12 @@ class FormJefeTic(forms.ModelForm):
             ('JEFE DPTO MNT', 'JEFE DPTO MNT'),
             ('JEFE(S) DPTO MNT', 'JEFE(S) DPTO MNT'),
             ('SUBROGANTE DPTO MNT', 'SUBROGANTE DPTO MNT'),
-
         ],
         widget=forms.Select(
             attrs={
-                'id': 'nombre_categoria',
-                'class': 'form-control',
-                'placeholder': '',
-                'minlength': '1',
-                'maxlength': '100'
+                'id': 'posicion_jefetic',
+                'class': 'form-select tom-select',
+                'placeholder': 'Seleccione una posición',
             }),
         required=True
     )
