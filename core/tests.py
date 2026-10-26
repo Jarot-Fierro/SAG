@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from core.models.establecimientos import Establecimiento
 from core.models.usuarios import User
-from core.standard.views import StandardBaseView, StandardListView
+from core.standard.views import StandardBaseView, StandardListView, StandardDeleteView
 
 
 class DummyModel:
@@ -100,6 +100,42 @@ class StandardViewURLTests(TestCase):
         self.assertEqual(context['list_url'], reverse('core:establecimiento_list'))
         self.assertEqual(context['create_url'], reverse('core:establecimiento_create'))
         self.assertEqual(context['q'], 'test')
+
+    def test_standard_delete_view_context_data_and_get_success_url(self):
+        class TestDeleteView(StandardDeleteView):
+            model = Establecimiento
+            list_url_name = 'core:establecimiento_list'
+
+        view = TestDeleteView()
+        request = self.factory.get('/')
+        request.user = self.user
+        view.setup(request)
+        view.object = self.establecimiento
+
+        context = view.get_context_data()
+        self.assertEqual(context['action'], 'delete')
+        self.assertEqual(view.get_success_url(), reverse('core:establecimiento_list'))
+
+    def test_standard_delete_view_soft_delete(self):
+        class TestSoftDeleteView(StandardDeleteView):
+            model = Establecimiento
+            list_url_name = 'core:establecimiento_list'
+
+        view = TestSoftDeleteView()
+        request = self.factory.post('/')
+        request.user = self.user
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        setattr(request, 'session', {})
+        setattr(request, '_messages', FallbackStorage(request))
+
+        view.setup(request, pk=self.establecimiento.pk)
+        view.object = self.establecimiento
+        response = view.delete(request, pk=self.establecimiento.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('core:establecimiento_list'))
+        self.establecimiento.refresh_from_db()
+        self.assertFalse(self.establecimiento.is_active)
 
 
 class LoginViewTests(TestCase):

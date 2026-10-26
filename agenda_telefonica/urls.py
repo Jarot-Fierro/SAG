@@ -5,21 +5,9 @@ from agenda_telefonica import views
 app_name = 'agenda'
 
 urlpatterns = [
-    # path('', views.index, name='index'),
-    path('buscar/', views.buscar_anexo, name='buscar_anexo'),
-    path('anexos/', views.anexos_view, name='anexos'),
-    path('anexos/nuevo/', views.anexos_view, name='anexo_nuevo'),
-    path('anexos/sin-funcionario/', views.anexos_sin_funcionario_view, name='anexos_sin_funcionario'),
-    path('anexos/pdf/', views.anexos_pdf_view, name='anexos_pdf'),
-    path('anexos/editar/<int:pk>/', views.anexos_view, name='anexo_editar'),
-    path('anexos/sin-funcionario/editar/<int:pk>/', views.anexos_sin_funcionario_view,
-         name='anexo_sin_funcionario_editar'),
-    path('anexos/eliminar/<int:pk>/', views.anexo_delete_view, name='anexo_delete'),
-
     path('', views.IndexView.as_view(), name='list_anexos'),
-    path('listado-anexos-edit', views.AnexoEditListView.as_view(), name='list_anexos_edit'),
-
-    path('mantenedores/<str:tipo>/', views.mantenedores_list_view, name='mantenedores'),
-    path('mantenedores/<str:tipo>/nuevo/', views.mantenedores_create_view, name='mantenedores_create'),
-    path('mantenedores/<str:tipo>/editar/<int:pk>/', views.mantenedores_update_view, name='mantenedores_update'),
+    path('listado-anexos-edit', views.ListEditAnexosView.as_view(), name='list_anexos_edit'),
+    path('crear-anexo', views.AnexosCreateView.as_view(), name='crear_anexo'),
+    path('editar-anexo/<int:pk>/', views.AnexosUpdateView.as_view(), name='editar_anexo'),
+    path('eliminar-anexo/<int:pk>/', views.anexos_eliminar, name='eliminar_anexo'),
 ]

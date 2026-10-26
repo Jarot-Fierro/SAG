@@ -26,6 +26,7 @@ class AnexoAdmin(StandardAdmin):
         'funcionario__rut',
         'funcionario__nombres',
     )
+    list_filter = ('is_active', 'establecimiento',)
     autocomplete_fields = ('funcionario',)
 
 
@@ -71,10 +72,23 @@ class PerfilAgendaAdmin(StandardAdmin):
     filter_horizontal = ('unidad_organizacional',)
     list_display_links = ('usuario',)
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        field = super().formfield_for_manytomany(
+            db_field, request, **kwargs
+        )
+
+        if db_field.name == 'unidad_organizacional':
+            field.label_from_instance = lambda unidad: (
+                f'{unidad.establecimiento} > {unidad.get_jerarquia()}'
+            )
+
+        return field
+
     @admin.display(description='Unidades organizacionales')
     def mostrar_unidades(self, obj):
         return ', '.join(
-            unidad.nombre
+            # str(unidad)
+            str(unidad.pk)
             for unidad in obj.unidad_organizacional.all()
         ) or 'Sin asignar'
 

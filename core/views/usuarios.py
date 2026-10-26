@@ -47,6 +47,8 @@ def login_view(request):
                 # Si no marca recuérdame, la sesión expira al cerrar el navegador
                 request.session.set_expiry(0)
 
+            messages.success(request, 'Inicio de sesión exitoso')
+
             return redirect(next_url)
         else:
             messages.error(request, 'Credenciales invalidas')

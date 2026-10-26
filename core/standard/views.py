@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, NoReverseMatch
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
 
 class StandardBaseView(LoginRequiredMixin):
@@ -184,6 +184,50 @@ class StandardUpdateView(StandardBaseView, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['action'] = 'edit'
+        context['module_name'] = getattr(self, 'module_name', self.title)
+        return context
+
+
+class StandardDeleteView(StandardBaseView, DeleteView):
+    template_name = 'mantenedores/confirm_delete.html'
+    soft_delete = True
+
+    def get_success_url(self):
+        if self.success_url:
+            return str(self.success_url)
+        list_url = self.get_list_url()
+        if list_url and list_url != '#':
+            return list_url
+        return super().get_success_url()
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        self.perform_destroy(self.object)
+        return redirect(success_url)
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.perform_destroy(self.object)
+        return redirect(success_url)
+
+    def perform_destroy(self, instance):
+        if self.soft_delete and (hasattr(instance, 'is_active') or hasattr(instance, 'activo')):
+            if hasattr(instance, 'is_active'):
+                instance.is_active = False
+            elif hasattr(instance, 'activo'):
+                instance.activo = False
+            if hasattr(instance, 'updated_by'):
+                instance.updated_by = self.request.user
+            instance.save()
+            messages.success(self.request, f'{self.model._meta.verbose_name} desactivado correctamente.')
+        else:
+            instance.delete()
+            messages.success(self.request, f'{self.model._meta.verbose_name} eliminado correctamente.')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'delete'
         context['module_name'] = getattr(self, 'module_name', self.title)
         return context
 

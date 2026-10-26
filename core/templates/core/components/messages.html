@@ -1,26 +1,54 @@
-{% if messages %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof Swal === 'undefined') {
+            console.warn('SweetAlert2 no está cargado.');
+            return;
+        }
 
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                }
-            });
+        // Mapeo seguro de tags de Django messages a iconos de SweetAlert2
+        function resolveSwalIcon(tags) {
+            if (!tags) return 'info';
+            const t = String(tags).toLowerCase();
+            if (t.includes('error') || t.includes('danger')) return 'error';
+            if (t.includes('success')) return 'success';
+            if (t.includes('warning')) return 'warning';
+            if (t.includes('info')) return 'info';
+            if (t.includes('question')) return 'question';
+            return 'info';
+        }
 
-            {% for message in messages %}
-                Toast.fire({
-                    icon: "{{ message.tags }}",
-                    title: "{{ message|escapejs }}"
-                });
-            {% endfor %}
-
+        // Configuración estándar de Toasts (Notificaciones en la esquina superior derecha)
+        window.Toast = Swal.mixin({
+            toast: false,
+            position: 'center',
+            showConfirmButton: false,
+            timer: 1000,
+            timerProgressBar: true,
+            allowOutsideClick: true,
+            allowEscapeKey: true,
+            buttonsStyling: false
         });
-    </script>
-{% endif %}
+
+        const titulos = {
+            success: 'Mensaje de éxito',
+            error: 'Mensaje de error',
+            warning: 'Advertencia',
+            info: 'Información',
+            question: 'Confirmación'
+        };
+
+        {% if messages %}
+            {% for message in messages %}
+                {
+                    const icono = resolveSwalIcon("{{ message.tags|escapejs }}");
+
+                    window.Toast.fire({
+                        icon: icono,
+                        title: titulos[icono] || 'Notificación',
+                        text: "{{ message|escapejs }}"
+                    });
+                }
+            {% endfor %}
+        {% endif %}
+    });
+</script>

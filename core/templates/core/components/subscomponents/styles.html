@@ -36,6 +36,8 @@
 <link rel="stylesheet" href="{% static 'core/css/adminlte.css' %}"/>
 <!--end::Required Plugin(AdminLTE)-->
 
+<link rel="stylesheet" href="{% static 'core/css/sweetalert2.min.css' %}">
+
 <!-- apexcharts -->
 <link
         rel="stylesheet"
@@ -52,8 +54,6 @@
         crossorigin="anonymous"
 />
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -64,7 +64,7 @@
 <!-- Tom Select -->
 <!-- Tom Select - Bootstrap 5 -->
 <link
-        href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.css"
+        href="{% static 'core/css/tom-select.bootstrap5.min.css' %}"
         rel="stylesheet"
 >
 <style>
@@ -180,4 +180,7 @@
     }
 
     /* TERMINO DE DATATABLE STYLES*/
+
+
+    /* TERMINO DE TOM SELECT STYLES*/
 </style>

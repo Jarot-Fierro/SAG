@@ -11,8 +11,8 @@ def user_editor_module(view_func):
             messages.error(request, "Debe iniciar sesión para acceder a este módulo.")
             return redirect(f'/usuarios/login/?next={request.path}')
 
-        if request.user.is_superuser:
-            return view_func(request, *args, **kwargs)
+        # if request.user.is_superuser:
+        #     return view_func(request, *args, **kwargs)
 
         perfil = getattr(request.user, 'perfilagenda', None)
         if not perfil:

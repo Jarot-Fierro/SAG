@@ -17,6 +17,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="{% static 'core/js/sweetalert2.all.min.js' %}"></script>
 
 <!--begin::Required Plugin(AdminLTE)-->
 <script src="{% static 'core/js/adminlte.js' %}"></script>
@@ -27,12 +28,7 @@
 <script src="{% static 'core/js/datatables.js' %}"></script>
 
 <!-- Tom Select -->
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
-<script>
-        document.querySelectorAll('.tom-select').forEach((el) => {
-            new TomSelect(el);
-        });
-    </script>
+<script src="{% static 'core/js/tom-select.complete.min.js' %}"></script>
 <script>
     const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
     const Default = {
@@ -127,350 +123,156 @@
 </script>
 <!--end::Color Mode Toggle-->
 
-<!-- OPTIONAL SCRIPTS -->
-
-{#<!-- sortablejs -->#}
-{#<script#}
-{#        src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"#}
-{#        crossorigin="anonymous"#}
-{#></script>#}
-
-{#<!-- sortablejs -->#}
-{#<script>#}
-{#    new Sortable(document.querySelector('.connectedSortable'), {#}
-{#        group: 'shared',#}
-{#        handle: '.card-header',#}
-{#    });#}
-{##}
-{#    const cardHeaders = document.querySelectorAll('.connectedSortable .card-header');#}
-{#    cardHeaders.forEach((cardHeader) => {#}
-{#        cardHeader.style.cursor = 'move';#}
-{#    });#}
-{#</script>#}
-
-{#<!-- apexcharts -->#}
-{#<script#}
-{#        src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"#}
-{#        integrity="sha256-+vh8GkaU7C9/wbSLIcwq82tQ2wTf44aOHA8HlBMwRI8="#}
-{#        crossorigin="anonymous"#}
-{#></script>#}
-
-{#<!-- ChartJS -->#}
-{#<script>#}
-{#    // NOTICE!! DO NOT USE ANY OF THIS JAVASCRIPT#}
-{#    // IT'S ALL JUST JUNK FOR DEMO#}
-{#    // ++++++++++++++++++++++++++++++++++++++++++#}
-{##}
-{#    const sales_chart_options = {#}
-{#        series: [#}
-{#            {#}
-{#                name: 'Digital Goods',#}
-{#                data: [28, 48, 40, 19, 86, 27, 90],#}
-{#            },#}
-{#            {#}
-{#                name: 'Electronics',#}
-{#                data: [65, 59, 80, 81, 56, 55, 40],#}
-{#            },#}
-{#        ],#}
-{#        chart: {#}
-{#            height: 300,#}
-{#            type: 'area',#}
-{#            toolbar: {#}
-{#                show: false,#}
-{#            },#}
-{#        },#}
-{#        legend: {#}
-{#            show: false,#}
-{#        },#}
-{#        colors: ['#0d6efd', '#20c997'],#}
-{#        dataLabels: {#}
-{#            enabled: false,#}
-{#        },#}
-{#        stroke: {#}
-{#            curve: 'smooth',#}
-{#        },#}
-{#        xaxis: {#}
-{#            type: 'datetime',#}
-{#            categories: [#}
-{#                '2023-01-01',#}
-{#                '2023-02-01',#}
-{#                '2023-03-01',#}
-{#                '2023-04-01',#}
-{#                '2023-05-01',#}
-{#                '2023-06-01',#}
-{#                '2023-07-01',#}
-{#            ],#}
-{#        },#}
-{#        tooltip: {#}
-{#            x: {#}
-{#                format: 'MMMM yyyy',#}
-{#            },#}
-{#        },#}
-{#    };#}
-{##}
-{#    const sales_chart = new ApexCharts(#}
-{#        document.querySelector('#revenue-chart'),#}
-{#        sales_chart_options,#}
-{#    );#}
-{#    sales_chart.render();#}
-{#</script>#}
-
-{#<!-- jsvectormap -->#}
-{#<script#}
-{#        src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"#}
-{#        integrity="sha256-/t1nN2956BT869E6H4V1dnt0X5pAQHPytli+1nTZm2Y="#}
-{#        crossorigin="anonymous"#}
-{#></script>#}
-{#<script#}
-{#        src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"#}
-{#        integrity="sha256-XPpPaZlU8S/HWf7FZLAncLg2SAkP8ScUTII89x9D3lY="#}
-{#        crossorigin="anonymous"#}
-{#></script>#}
-{##}
-{#<!-- jsvectormap -->#}
-{#<script>#}
-{#    // World map by jsVectorMap#}
-{#    new jsVectorMap({#}
-{#        selector: '#world-map',#}
-{#        map: 'world',#}
-{#    });#}
-{##}
-{#    // Sparkline charts#}
-{#    const option_sparkline1 = {#}
-{#        series: [#}
-{#            {#}
-{#                data: [1000, 1200, 920, 927, 931, 1027, 819, 930, 1021],#}
-{#            },#}
-{#        ],#}
-{#        chart: {#}
-{#            type: 'area',#}
-{#            height: 50,#}
-{#            sparkline: {#}
-{#                enabled: true,#}
-{#            },#}
-{#        },#}
-{#        stroke: {#}
-{#            curve: 'straight',#}
-{#        },#}
-{#        fill: {#}
-{#            opacity: 0.3,#}
-{#        },#}
-{#        yaxis: {#}
-{#            min: 0,#}
-{#        },#}
-{#        colors: ['#DCE6EC'],#}
-{#    };#}
-{##}
-{#    const sparkline1 = new ApexCharts(document.querySelector('#sparkline-1'), option_sparkline1);#}
-{#    sparkline1.render();#}
-{##}
-{#    const option_sparkline2 = {#}
-{#        series: [#}
-{#            {#}
-{#                data: [515, 519, 520, 522, 652, 810, 370, 627, 319, 630, 921],#}
-{#            },#}
-{#        ],#}
-{#        chart: {#}
-{#            type: 'area',#}
-{#            height: 50,#}
-{#            sparkline: {#}
-{#                enabled: true,#}
-{#            },#}
-{#        },#}
-{#        stroke: {#}
-{#            curve: 'straight',#}
-{#        },#}
-{#        fill: {#}
-{#            opacity: 0.3,#}
-{#        },#}
-{#        yaxis: {#}
-{#            min: 0,#}
-{#        },#}
-{#        colors: ['#DCE6EC'],#}
-{#    };#}
-{##}
-{#    const sparkline2 = new ApexCharts(document.querySelector('#sparkline-2'), option_sparkline2);#}
-{#    sparkline2.render();#}
-{##}
-{#    const option_sparkline3 = {#}
-{#        series: [#}
-{#            {#}
-{#                data: [15, 19, 20, 22, 33, 27, 31, 27, 19, 30, 21],#}
-{#            },#}
-{#        ],#}
-{#        chart: {#}
-{#            type: 'area',#}
-{#            height: 50,#}
-{#            sparkline: {#}
-{#                enabled: true,#}
-{#            },#}
-{#        },#}
-{#        stroke: {#}
-{#            curve: 'straight',#}
-{#        },#}
-{#        fill: {#}
-{#            opacity: 0.3,#}
-{#        },#}
-{#        yaxis: {#}
-{#            min: 0,#}
-{#        },#}
-{#        colors: ['#DCE6EC'],#}
-{#    };#}
-{##}
-{#    const sparkline3 = new ApexCharts(document.querySelector('#sparkline-3'), option_sparkline3);#}
-{#    sparkline3.render();#}
-{#</script>#}
-
 <script>
-class RutValidator {
+    class RutValidator {
 
-    constructor(selector = '.id_rut') {
-        this.selector = selector;
-        this.init();
-    }
+        constructor(selector = '.id_rut') {
+            this.selector = selector;
+            this.init();
+        }
 
-    init() {
-        $(document).on('input', this.selector, (e) => {
-            const input = e.currentTarget;
+        init() {
+            $(document).on('input', this.selector, (e) => {
+                const input = e.currentTarget;
 
-            let cursorPosition = input.selectionStart;
-            let originalLength = input.value.length;
+                let cursorPosition = input.selectionStart;
+                let originalLength = input.value.length;
 
-            // Formatear
-            input.value = this.format(input.value);
+                // Formatear
+                input.value = this.format(input.value);
 
-            // Mantener posición del cursor
-            const newLength = input.value.length;
-            cursorPosition += newLength - originalLength;
+                // Mantener posición del cursor
+                const newLength = input.value.length;
+                cursorPosition += newLength - originalLength;
 
-            input.setSelectionRange(cursorPosition, cursorPosition);
-        });
+                input.setSelectionRange(cursorPosition, cursorPosition);
+            });
 
-        $(document).on('blur', this.selector, (e) => {
-            const input = e.currentTarget;
-            const rut = input.value;
+            $(document).on('blur', this.selector, (e) => {
+                const input = e.currentTarget;
+                const rut = input.value;
 
-            if (!rut) {
-                this.setStatus(input, null);
-                return;
+                if (!rut) {
+                    this.setStatus(input, null);
+                    return;
+                }
+
+                if (this.isValid(rut)) {
+                    input.value = this.format(rut);
+                    this.setStatus(input, true);
+                } else {
+                    this.setStatus(input, false);
+                }
+            });
+        }
+
+        /**
+         * Formatea un RUT
+         * Ejemplo:
+         * 209300559 -> 20.930.055-9
+         */
+        format(rut) {
+
+            let value = rut
+                .replace(/[^\dkK]/g, '')
+                .toUpperCase();
+
+            if (value.length <= 1) {
+                return value;
             }
 
-            if (this.isValid(rut)) {
-                input.value = this.format(rut);
-                this.setStatus(input, true);
+            const body = value.slice(0, -1);
+            const dv = value.slice(-1);
+
+            let formattedBody = '';
+            let counter = 0;
+
+            for (let i = body.length - 1; i >= 0; i--) {
+
+                formattedBody = body.charAt(i) + formattedBody;
+                counter++;
+
+                if (counter === 3 && i !== 0) {
+                    formattedBody = '.' + formattedBody;
+                    counter = 0;
+                }
+            }
+
+            return formattedBody + '-' + dv;
+        }
+
+        /**
+         * Valida el dígito verificador
+         */
+        isValid(rut) {
+
+            let value = rut
+                .replace(/\./g, '')
+                .replace(/-/g, '')
+                .replace(/\s/g, '')
+                .toUpperCase();
+
+            if (value.length < 2) {
+                return false;
+            }
+
+            const body = value.slice(0, -1);
+            const dv = value.slice(-1);
+
+            if (!/^\d+$/.test(body)) {
+                return false;
+            }
+
+            let sum = 0;
+            let multiplier = 2;
+
+            for (let i = body.length - 1; i >= 0; i--) {
+
+                sum += parseInt(body.charAt(i)) * multiplier;
+
+                multiplier++;
+
+                if (multiplier > 7) {
+                    multiplier = 2;
+                }
+            }
+
+            const remainder = 11 - (sum % 11);
+
+            let expectedDV;
+
+            if (remainder === 11) {
+                expectedDV = '0';
+            } else if (remainder === 10) {
+                expectedDV = 'K';
             } else {
-                this.setStatus(input, false);
+                expectedDV = remainder.toString();
             }
-        });
-    }
 
-    /**
-     * Formatea un RUT
-     * Ejemplo:
-     * 209300559 -> 20.930.055-9
-     */
-    format(rut) {
-
-        let value = rut
-            .replace(/[^\dkK]/g, '')
-            .toUpperCase();
-
-        if (value.length <= 1) {
-            return value;
+            return dv === expectedDV;
         }
 
-        const body = value.slice(0, -1);
-        const dv = value.slice(-1);
+        /**
+         * Estado visual del campo
+         */
+        setStatus(input, valid) {
 
-        let formattedBody = '';
-        let counter = 0;
+            $(input)
+                .removeClass('is-valid is-invalid');
 
-        for (let i = body.length - 1; i >= 0; i--) {
+            if (valid === true) {
+                $(input).addClass('is-valid');
+            }
 
-            formattedBody = body.charAt(i) + formattedBody;
-            counter++;
-
-            if (counter === 3 && i !== 0) {
-                formattedBody = '.' + formattedBody;
-                counter = 0;
+            if (valid === false) {
+                $(input).addClass('is-invalid');
             }
         }
-
-        return formattedBody + '-' + dv;
     }
 
-    /**
-     * Valida el dígito verificador
-     */
-    isValid(rut) {
 
-        let value = rut
-            .replace(/\./g, '')
-            .replace(/-/g, '')
-            .replace(/\s/g, '')
-            .toUpperCase();
-
-        if (value.length < 2) {
-            return false;
-        }
-
-        const body = value.slice(0, -1);
-        const dv = value.slice(-1);
-
-        if (!/^\d+$/.test(body)) {
-            return false;
-        }
-
-        let sum = 0;
-        let multiplier = 2;
-
-        for (let i = body.length - 1; i >= 0; i--) {
-
-            sum += parseInt(body.charAt(i)) * multiplier;
-
-            multiplier++;
-
-            if (multiplier > 7) {
-                multiplier = 2;
-            }
-        }
-
-        const remainder = 11 - (sum % 11);
-
-        let expectedDV;
-
-        if (remainder === 11) {
-            expectedDV = '0';
-        } else if (remainder === 10) {
-            expectedDV = 'K';
-        } else {
-            expectedDV = remainder.toString();
-        }
-
-        return dv === expectedDV;
-    }
-
-    /**
-     * Estado visual del campo
-     */
-    setStatus(input, valid) {
-
-        $(input)
-            .removeClass('is-valid is-invalid');
-
-        if (valid === true) {
-            $(input).addClass('is-valid');
-        }
-
-        if (valid === false) {
-            $(input).addClass('is-invalid');
-        }
-    }
-}
-
-
-// Inicializar
-$(document).ready(function () {
-    new RutValidator('.id_rut');
-});
+    // Inicializar
+    $(document).ready(function () {
+        new RutValidator('.id_rut');
+    });
 </script>

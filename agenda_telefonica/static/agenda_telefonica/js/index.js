@@ -103,6 +103,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     action: function (e, dt) {
                         dt.ajax.reload(null, false);
                     }
+                },
+                {
+                    text: '<i class="bi bi-eraser"></i> Limpiar',
+                    attr: {
+                        title: 'Limpiar filtros',
+                        'aria-label': 'Limpiar filtros'
+                    },
+                    action: function () {
+                        window.location.reload();
+                    }
                 }
             ]
         },
