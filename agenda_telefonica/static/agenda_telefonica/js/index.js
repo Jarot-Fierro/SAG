@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         processing: true,
         select: 'single',
         responsive: true,
-        pageLength: 10,
+        pageLength: 25,
         lengthMenu: [10, 25, 50, 100],
         keyTable: true,
         order: [[0, 'desc']],
@@ -75,24 +75,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     attr: {title: 'Copiar', 'aria-label': 'Copiar'}
                 },
                 {
-                    extend: 'csv',
-                    text: '<i class="bi bi-filetype-csv"></i> CSV',
-                    attr: {title: 'Exportar CSV', 'aria-label': 'Exportar CSV'}
-                },
-                {
                     extend: 'excel',
                     text: '<i class="bi bi-file-earmark-excel"></i> XLS',
                     attr: {title: 'Exportar Excel', 'aria-label': 'Exportar Excel'}
                 },
                 {
-                    extend: 'pdf',
-                    text: '<i class="bi bi-file-earmark-pdf"></i> PDF',
-                    attr: {title: 'Exportar PDF', 'aria-label': 'Exportar PDF'}
-                },
-                {
-                    extend: 'print',
-                    text: '<i class="bi bi-printer"></i> Imprimir',
-                    attr: {title: 'Imprimir', 'aria-label': 'Imprimir'}
+                    text: '<i class="bi bi-funnel"></i> Departamento / Servicio',
+                    attr: {
+                        title: 'Filtrar por departamento o servicio',
+                        'aria-label': 'Filtrar por departamento o servicio'
+                    },
+                    action: function (e, dt) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        setTimeout(function () {
+                            const encabezado = dt.column(5).header();
+                            const botonFiltro = encabezado.querySelector(
+                                'button.dtcc-button_dropdown'
+                            );
+
+                            if (!botonFiltro) {
+                                console.warn('No se encontró el filtro de la columna 5');
+                                return;
+                            }
+
+                            botonFiltro.click();
+                        }, 0);
+                    }
                 },
                 {
                     text: '<i class="bi bi-arrow-clockwise"></i> Recargar',

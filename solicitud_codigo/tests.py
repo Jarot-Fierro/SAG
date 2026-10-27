@@ -374,10 +374,10 @@ class SolicitudCodigoViewsAndFlowTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-        # Llamada AJAX de DataTables
-        response_ajax = self.client.get(
+        # Llamada AJAX de DataTables (POST)
+        response_ajax = self.client.post(
             url,
-            {"draw": "1", "start": "0", "length": "10"},
+            {"action": "search", "draw": "1", "start": "0", "length": "10"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
         self.assertEqual(response_ajax.status_code, 200)
@@ -409,9 +409,9 @@ class SolicitudCodigoViewsAndFlowTests(TestCase):
             numero_solicitud="COD-2026-HSP-00201"
         )
 
-        response_ajax = self.client.get(
+        response_ajax = self.client.post(
             url_ref,
-            {"draw": "1", "start": "0", "length": "10"},
+            {"action": "search", "draw": "1", "start": "0", "length": "10"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
         self.assertEqual(response_ajax.status_code, 200)

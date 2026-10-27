@@ -1,32 +1,16 @@
 from django.urls import path
 
-from soporte.views.tickets import *
+from soporte.views import *
 
 app_name = 'soporte'
 
 urlpatterns = [
     # DASHBOARD
-    path('soporte-tickets/dashboard/', TicketDashboardView.as_view(), name='ticket_dashboard'),
-    path('soportev2/', SoporteListCBV.as_view(), name='ticket_v2'),
-
-    # TICKETS
-    path('soporte-tickets/lista/', TicketListView.as_view(), name='ticket_list'),
-    path('soporte-tickets/crear/', TicketCreateView.as_view(), name='ticket_create'),
-    path('soporte-tickets-funcionario/crear/', TicketParaFuncionarioCreateView.as_view(),
-         name='ticket_para_funcionario_create'),
-
-    path('soporte-tickets-funcionario/editar/<int:pk>', TicketsParaFuncionarioUpdateView.as_view(),
-         name='ticket_para_funcionario_update'),
-
-    path('soporte-tickets/editar/<int:pk>', TicketsUpdateView.as_view(), name='ticket_update'),
-    path('soporte-tickets/eliminar/<int:pk>/', ticket_delete, name='ticket_delete'),
-    path('soporte-tickets/historial/<int:pk>/', TicketHistorialView.as_view(), name='ticket_historial'),
-
-    # TICKETS MODO EDITOR
-    path('soporte-tickets-editor/lista/', TicketEditorListView.as_view(), name='ticket_editor_list'),
-    path('soporte-tickets-editor/editar/<int:pk>', TicketsUpdateEditorView.as_view(), name='ticket_editor_update'),
-    path('soporte-detail/<int:pk>/', TicketDetailView.as_view(), name='ticket_detail'),
-    path('soporte-tomar/ticket/<int:pk>/', ticket_tomar, name='ticket_tomar'),
-    path('soporte-cerrar/ticket/<int:pk>/', ticket_cerrar, name='ticket_cerrar'),
-    path('soporte-tickets-inactivos/lista/', TicketEditorInactivosListView.as_view(), name='ticket_inactivos_list'),
+    path('listado-soporte/', TicketListView.as_view(), name='list_soportes'),
+    path('solicitud-de-soporte/', TicketCreateView.as_view(), name='create_soportes'),
+    path('gestion-soporte/', ListEditTicketView.as_view(), name='ticket_editor_list'),
+    path('ticket/<int:pk>/editar/', TicketUpdateView.as_view(), name='ticket_update'),
+    path('ticket/<int:pk>/eliminar/', tickets_eliminar, name='ticket_delete'),
+    path('ticket/<int:pk>/tomar/', ticket_tomar, name='ticket_tomar'),
+    path('ticket/<int:pk>/cerrar/', ticket_cerrar, name='ticket_cerrar'),
 ]

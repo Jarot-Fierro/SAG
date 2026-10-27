@@ -36,7 +36,7 @@ class IndexView(TemplateView):
 
         draw = int(request.POST.get('draw', 1))
         start = max(0, int(request.POST.get('start', 0)))
-        length = int(request.POST.get('length', 10))
+        length = int(request.POST.get('length', 25))
 
         establecimiento_id = _as_int(request.GET.get('establecimiento'), 1)
 
@@ -73,9 +73,21 @@ class IndexView(TemplateView):
                 departamentos.extend(values)
 
         if departamentos:
+            unidades_seleccionadas = UnidadOrganizacional.objects.filter(
+                establecimiento_id=establecimiento_id,
+                nombre__in=departamentos,
+            )
+
+            unidades_incluidas = (
+                UnidadOrganizacional.objects.get_queryset_descendants(
+                    unidades_seleccionadas,
+                    include_self=True,
+                )
+                .filter(establecimiento_id=establecimiento_id)
+            )
+
             queryset = queryset.filter(
-                unidad_organizacional__nombre__in=departamentos,
-                establecimiento=establecimiento_id
+                unidad_organizacional__in=unidades_incluidas,
             )
 
         # Ordenamiento: mismo orden de columnas que en index.js
@@ -127,8 +139,10 @@ class IndexView(TemplateView):
                 'value': departamento.nombre
             }
             for departamento in
-            UnidadOrganizacional.objects.filter(establecimiento=establecimiento_id, es_departamento=True, ).order_by(
-                'nombre')
+            UnidadOrganizacional.objects.filter(
+                Q(es_departamento=True) | Q(es_subdepartamento=True) | Q(unidad_principal=True),
+                establecimiento_id=establecimiento_id,
+            ).order_by('nombre')
         ]
 
         return JsonResponse({

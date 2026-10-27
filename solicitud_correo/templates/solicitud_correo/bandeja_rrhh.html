@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load query_tags %}
 
 {% block sidebar %}
@@ -14,127 +15,121 @@
 {% block title %}Bandeja de Revisión - Recursos Humanos{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3">
+    <div class="container-fluid px-3">
+        {% csrf_token %}
 
-    <!-- KPI Cards RR.HH. -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box shadow-sm">
-                <span class="info-box-icon bg-warning text-dark"><i class="bi bi-person-exclamation"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Pendientes RR.HH.</span>
-                    <span class="info-box-number fs-4">{{ total_pendientes_rrhh }}</span>
+        <!-- KPI Cards RR.HH. -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box shadow-sm">
+                    <span class="info-box-icon bg-warning text-dark"><i class="bi bi-person-exclamation"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Pendientes RR.HH.</span>
+                        <span class="info-box-number fs-4">{{ total_pendientes_rrhh }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box shadow-sm">
+                    <span class="info-box-icon bg-info text-white"><i class="bi bi-hdd-network"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Enviadas a TIC</span>
+                        <span class="info-box-number fs-4">{{ total_en_tic }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box shadow-sm">
+                    <span class="info-box-icon bg-success text-white"><i class="bi bi-check-circle-fill"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Finalizadas</span>
+                        <span class="info-box-number fs-4">{{ total_finalizadas }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="info-box shadow-sm">
+                    <span class="info-box-icon bg-secondary text-white"><i class="bi bi-folder2-open"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Solicitudes</span>
+                        <span class="info-box-number fs-4">{{ total_solicitudes }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box shadow-sm">
-                <span class="info-box-icon bg-info text-white"><i class="bi bi-hdd-network"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Enviadas a TIC</span>
-                    <span class="info-box-number fs-4">{{ total_en_tic }}</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box shadow-sm">
-                <span class="info-box-icon bg-success text-white"><i class="bi bi-check-circle-fill"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Finalizadas</span>
-                    <span class="info-box-number fs-4">{{ total_finalizadas }}</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="info-box shadow-sm">
-                <span class="info-box-icon bg-secondary text-white"><i class="bi bi-folder2-open"></i></span>
-                <div class="info-box-content">
-                    <span class="info-box-text">Total Solicitudes</span>
-                    <span class="info-box-number fs-4">{{ total_solicitudes }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Filtros de Pestaña rápida -->
-    <ul class="nav nav-pills mb-3 gap-2">
-        <li class="nav-item">
-            <a class="nav-link {% if not filtro_estado %}active{% endif %}" href="{% url 'solicitud_correo:bandeja_rrhh' %}">
-                Todas las Solicitudes
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if filtro_estado == 'PENDIENTES' %}active{% endif %}" href="?filtro_estado=PENDIENTES">
-                <i class="bi bi-clock me-1"></i> Pendientes de Revisión ({{ total_pendientes_rrhh }})
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if filtro_estado == 'EN_TIC' %}active{% endif %}" href="?filtro_estado=EN_TIC">
-                <i class="bi bi-hdd-network me-1"></i> En TIC ({{ total_en_tic }})
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if filtro_estado == 'FINALIZADAS' %}active{% endif %}" href="?filtro_estado=FINALIZADAS">
-                <i class="bi bi-check2-all me-1"></i> Finalizadas ({{ total_finalizadas }})
-            </a>
-        </li>
-    </ul>
-
-    <!-- Tarjeta con Tabla de Solicitudes -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <form method="get" class="row g-2 align-items-center">
-                {% if filtro_estado %}
-                    <input type="hidden" name="filtro_estado" value="{{ filtro_estado }}">
-                {% endif %}
-                <div class="col-md-3 col-sm-6">
-                    {{ filter_form.numero_solicitud }}
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    {{ filter_form.estado }}
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    {{ filter_form.funcionario_busqueda }}
-                </div>
-                <div class="col-md-3 col-sm-6 d-flex gap-2">
-                    <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
-                        <i class="bi bi-funnel me-1"></i> Filtrar
-                    </button>
-                    <a href="{% url 'solicitud_correo:bandeja_rrhh' %}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-clockwise"></i>
+        <!-- Filtros de Pestaña rápida y timer -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <ul class="nav nav-pills gap-2 mb-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if not filtro_estado %}active{% endif %}"
+                       href="{% url 'solicitud_correo:bandeja_rrhh' %}">
+                        Todas las Solicitudes
                     </a>
-                </div>
-            </form>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if filtro_estado == 'PENDIENTES' %}active{% endif %}"
+                       href="?filtro_estado=PENDIENTES">
+                        <i class="bi bi-clock me-1"></i> Pendientes de Revisión ({{ total_pendientes_rrhh }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if filtro_estado == 'EN_TIC' %}active{% endif %}"
+                       href="?filtro_estado=EN_TIC">
+                        <i class="bi bi-hdd-network me-1"></i> En TIC ({{ total_en_tic }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if filtro_estado == 'FINALIZADAS' %}active{% endif %}"
+                       href="?filtro_estado=FINALIZADAS">
+                        <i class="bi bi-check2-all me-1"></i> Finalizadas ({{ total_finalizadas }})
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center">
+            <span class="badge bg-light text-dark border">
+                <i class="bi bi-clock me-1"></i>Recarga en: <span id="countdown" class="fw-bold">3:00</span>
+            </span>
+                <small id="last-update" class="text-muted ms-2"></small>
+            </div>
         </div>
 
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+        <!-- Tarjeta con Tabla DataTables -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="myTable"
+                           class="table table-striped table-bordered table-hover align-middle mb-0"
+                           data-ajax-url="
+                                   {% url 'solicitud_correo:bandeja_rrhh' %}{% if filtro_estado %}?filtro_estado={{ filtro_estado }}{% endif %}"
+                           style="width: 100%;">
+                        <thead class="table-light">
                         <tr>
                             <th scope="col">Folio</th>
-                            <th scope="col">Solicitante / Depto</th>
-                            <th scope="col">Establecimiento</th>
+                            <th scope="col">Solicitante</th>
+                            <th scope="col">Departamento</th>
                             <th scope="col">Funcionarios</th>
                             <th scope="col">Estado General</th>
                             <th scope="col">Fecha Solicitud</th>
-                            <th scope="col" class="text-center">Acciones</th>
+                            <th scope="col" class="text-center" style="width: 160px;">Acciones</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         {% for sol in solicitudes %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'solicitud_correo:detalle' sol.pk %}" class="fw-bold text-decoration-none">
+                                    <a href="{% url 'solicitud_correo:detalle' sol.pk %}"
+                                       class="fw-bold text-decoration-none font-monospace text-primary">
                                         {{ sol.numero_solicitud|default:sol.id }}
                                     </a>
                                 </td>
                                 <td>
                                     <div class="fw-semibold">{{ sol.usuario_solicitante.get_full_name|default:sol.usuario_solicitante.username }}</div>
-                                    <small class="text-muted">{{ sol.departamento_nombre|default:sol.departamento_solicitante|default:'Sin departamento' }}</small>
+                                    <small class="text-muted">{{ sol.establecimiento.nombre|default:'General' }}</small>
                                 </td>
                                 <td>
-                                    <span>{{ sol.establecimiento.nombre|default:'General' }}</span>
+                                    <span>{{ sol.departamento_nombre|default:sol.departamento_solicitante|default:'Sin departamento' }}</span>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-1 flex-wrap">
@@ -160,17 +155,20 @@
                                 </td>
                                 <td>
                                     {% if sol.estado == 'PENDIENTE_RRHH' %}
-                                        <span class="badge bg-warning text-dark">Pendiente RR.HH.</span>
+                                        <span class="badge bg-warning text-dark"><i
+                                                class="bi bi-hourglass-split me-1"></i>Pendiente RR.HH.</span>
                                     {% elif sol.estado == 'EN_REVISION_RRHH' %}
-                                        <span class="badge bg-warning text-dark">En Revisión RR.HH.</span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-person-check me-1"></i>En Revisión RR.HH.</span>
                                     {% elif sol.estado == 'EN_TIC' %}
-                                        <span class="badge bg-info text-dark">Enviada a TIC</span>
+                                        <span class="badge bg-info text-dark"><i class="bi bi-send me-1"></i>Enviada a TIC</span>
                                     {% elif sol.estado == 'EN_PROCESO_TIC' %}
-                                        <span class="badge bg-primary">En Proceso TIC</span>
+                                        <span class="badge bg-primary"><i class="bi bi-gear-wide-connected me-1"></i>En Proceso TIC</span>
                                     {% elif sol.estado == 'FINALIZADA' %}
-                                        <span class="badge bg-success">Finalizada</span>
+                                        <span class="badge bg-success"><i
+                                                class="bi bi-check2-all me-1"></i>Finalizada</span>
                                     {% elif sol.estado == 'CANCELADA' %}
-                                        <span class="badge bg-danger">Cancelada</span>
+                                        <span class="badge bg-danger"><i
+                                                class="bi bi-x-circle me-1"></i>Cancelada</span>
                                     {% else %}
                                         <span class="badge bg-secondary">{{ sol.get_estado_display }}</span>
                                     {% endif %}
@@ -186,7 +184,7 @@
                                             <a href="{% url 'solicitud_correo:revision_rrhh' sol.pk %}"
                                                class="btn btn-warning"
                                                title="Revisar Solicitud">
-                                                <i class="bi bi-pencil-square me-1"></i> Revisar
+                                                <i class="bi bi-person-check-fill me-1"></i> Revisar
                                             </a>
                                         {% endif %}
 
@@ -218,39 +216,16 @@
                                 </td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
-        {% if is_paginated %}
-            <div class="card-footer clearfix">
-                <div class="float-start pt-1 fs-7 text-muted">
-                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }} solicitudes
-                </div>
-                <ul class="pagination pagination-sm m-0 float-end">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% query_transform page=page_obj.previous_page_number %}">«</a>
-                        </li>
-                    {% endif %}
-                    {% for i in paginator.page_range %}
-                        {% if page_obj.number == i %}
-                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?{% query_transform page=i %}">{{ i }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?{% query_transform page=page_obj.next_page_number %}">»</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        {% endif %}
     </div>
-</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script src="{% static 'solicitud_correo/js/bandeja_rrhh_datatable.js' %}"></script>
+    <script src="{% static 'solicitud_correo/js/solicitud_modal.js' %}"></script>
 {% endblock %}

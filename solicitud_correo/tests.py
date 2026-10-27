@@ -499,3 +499,80 @@ class SolicitudCorreoPermissionsAndViewsTests(TestCase):
         self.assertEqual(data["rut"], self.funcionario_ejemplo.rut)
         self.assertEqual(data["nombres"], self.funcionario_ejemplo.nombres)
         self.assertEqual(data["apellidos"], self.funcionario_ejemplo.apellidos)
+
+    def test_datatables_mis_solicitudes_ajax(self):
+        # Crear solicitud para el usuario normal
+        SolicitudCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            departamento_solicitante=self.depto_clinico,
+            usuario_solicitante=self.user_normal,
+            estado="PENDIENTE_RRHH",
+            numero_solicitud="SOL-TEST-001"
+        )
+        self.client.login(username="usuario_normal", password="password123")
+        url = reverse("solicitud_correo:mis_solicitudes")
+
+        # Petición POST DataTables
+        response = self.client.post(url, {
+            'action': 'search',
+            'draw': '1',
+            'start': '0',
+            'length': '10',
+            'search[value]': 'SOL-TEST'
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['draw'], 1)
+        self.assertGreaterEqual(data['recordsTotal'], 1)
+        self.assertGreaterEqual(data['recordsFiltered'], 1)
+        self.assertTrue(len(data['data']) > 0)
+        self.assertIn('columnControl', data)
+
+    def test_datatables_bandeja_rrhh_ajax(self):
+        SolicitudCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            departamento_solicitante=self.depto_clinico,
+            usuario_solicitante=self.user_normal,
+            estado="PENDIENTE_RRHH",
+            numero_solicitud="SOL-RRHH-001"
+        )
+        self.client.login(username="usuario_rrhh", password="password123")
+        url = reverse("solicitud_correo:bandeja_rrhh")
+
+        response = self.client.post(url, {
+            'action': 'search',
+            'draw': '1',
+            'start': '0',
+            'length': '10'
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['draw'], 1)
+        self.assertGreaterEqual(data['recordsTotal'], 1)
+        self.assertIn('columnControl', data)
+
+    def test_datatables_bandeja_tic_ajax(self):
+        SolicitudCorreo.objects.create(
+            establecimiento=self.establecimiento,
+            departamento_solicitante=self.depto_clinico,
+            usuario_solicitante=self.user_normal,
+            estado="EN_TIC",
+            numero_solicitud="SOL-TIC-001"
+        )
+        self.client.login(username="usuario_tic", password="password123")
+        url = reverse("solicitud_correo:bandeja_tic")
+
+        response = self.client.post(url, {
+            'action': 'search',
+            'draw': '1',
+            'start': '0',
+            'length': '10'
+        }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['draw'], 1)
+        self.assertGreaterEqual(data['recordsTotal'], 1)
+        self.assertIn('columnControl', data)

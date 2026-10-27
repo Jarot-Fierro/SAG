@@ -274,11 +274,30 @@ class SolicitudVPNViewsTests(TestCase):
         self.acc2 = AccesoVPN.objects.create(plataforma="Intranet Arauco", ip="10.8.85.50")
 
     def test_mis_solicitudes_view(self):
+        SolicitudVPN.objects.create(
+            establecimiento=self.est_arauco,
+            usuario_solicitante=self.user_solicitante,
+            accion="CREAR",
+            estado="PENDIENTE",
+            tecnico_nombre="Esteban Dido",
+            tecnico_email="edido@ssarauco.cl",
+            numero_solicitud="VPN-2026-HARAUCO-00001"
+        )
         self.client.login(username="solicitante_arauco", password="password123")
         response = self.client.get(reverse('solicitud_vpn:mis_solicitudes'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mis Solicitudes de Acceso VPN")
         self.assertContains(response, "Generar requerimiento")
+
+        # Petición DataTables
+        response_dt = self.client.post(
+            reverse('solicitud_vpn:mis_solicitudes'),
+            {'action': 'search', 'draw': '1', 'start': '0', 'length': '10'}
+        )
+        self.assertEqual(response_dt.status_code, 200)
+        data = response_dt.json()
+        self.assertEqual(data['recordsTotal'], 1)
+        self.assertIn("VPN-2026-HARAUCO-00001", data['data'][0]['numero_solicitud'])
 
     def test_form_solicitud_view_renderizado_botones_y_scripts(self):
         self.client.login(username="solicitante_arauco", password="password123")
@@ -317,17 +336,21 @@ class SolicitudVPNViewsTests(TestCase):
             'beneficiarios-0-rut': '16.777.888-9',
             'beneficiarios-0-nombres': 'Claudio',
             'beneficiarios-0-apellidos': 'Bravos',
+            'beneficiarios-0-nombre_completo': 'Claudio Bravos',
             'beneficiarios-0-establecimiento': 'Hospital Arauco',
             'beneficiarios-0-cargo': 'Enfermero',
             'beneficiarios-0-telefono': '+56 9 1234 5678',
             'beneficiarios-0-email': 'cbravos@ssarauco.cl',
+            'beneficiarios-0-fecha': '2026-10-01',
             'beneficiarios-1-rut': '17.123.456-7',
             'beneficiarios-1-nombres': 'Alexis',
             'beneficiarios-1-apellidos': 'Sanches',
+            'beneficiarios-1-nombre_completo': 'Alexis Sanches',
             'beneficiarios-1-establecimiento': 'Hospital Arauco',
             'beneficiarios-1-cargo': 'Kinesiólogo',
             'beneficiarios-1-telefono': '+56 9 8765 4321',
             'beneficiarios-1-email': 'asanches@ssarauco.cl',
+            'beneficiarios-1-fecha': '2026-10-01',
 
             # Accesos FormSet
             'accesos-TOTAL_FORMS': '2',
@@ -405,7 +428,11 @@ class SolicitudVPNViewsTests(TestCase):
             'beneficiarios-0-rut': '19.444.555-6',
             'beneficiarios-0-nombres': 'Borrador',
             'beneficiarios-0-apellidos': 'User',
+            'beneficiarios-0-nombre_completo': 'Borrador User',
             'beneficiarios-0-establecimiento': 'Hospital Arauco',
+            'beneficiarios-0-cargo': 'Administrativo',
+            'beneficiarios-0-email': 'borrador@ssarauco.cl',
+            'beneficiarios-0-fecha': '2026-10-01',
 
             'accesos-TOTAL_FORMS': '0',
             'accesos-INITIAL_FORMS': '0',
@@ -482,17 +509,37 @@ class SolicitudVPNViewsTests(TestCase):
 
         self.client.login(username="gestor_tic", password="password123")
 
-        # Filtrar por establecimiento Cañete
-        response = self.client.get(reverse('solicitud_vpn:bandeja_tic'), {'establecimiento': self.est_canete.id})
+        # Filtrar por establecimiento Cañete vía DataTables
+        response = self.client.post(
+            reverse('solicitud_vpn:bandeja_tic'),
+            {
+                'action': 'search',
+                'draw': '1',
+                'start': '0',
+                'length': '10',
+                'columns[2][search][value]': 'Cañete'
+            }
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "VPN-2026-HCANETE-00001")
-        self.assertNotContains(response, "VPN-2026-HARAUCO-00001")
+        data = response.json()
+        self.assertEqual(data['recordsFiltered'], 1)
+        self.assertIn("VPN-2026-HCANETE-00001", data['data'][0]['numero_solicitud'])
 
-        # Filtrar por estado PENDIENTE
-        response_pend = self.client.get(reverse('solicitud_vpn:bandeja_tic'), {'estado': 'PENDIENTE'})
+        # Filtrar por estado PENDIENTE vía DataTables
+        response_pend = self.client.post(
+            reverse('solicitud_vpn:bandeja_tic'),
+            {
+                'action': 'search',
+                'draw': '1',
+                'start': '0',
+                'length': '10',
+                'columns[6][search][value]': 'PENDIENTE'
+            }
+        )
         self.assertEqual(response_pend.status_code, 200)
-        self.assertContains(response_pend, "VPN-2026-HARAUCO-00001")
-        self.assertNotContains(response_pend, "VPN-2026-HCANETE-00001")
+        data_pend = response_pend.json()
+        self.assertEqual(data_pend['recordsFiltered'], 1)
+        self.assertIn("VPN-2026-HARAUCO-00001", data_pend['data'][0]['numero_solicitud'])
 
     def test_detalle_solicitud_y_cambio_estado_tic(self):
         solicitud = SolicitudVPN.objects.create(

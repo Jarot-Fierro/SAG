@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Gestión de Tickets {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'soporte:create_soportes' %}" class="btn btn-primary btn-sm">Nuevo Ticket</a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="myTable" class="table display "
+               data-url-edit="{% url 'soporte:ticket_update' 0 %}"
+               data-url-take="{% url 'soporte:ticket_tomar' 0 %}"
+               data-url-close="{% url 'soporte:ticket_cerrar' 0 %}"
+               data-url-delete="{% url 'soporte:ticket_delete' 0 %}">
+            <thead>
+            <tr>
+                <th>Ticket</th>
+                <th>Título</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Área de soporte</th>
+                <th>Asignado a</th>
+                <th>Fecha de creación</th>
+                <th>Fecha de cierre</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+    <div class="modal fade" id="cerrarTicketModal" tabindex="-1" aria-labelledby="cerrarTicketTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" id="cerrarTicketForm" class="modal-content">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cerrarTicketTitle">Cerrar ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="tipo_soporte" class="form-label">Tipo de soporte</label>
+                    <select name="tipo_soporte" id="tipo_soporte" class="form-select mb-3">
+                        <option value="">Seleccione un tipo de soporte</option>
+                        {% for tipo in tipos_soporte %}
+                            <option value="{{ tipo.pk }}">{{ tipo.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="solucion" class="form-label">Solución</label>
+                    <textarea name="solucion" id="solucion" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Cerrar ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        const urlEditarTicket = "{% url 'soporte:ticket_update' 0 %}";
+        const urlEliminarTicket = "{% url 'soporte:ticket_delete' 0 %}";
+    </script>
+    <script src="{% static 'soporte/js/ticket_list_edit_datatable.js' %}"></script>
+    <script src="{% static 'soporte/js/ticket_list_edit_modal.js' %}"></script>
+{% endblock %}

@@ -11,54 +11,6 @@ class FormTicket(forms.ModelForm):
     def __init__(self, *args, request=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if request:
-            self.fields["area_soporte"].queryset = AreaSoporte.objects.filter(
-                establecimiento=request.user.establecimiento
-            )
-
-    titulo = forms.CharField(
-        label='Título del problema',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ej: Problema con impresora'
-        }),
-        required=True
-    )
-
-    descripcion = forms.CharField(
-        label='Descripción del problema',
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 4,
-            'placeholder': 'Describa el problema que está presentando'
-        }),
-        required=False
-    )
-
-    area_soporte = forms.ModelChoiceField(
-        queryset=AreaSoporte.objects.all(),
-        label='¿Para que área quieres mandar este soporte?',
-        empty_label='Selecciona una opción',
-        widget=forms.Select(attrs={
-            'class': 'form-control form-select'
-        }),
-        required=True
-    )
-
-    class Meta:
-        model = Ticket
-        fields = [
-            'titulo',
-            'area_soporte',
-            'descripcion',
-        ]
-
-
-class FormTicketParaFuncionario(forms.ModelForm):
-
-    def __init__(self, *args, request=None, **kwargs):
-        super().__init__(*args, **kwargs)
-
         deptos_qs = UnidadOrganizacional.objects.filter(
             Q(es_departamento=True) | Q(es_subdepartamento=True)
         )

@@ -1,26 +1,29 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block styles %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<style>
-    /* Soporte visual de validación Bootstrap para Select2 */
-    .was-validated .select2-container--bootstrap-5.is-invalid .select2-selection,
-    .was-validated select:invalid + .select2-container--bootstrap-5 .select2-selection {
-        border-color: #dc3545 !important;
-        padding-right: 2.25rem;
-        background-repeat: no-repeat;
-        background-position: right calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-    .was-validated .select2-container--bootstrap-5.is-valid .select2-selection,
-    .was-validated select:valid + .select2-container--bootstrap-5 .select2-selection {
-        border-color: #198754 !important;
-    }
-    /* Estilos para Flatpickr dentro de Bootstrap 5 */
-    .flatpickr-input[readonly] {
-        background-color: #ffffff;
-    }
-</style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Soporte visual de validación Bootstrap para Select2 */
+        .was-validated .select2-container--bootstrap-5.is-invalid .select2-selection,
+        .was-validated select:invalid + .select2-container--bootstrap-5 .select2-selection {
+            border-color: #dc3545 !important;
+            padding-right: 2.25rem;
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .was-validated .select2-container--bootstrap-5.is-valid .select2-selection,
+        .was-validated select:valid + .select2-container--bootstrap-5 .select2-selection {
+            border-color: #198754 !important;
+        }
+
+        /* Estilos para Flatpickr dentro de Bootstrap 5 */
+        .flatpickr-input[readonly] {
+            background-color: #ffffff;
+        }
+    </style>
 {% endblock %}
 
 {% block sidebar %}
@@ -36,180 +39,198 @@
 {% block title %}Generar Requerimiento de Acceso VPN{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3" data-user-establecimiento="{{ request.user.establecimiento.nombre|default:'' }}">
-    <form method="post" class="needs-validation" novalidate id="form-solicitud-vpn">
-        {% csrf_token %}
-        <input type="hidden" name="guardar_borrador" id="input_guardar_borrador" value="0">
+    <div class="container-fluid px-3" data-user-establecimiento="{{ request.user.establecimiento.nombre|default:'' }}">
+        <form method="post" class="needs-validation" novalidate id="form-solicitud-vpn">
+            {% csrf_token %}
+            <input type="hidden" name="guardar_borrador" id="input_guardar_borrador" value="0">
 
-        <!-- Card Principal Unificada -->
-        <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body p-4">
+            <!-- Card Principal Unificada -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body p-4">
 
-                <!-- 1. Datos Generales de la Solicitud -->
-                <div class="mb-5">
-                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                        <i class="bi bi-card-checklist fs-5 text-secondary me-2"></i>
-                        <h5 class="mb-0 fw-bold  text-dark">1. Datos Generales de la Solicitud</h5>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold small text-muted">Establecimiento Solicitante</label>
-                            <input type="text" class="form-control" value="{{ request.user.establecimiento.nombre|default:'Servicio de Salud Arauco' }}" readonly disabled>
-                            <div class="form-text small">Obtenido automáticamente del usuario autenticado.</div>
+                    <!-- 1. Datos Generales de la Solicitud -->
+                    <div class="mb-5">
+                        <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                            <i class="bi bi-card-checklist fs-5 text-secondary me-2"></i>
+                            <h5 class="mb-0 fw-bold  text-dark">1. Datos Generales de la Solicitud</h5>
                         </div>
-                        <div class="col-md-5">
-                            <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold small text-muted">
-                                Departamento / Unidad Solicitante <span class="text-danger">*</span>
-                            </label>
-                            {{ form.departamento_solicitante }}
-                            <div class="invalid-feedback">Seleccione el departamento o unidad solicitante.</div>
-                            {% if form.departamento_solicitante.errors %}
-                                <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
-                            {% endif %}
-                            <div class="form-text small">Determinado por la jerarquía de departamentos del establecimiento.</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="{{ form.accion.id_for_label }}" class="form-label fw-bold small text-muted">
-                                Acción <span class="text-danger">*</span>
-                            </label>
-                            {{ form.accion }}
-                            <div class="invalid-feedback">Seleccione una acción.</div>
-                            {% if form.accion.errors %}
-                                <div class="text-danger small mt-1">{{ form.accion.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-4">
-                            <label for="{{ form.grupo_vpn.id_for_label }}" class="form-label fw-bold small text-muted">Nombre del Grupo VPN</label>
-                            {{ form.grupo_vpn }}
-                            {% if form.grupo_vpn.errors %}
-                                <div class="text-danger small mt-1">{{ form.grupo_vpn.errors }}</div>
-                            {% endif %}
-                            <div class="form-text small">Grupo asignado o perfil VPN en red MINSAL.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="{{ form.fecha_expiracion.id_for_label }}" class="form-label fw-bold small text-muted">Fecha de Expiración</label>
-                            {{ form.fecha_expiracion }}
-                            {% if form.fecha_expiracion.errors %}
-                                <div class="text-danger small mt-1">{{ form.fecha_expiracion.errors }}</div>
-                            {% endif %}
-                            <div class="form-text small">Dejar en blanco si es de duración indefinida.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="{{ form.timeout_vpn.id_for_label }}" class="form-label fw-bold small text-muted">Time Out VPN</label>
-                            {{ form.timeout_vpn }}
-                            {% if form.timeout_vpn.errors %}
-                                <div class="text-danger small mt-1">{{ form.timeout_vpn.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-12">
-                            <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold small text-muted">Observación / Justificación General</label>
-                            {{ form.observacion }}
-                            {% if form.observacion.errors %}
-                                <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Datos del Técnico / Solicitante -->
-                <div class="mb-5">
-                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                        <i class="bi bi-person-badge fs-5 text-secondary me-2"></i>
-                        <h5 class="mb-0 fw-bold text-dark">2. Datos del Solicitante / Referente Técnico Informático</h5>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold small text-muted">Nombre Completo <span class="text-danger">*</span></label>
-                            {{ form.tecnico_nombre }}
-                            <div class="invalid-feedback">El nombre completo es obligatorio.</div>
-                            {% if form.tecnico_nombre.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_nombre.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label fw-bold small text-muted">RUT <span class="text-danger">*</span></label>
-                            {{ form.tecnico_rut }}
-                            <div class="invalid-feedback">El RUT es obligatorio.</div>
-                            {% if form.tecnico_rut.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_rut.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted">Establecimiento <span class="text-danger">*</span></label>
-                            {{ form.tecnico_establecimiento }}
-                            <div class="invalid-feedback">El establecimiento es obligatorio.</div>
-                            {% if form.tecnico_establecimiento.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_establecimiento.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted">Cargo</label>
-                            {{ form.tecnico_cargo }}
-                            {% if form.tecnico_cargo.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_cargo.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted">Teléfono</label>
-                            {{ form.tecnico_telefono }}
-                            {% if form.tecnico_telefono.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_telefono.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted">Email <span class="text-danger">*</span></label>
-                            {{ form.tecnico_email }}
-                            <div class="invalid-feedback">Ingrese un correo electrónico válido.</div>
-                            {% if form.tecnico_email.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_email.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted">Fecha Requerimiento <span class="text-danger">*</span></label>
-                            {{ form.tecnico_fecha }}
-                            <div class="invalid-feedback">La fecha de requerimiento es obligatoria.</div>
-                            {% if form.tecnico_fecha.errors %}
-                                <div class="text-danger small mt-1">{{ form.tecnico_fecha.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-3 d-flex align-items-center">
-                            <div class="form-check mt-3">
-                                {{ form.es_proveedor }}
-                                <label class="form-check-label fw-bold small text-muted" for="{{ form.es_proveedor.id_for_label }}">
-                                    {{ form.es_proveedor.label }}
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Establecimiento Solicitante</label>
+                                <input type="text" class="form-control"
+                                       value="{{ request.user.establecimiento.nombre|default:'Servicio de Salud Arauco' }}"
+                                       readonly disabled>
+                                <div class="form-text small">Obtenido automáticamente del usuario autenticado.</div>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="{{ form.departamento_solicitante.id_for_label }}"
+                                       class="form-label fw-bold small text-muted">
+                                    Departamento / Unidad Solicitante <span class="text-danger">*</span>
                                 </label>
+                                {{ form.departamento_solicitante }}
+                                <div class="invalid-feedback">Seleccione el departamento o unidad solicitante.</div>
+                                {% if form.departamento_solicitante.errors %}
+                                    <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
+                                {% endif %}
+                                <div class="form-text small">Determinado por la jerarquía de departamentos del
+                                    establecimiento.
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ form.accion.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Acción <span class="text-danger">*</span>
+                                </label>
+                                {{ form.accion }}
+                                <div class="invalid-feedback">Seleccione una acción.</div>
+                                {% if form.accion.errors %}
+                                    <div class="text-danger small mt-1">{{ form.accion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label for="{{ form.grupo_vpn.id_for_label }}"
+                                       class="form-label fw-bold small text-muted">Nombre del Grupo VPN</label>
+                                {{ form.grupo_vpn }}
+                                {% if form.grupo_vpn.errors %}
+                                    <div class="text-danger small mt-1">{{ form.grupo_vpn.errors }}</div>
+                                {% endif %}
+                                <div class="form-text small">Grupo asignado o perfil VPN en red MINSAL.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.fecha_expiracion.id_for_label }}"
+                                       class="form-label fw-bold small text-muted">Fecha de Expiración</label>
+                                {{ form.fecha_expiracion }}
+                                {% if form.fecha_expiracion.errors %}
+                                    <div class="text-danger small mt-1">{{ form.fecha_expiracion.errors }}</div>
+                                {% endif %}
+                                <div class="form-text small">Dejar en blanco si es de duración indefinida.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.timeout_vpn.id_for_label }}"
+                                       class="form-label fw-bold small text-muted">Time Out VPN</label>
+                                {{ form.timeout_vpn }}
+                                {% if form.timeout_vpn.errors %}
+                                    <div class="text-danger small mt-1">{{ form.timeout_vpn.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.observacion.id_for_label }}"
+                                       class="form-label fw-bold small text-muted">Observación / Justificación
+                                    General</label>
+                                {{ form.observacion }}
+                                {% if form.observacion.errors %}
+                                    <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 3. Beneficiarios de la Solicitud (FormSet) -->
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-people fs-5 text-secondary me-2"></i>
-                            <h5 class="mb-0 fw-bold text-dark">3. Beneficiarios de la Solicitud VPN</h5>
+                    <!-- 2. Datos del Técnico / Solicitante -->
+                    <div class="mb-5">
+                        <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                            <i class="bi bi-person-badge fs-5 text-secondary me-2"></i>
+                            <h5 class="mb-0 fw-bold text-dark">2. Datos del Solicitante / Referente Técnico
+                                Informático</h5>
                         </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="btn-agregar-beneficiario">
-                                <i class="bi bi-person-plus me-1"></i> Agregar Beneficiario
-                            </button>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">Nombre Completo <span
+                                        class="text-danger">*</span></label>
+                                {{ form.tecnico_nombre }}
+                                <div class="invalid-feedback">El nombre completo es obligatorio.</div>
+                                {% if form.tecnico_nombre.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold small text-muted">RUT <span
+                                        class="text-danger">*</span></label>
+                                {{ form.tecnico_rut }}
+                                <div class="invalid-feedback">El RUT es obligatorio.</div>
+                                {% if form.tecnico_rut.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_rut.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Establecimiento <span
+                                        class="text-danger">*</span></label>
+                                {{ form.tecnico_establecimiento }}
+                                <div class="invalid-feedback">El establecimiento es obligatorio.</div>
+                                {% if form.tecnico_establecimiento.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_establecimiento.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Cargo</label>
+                                {{ form.tecnico_cargo }}
+                                {% if form.tecnico_cargo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_cargo.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Teléfono</label>
+                                {{ form.tecnico_telefono }}
+                                {% if form.tecnico_telefono.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Email <span
+                                        class="text-danger">*</span></label>
+                                {{ form.tecnico_email }}
+                                <div class="invalid-feedback">Ingrese un correo electrónico válido.</div>
+                                {% if form.tecnico_email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small text-muted">Fecha Requerimiento <span
+                                        class="text-danger">*</span></label>
+                                {{ form.tecnico_fecha }}
+                                <div class="invalid-feedback">La fecha de requerimiento es obligatoria.</div>
+                                {% if form.tecnico_fecha.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tecnico_fecha.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3 d-flex align-items-center">
+                                <div class="form-check mt-3">
+                                    {{ form.es_proveedor }}
+                                    <label class="form-check-label fw-bold small text-muted"
+                                           for="{{ form.es_proveedor.id_for_label }}">
+                                        {{ form.es_proveedor.label }}
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {{ beneficiarios_formset.management_form }}
-                    {% if beneficiarios_formset.non_form_errors %}
-                        <div class="alert alert-danger mb-3">
-                            {{ beneficiarios_formset.non_form_errors }}
+                    <!-- 3. Beneficiarios de la Solicitud (FormSet) -->
+                    <div class="mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-people fs-5 text-secondary me-2"></i>
+                                <h5 class="mb-0 fw-bold text-dark">3. Beneficiarios de la Solicitud VPN</h5>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-semibold"
+                                        id="btn-agregar-beneficiario">
+                                    <i class="bi bi-person-plus me-1"></i> Agregar Beneficiario
+                                </button>
+                            </div>
                         </div>
-                    {% endif %}
 
-                    <div class="table-responsive border rounded-2 mb-2">
-                        <table class="table table-hover align-middle mb-0" id="tabla-beneficiarios">
-                            <thead class="table-light small text-uppercase text-secondary">
+                        {{ beneficiarios_formset.management_form }}
+                        {% if beneficiarios_formset.non_form_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {{ beneficiarios_formset.non_form_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="table-responsive border rounded-2 mb-2">
+                            <table class="table table-hover align-middle mb-0" id="tabla-beneficiarios">
+                                <thead class="table-light small text-uppercase text-secondary">
                                 <tr>
                                     <th style="width: 40px;" class="text-center">#</th>
                                     <th style="width: 220px;">Funcionario (Opcional)</th>
@@ -222,8 +243,8 @@
                                     <th style="width: 160px;">Email</th>
                                     <th style="width: 60px;" class="text-center">Acción</th>
                                 </tr>
-                            </thead>
-                            <tbody id="contenedor-filas-beneficiarios">
+                                </thead>
+                                <tbody id="contenedor-filas-beneficiarios">
                                 {% for b_form in beneficiarios_formset %}
                                     <tr class="fila-beneficiario" data-index="{{ forloop.counter0 }}">
                                         <td class="text-center fw-bold col-numero-ben">{{ forloop.counter }}</td>
@@ -284,52 +305,58 @@
                                             <div style="display: none;">
                                                 {{ b_form.DELETE }}
                                             </div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario" title="Eliminar fila">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario"
+                                                    title="Eliminar fila">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos manualmente.
-                    </div>
-                </div>
-
-                <!-- 4. Accesos VPN Solicitados (FormSet ManyToMany) -->
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-hdd-network fs-5 text-secondary me-2"></i>
-                            <h5 class="mb-0 fw-bold text-dark">4. Accesos VPN Solicitados (Catálogo / Mantenedor)</h5>
+                                </tbody>
+                            </table>
                         </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" id="btn-agregar-acceso">
-                                <i class="bi bi-plus-circle me-1"></i> Agregar Acceso
-                            </button>
+                        <div class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos
+                            manualmente.
                         </div>
                     </div>
 
-                    {{ accesos_formset.management_form }}
-                    {% if accesos_formset.non_form_errors %}
-                        <div class="alert alert-danger mb-3">
-                            {{ accesos_formset.non_form_errors }}
+                    <!-- 4. Accesos VPN Solicitados (FormSet ManyToMany) -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-hdd-network fs-5 text-secondary me-2"></i>
+                                <h5 class="mb-0 fw-bold text-dark">4. Accesos VPN Solicitados (Catálogo /
+                                    Mantenedor)</h5>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-semibold"
+                                        id="btn-agregar-acceso">
+                                    <i class="bi bi-plus-circle me-1"></i> Agregar Acceso
+                                </button>
+                            </div>
                         </div>
-                    {% endif %}
 
-                    <div class="table-responsive border rounded-2 mb-2">
-                        <table class="table table-hover align-middle mb-0" id="tabla-accesos">
-                            <thead class="table-light small text-uppercase text-secondary">
+                        {{ accesos_formset.management_form }}
+                        {% if accesos_formset.non_form_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {{ accesos_formset.non_form_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="table-responsive border rounded-2 mb-2">
+                            <table class="table table-hover align-middle mb-0" id="tabla-accesos">
+                                <thead class="table-light small text-uppercase text-secondary">
                                 <tr>
                                     <th style="width: 50px;" class="text-center">#</th>
-                                    <th>Sistema / Plataforma y Dirección IP (Mantenedor) <span class="text-danger">*</span></th>
+                                    <th>Sistema / Plataforma y Dirección IP (Mantenedor) <span
+                                            class="text-danger">*</span></th>
                                     <th style="width: 80px;" class="text-center">Acción</th>
                                 </tr>
-                            </thead>
-                            <tbody id="contenedor-filas-accesos">
+                                </thead>
+                                <tbody id="contenedor-filas-accesos">
                                 {% for a_form in accesos_formset %}
                                     <tr class="fila-acceso" data-index="{{ forloop.counter0 }}">
                                         <td class="text-center fw-bold col-numero-acc">{{ forloop.counter }}</td>
@@ -338,7 +365,8 @@
                                                 {{ hidden }}
                                             {% endfor %}
                                             {{ a_form.acceso }}
-                                            <div class="invalid-feedback">Seleccione un acceso válido del catálogo.</div>
+                                            <div class="invalid-feedback">Seleccione un acceso válido del catálogo.
+                                            </div>
                                             {% if a_form.acceso.errors %}
                                                 <div class="text-danger small">{{ a_form.acceso.errors }}</div>
                                             {% endif %}
@@ -347,488 +375,509 @@
                                             <div style="display: none;">
                                                 {{ a_form.DELETE }}
                                             </div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-acceso" title="Eliminar acceso">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger btn-eliminar-acceso"
+                                                    title="Eliminar acceso">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Seleccione los sistemas o recursos a los que se requiere acceso desde el catálogo mantenedor. No se permiten accesos duplicados.
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Botones de Acción Inferiores -->
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <a href="{% url 'solicitud_vpn:mis_solicitudes' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle me-1"></i> Cancelar
-            </a>
-
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-secondary fw-bold" id="btn-guardar-borrador">
-                    <i class="bi bi-file-earmark me-1"></i> Guardar como Borrador
-                </button>
-                <button type="button" class="btn btn-primary fw-bold px-4" id="btn-revisar-enviar">
-                    <i class="bi bi-send-check-fill me-1"></i> Revisar y Enviar Solicitud
-                </button>
-            </div>
-        </div>
-
-        <!-- MODAL: RESUMEN Y REVISIÓN ANTES DE ENVIAR -->
-        <div class="modal fade" id="modalResumenSolicitud" tabindex="-1" aria-labelledby="modalResumenSolicitudLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold" id="modalResumenSolicitudLabel">
-                            <i class="bi bi-clipboard-check me-2"></i>Revisión de Solicitud de Acceso VPN
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="alert alert-info py-2 small mb-3">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-muted small">
                             <i class="bi bi-info-circle me-1"></i>
-                            Revise minuciosamente la información antes de generar la solicitud. Una vez enviada, pasará a la Bandeja TIC para su tramitación en eConecta.
-                        </div>
-
-                        <!-- 1. Resumen Solicitante -->
-                        <div class="card mb-3 border-secondary">
-                            <div class="card-header bg-light py-2 fw-bold">
-                                <i class="bi bi-person-lines-fill me-1"></i> Datos del Técnico / Solicitante
-                            </div>
-                            <div class="card-body py-2">
-                                <div class="row g-2 small">
-                                    <div class="col-md-4"><strong>Nombre:</strong> <span id="res_tecnico_nombre">-</span></div>
-                                    <div class="col-md-2"><strong>RUT:</strong> <span id="res_tecnico_rut">-</span></div>
-                                    <div class="col-md-3"><strong>Establecimiento:</strong> <span id="res_tecnico_establecimiento">-</span></div>
-                                    <div class="col-md-3"><strong>Cargo:</strong> <span id="res_tecnico_cargo">-</span></div>
-                                    <div class="col-md-3"><strong>Teléfono:</strong> <span id="res_tecnico_telefono">-</span></div>
-                                    <div class="col-md-4"><strong>Email:</strong> <span id="res_tecnico_email">-</span></div>
-                                    <div class="col-md-2"><strong>¿Proveedor?:</strong> <span id="res_es_proveedor">-</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2. Parámetros VPN -->
-                        <div class="card mb-3 border-secondary">
-                            <div class="card-header bg-light py-2 fw-bold">
-                                <i class="bi bi-shield-lock me-1"></i> Parámetros Técnicos VPN
-                            </div>
-                            <div class="card-body py-2">
-                                <div class="row g-2 small">
-                                    <div class="col-md-3"><strong>Acción:</strong> <span id="res_accion">-</span></div>
-                                    <div class="col-md-3"><strong>Grupo VPN:</strong> <span id="res_grupo_vpn">-</span></div>
-                                    <div class="col-md-3"><strong>Fecha Expiración:</strong> <span id="res_fecha_expiracion">-</span></div>
-                                    <div class="col-md-3"><strong>Time Out:</strong> <span id="res_timeout_vpn">-</span></div>
-                                    <div class="col-12 mt-1"><strong>Observaciones:</strong> <span id="res_observaciones" class="text-muted">-</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. Resumen Beneficiarios -->
-                        <div class="card mb-3 border-secondary">
-                            <div class="card-header bg-light py-2 fw-bold d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-people me-1"></i> Beneficiarios (<span id="res_cant_beneficiarios">0</span>)</span>
-                            </div>
-                            <div class="card-body p-0">
-                                <div id="resumen_tabla_beneficiarios_container"></div>
-                            </div>
-                        </div>
-
-                        <!-- 4. Resumen Accesos -->
-                        <div class="card mb-3 border-secondary">
-                            <div class="card-header bg-light py-2 fw-bold d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-hdd-network me-1"></i> Accesos Solicitados (<span id="res_cant_accesos">0</span>)</span>
-                            </div>
-                            <div class="card-body p-0">
-                                <div id="resumen_tabla_accesos_container"></div>
-                            </div>
+                            Seleccione los sistemas o recursos a los que se requiere acceso desde el catálogo
+                            mantenedor. No se permiten accesos duplicados.
                         </div>
                     </div>
-                    <div class="modal-footer bg-light">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-arrow-left me-1"></i> Volver a Editar
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" id="btn-confirmar-borrador">
-                            <i class="bi bi-file-earmark me-1"></i> Guardar como Borrador
-                        </button>
-                        <button type="button" class="btn btn-success fw-bold px-4" id="btn-confirmar-envio-final">
-                            <i class="bi bi-send-check-fill me-1"></i> Confirmar y Enviar Solicitud
-                        </button>
+
+                </div>
+            </div>
+
+            <!-- Botones de Acción Inferiores -->
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <a href="{% url 'solicitud_vpn:mis_solicitudes' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </a>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary fw-bold" id="btn-guardar-borrador">
+                        <i class="bi bi-file-earmark me-1"></i> Guardar como Borrador
+                    </button>
+                    <button type="button" class="btn btn-primary fw-bold px-4" id="btn-revisar-enviar">
+                        <i class="bi bi-send-check-fill me-1"></i> Revisar y Enviar Solicitud
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL: RESUMEN Y REVISIÓN ANTES DE ENVIAR -->
+            <div class="modal fade" id="modalResumenSolicitud" tabindex="-1"
+                 aria-labelledby="modalResumenSolicitudLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title fw-bold" id="modalResumenSolicitudLabel">
+                                <i class="bi bi-clipboard-check me-2"></i>Revisión de Solicitud de Acceso VPN
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info py-2 small mb-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Revise minuciosamente la información antes de generar la solicitud. Una vez enviada,
+                                pasará a la Bandeja TIC para su tramitación en eConecta.
+                            </div>
+
+                            <!-- 1. Resumen Solicitante -->
+                            <div class="card mb-3 border-secondary">
+                                <div class="card-header bg-light py-2 fw-bold">
+                                    <i class="bi bi-person-lines-fill me-1"></i> Datos del Técnico / Solicitante
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="row g-2 small">
+                                        <div class="col-md-4"><strong>Nombre:</strong> <span
+                                                id="res_tecnico_nombre">-</span></div>
+                                        <div class="col-md-2"><strong>RUT:</strong> <span id="res_tecnico_rut">-</span>
+                                        </div>
+                                        <div class="col-md-3"><strong>Establecimiento:</strong> <span
+                                                id="res_tecnico_establecimiento">-</span></div>
+                                        <div class="col-md-3"><strong>Cargo:</strong> <span
+                                                id="res_tecnico_cargo">-</span></div>
+                                        <div class="col-md-3"><strong>Teléfono:</strong> <span
+                                                id="res_tecnico_telefono">-</span></div>
+                                        <div class="col-md-4"><strong>Email:</strong> <span
+                                                id="res_tecnico_email">-</span></div>
+                                        <div class="col-md-2"><strong>¿Proveedor?:</strong> <span id="res_es_proveedor">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Parámetros VPN -->
+                            <div class="card mb-3 border-secondary">
+                                <div class="card-header bg-light py-2 fw-bold">
+                                    <i class="bi bi-shield-lock me-1"></i> Parámetros Técnicos VPN
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="row g-2 small">
+                                        <div class="col-md-3"><strong>Acción:</strong> <span id="res_accion">-</span>
+                                        </div>
+                                        <div class="col-md-3"><strong>Grupo VPN:</strong> <span
+                                                id="res_grupo_vpn">-</span></div>
+                                        <div class="col-md-3"><strong>Fecha Expiración:</strong> <span
+                                                id="res_fecha_expiracion">-</span></div>
+                                        <div class="col-md-3"><strong>Time Out:</strong> <span
+                                                id="res_timeout_vpn">-</span></div>
+                                        <div class="col-12 mt-1"><strong>Observaciones:</strong> <span
+                                                id="res_observaciones" class="text-muted">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Resumen Beneficiarios -->
+                            <div class="card mb-3 border-secondary">
+                                <div class="card-header bg-light py-2 fw-bold d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-people me-1"></i> Beneficiarios (<span
+                                            id="res_cant_beneficiarios">0</span>)</span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="resumen_tabla_beneficiarios_container"></div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Resumen Accesos -->
+                            <div class="card mb-3 border-secondary">
+                                <div class="card-header bg-light py-2 fw-bold d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-hdd-network me-1"></i> Accesos Solicitados (<span
+                                            id="res_cant_accesos">0</span>)</span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="resumen_tabla_accesos_container"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-arrow-left me-1"></i> Volver a Editar
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="btn-confirmar-borrador">
+                                <i class="bi bi-file-earmark me-1"></i> Guardar como Borrador
+                            </button>
+                            <button type="button" class="btn btn-success fw-bold px-4" id="btn-confirmar-envio-final">
+                                <i class="bi bi-send-check-fill me-1"></i> Confirmar y Enviar Solicitud
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-    </form>
-</div>
+        </form>
+    </div>
 
-<!-- Plantillas ocultas para clonación de filas dinámicas de FormSets -->
-<template id="plantilla-fila-beneficiario">
-    <tr class="fila-beneficiario" data-index="__prefix__">
-        <td class="text-center fw-bold col-numero-ben">0</td>
-        <td>
-            {{ beneficiarios_formset.empty_form.funcionario }}
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.rut }}
-            <div class="invalid-feedback">RUT obligatorio.</div>
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.nombres }}
-            <div class="invalid-feedback">Nombres obligatorios.</div>
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.apellidos }}
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.establecimiento }}
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.cargo }}
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.telefono }}
-        </td>
-        <td>
-            {{ beneficiarios_formset.empty_form.email }}
-        </td>
-        <td class="text-center">
-            <div style="display: none;">
-                {{ beneficiarios_formset.empty_form.DELETE }}
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario" title="Eliminar fila">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    </tr>
-</template>
+    <!-- Plantillas ocultas para clonación de filas dinámicas de FormSets -->
+    <template id="plantilla-fila-beneficiario">
+        <tr class="fila-beneficiario" data-index="__prefix__">
+            <td class="text-center fw-bold col-numero-ben">0</td>
+            <td>
+                {{ beneficiarios_formset.empty_form.funcionario }}
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.rut }}
+                <div class="invalid-feedback">RUT obligatorio.</div>
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.nombres }}
+                <div class="invalid-feedback">Nombres obligatorios.</div>
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.apellidos }}
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.establecimiento }}
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.cargo }}
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.telefono }}
+            </td>
+            <td>
+                {{ beneficiarios_formset.empty_form.email }}
+            </td>
+            <td class="text-center">
+                <div style="display: none;">
+                    {{ beneficiarios_formset.empty_form.DELETE }}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-beneficiario"
+                        title="Eliminar fila">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </template>
 
-<template id="plantilla-fila-acceso">
-    <tr class="fila-acceso" data-index="__prefix__">
-        <td class="text-center fw-bold col-numero-acc">0</td>
-        <td>
-            {{ accesos_formset.empty_form.acceso }}
-            <div class="invalid-feedback">Seleccione un acceso válido del catálogo.</div>
-        </td>
-        <td class="text-center">
-            <div style="display: none;">
-                {{ accesos_formset.empty_form.DELETE }}
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-acceso" title="Eliminar acceso">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    </tr>
-</template>
+    <template id="plantilla-fila-acceso">
+        <tr class="fila-acceso" data-index="__prefix__">
+            <td class="text-center fw-bold col-numero-acc">0</td>
+            <td>
+                {{ accesos_formset.empty_form.acceso }}
+                <div class="invalid-feedback">Seleccione un acceso válido del catálogo.</div>
+            </td>
+            <td class="text-center">
+                <div style="display: none;">
+                    {{ accesos_formset.empty_form.DELETE }}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-acceso" title="Eliminar acceso">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </template>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-<script>
-$(document).ready(function() {
-    // Configuración e Inicialización de Flatpickr (Calendario AdminLTE/Bootstrap)
-    const flatpickrConfig = {
-        dateFormat: 'Y-m-d',
-        altInput: true,
-        altFormat: 'd/m/Y',
-        allowInput: true,
-        locale: typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.es ? flatpickr.l10ns.es : 'default'
-    };
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Configuración e Inicialización de Flatpickr (Calendario AdminLTE/Bootstrap)
+            const flatpickrConfig = {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true,
+                locale: typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.es ? flatpickr.l10ns.es : 'default'
+            };
 
-    if (document.getElementById('id_tecnico_fecha')) {
-        flatpickr('#id_tecnico_fecha', flatpickrConfig);
-    }
-    if (document.getElementById('id_fecha_expiracion')) {
-        flatpickr('#id_fecha_expiracion', flatpickrConfig);
-    }
-
-    // Inicializar Select2 en los selectores generales
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        width: '100%'
-    });
-
-    // Soporte para validación interactiva con Select2
-    $('.select2, .select2-funcionario, .select2-acceso').on('change', function() {
-        if ($(this).val()) {
-            $(this).removeClass('is-invalid');
-        }
-    });
-
-    function initSelect2Beneficiarios(context) {
-        $(context).find('.select2-funcionario').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            allowClear: true
-        });
-    }
-
-    function initSelect2Accesos(context) {
-        $(context).find('.select2-acceso').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            allowClear: true
-        });
-    }
-
-    // Inicializar Select2 en las filas ya renderizadas
-    initSelect2Beneficiarios('#contenedor-filas-beneficiarios');
-    initSelect2Accesos('#contenedor-filas-accesos');
-
-    const defaultEstablecimiento = $('[data-user-establecimiento]').data('user-establecimiento') || '';
-
-    // Formateo de RUT
-    function formatearRut(rut) {
-        if (!rut) return '';
-        let valor = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-        if (valor.length <= 1) return valor;
-        let cuerpo = valor.slice(0, -1);
-        let dv = valor.slice(-1);
-        let puntos = '';
-        while (cuerpo.length > 3) {
-            puntos = '.' + cuerpo.slice(-3) + puntos;
-            cuerpo = cuerpo.slice(0, -3);
-        }
-        return cuerpo + puntos + '-' + dv;
-    }
-
-    $(document).on('blur', '.rut-input', function() {
-        $(this).val(formatearRut($(this).val()));
-    });
-
-    // ==========================================
-    // BENEFICIARIOS FORMSET DYNAMIC MANAGEMENT
-    // ==========================================
-
-    function actualizarNumeracionBeneficiarios() {
-        let visibleIdx = 1;
-        $('#contenedor-filas-beneficiarios tr.fila-beneficiario').each(function() {
-            if ($(this).is(':visible')) {
-                $(this).find('.col-numero-ben').text(visibleIdx);
-                visibleIdx++;
+            if (document.getElementById('id_tecnico_fecha')) {
+                flatpickr('#id_tecnico_fecha', flatpickrConfig);
             }
-        });
-    }
+            if (document.getElementById('id_fecha_expiracion')) {
+                flatpickr('#id_fecha_expiracion', flatpickrConfig);
+            }
 
-    $('#btn-agregar-beneficiario').on('click', function(e) {
-        e.preventDefault();
-        const totalFormsInput = $('#id_beneficiarios-TOTAL_FORMS');
-        const totalForms = parseInt(totalFormsInput.val()) || 0;
+            // Inicializar Select2 en los selectores generales
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
 
-        const templateHtml = $('#plantilla-fila-beneficiario').html();
-        const nuevaFilaHtml = templateHtml.replace(/__prefix__/g, totalForms);
-        const $nuevaFila = $(nuevaFilaHtml);
-
-        if (defaultEstablecimiento) {
-            $nuevaFila.find('.input-establecimiento').val(defaultEstablecimiento);
-        }
-
-        $('#contenedor-filas-beneficiarios').append($nuevaFila);
-        totalFormsInput.val(totalForms + 1);
-
-        initSelect2Beneficiarios($nuevaFila);
-        actualizarNumeracionBeneficiarios();
-    });
-
-    $(document).on('click', '.btn-eliminar-beneficiario', function(e) {
-        e.preventDefault();
-        const $fila = $(this).closest('tr.fila-beneficiario');
-        const filasVisibles = $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').length;
-
-        if (filasVisibles <= 1) {
-            alert('Debe conservar al menos un beneficiario en la solicitud.');
-            return;
-        }
-
-        $fila.find('input[name$="-DELETE"]').prop('checked', true);
-        $fila.hide();
-        actualizarNumeracionBeneficiarios();
-    });
-
-    // Cargar datos automáticamente al seleccionar funcionario existente
-    const funcionarioApiUrlBase = "{% url 'solicitud_vpn:api_funcionario' pk=0 %}".replace('/0/', '/');
-
-    $(document).on('change select2:select', '.select-func-existente', function() {
-        const funcId = $(this).val();
-        const $fila = $(this).closest('tr.fila-beneficiario');
-
-        if (funcId) {
-            $.ajax({
-                url: funcionarioApiUrlBase + funcId + '/',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response && response.status === 'ok') {
-                        const d = response.data;
-                        $fila.find('.input-rut').val(formatearRut(d.rut || '')).trigger('input');
-                        $fila.find('.input-nombres').val(d.nombres || '').trigger('input');
-                        $fila.find('.input-apellidos').val(d.apellidos || '');
-                        $fila.find('.input-nombre-completo').val(d.nombre_completo || '');
-                        $fila.find('.input-establecimiento').val(d.establecimiento || defaultEstablecimiento);
-                        $fila.find('.input-cargo').val(d.cargo || '');
-                        $fila.find('.input-email').val(d.email || '');
-                        $fila.find('.input-telefono').val(d.telefono || '');
-                    }
-                },
-                error: function(err) {
-                    console.error('Error obteniendo datos del funcionario:', err);
+            // Soporte para validación interactiva con Select2
+            $('.select2, .select2-funcionario, .select2-acceso').on('change', function () {
+                if ($(this).val()) {
+                    $(this).removeClass('is-invalid');
                 }
             });
-        }
-    });
 
-    // ==========================================
-    // ACCESOS FORMSET DYNAMIC MANAGEMENT
-    // ==========================================
-
-    function actualizarNumeracionAccesos() {
-        let visibleIdx = 1;
-        $('#contenedor-filas-accesos tr.fila-acceso').each(function() {
-            if ($(this).is(':visible')) {
-                $(this).find('.col-numero-acc').text(visibleIdx);
-                visibleIdx++;
+            function initSelect2Beneficiarios(context) {
+                $(context).find('.select2-funcionario').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    allowClear: true
+                });
             }
-        });
-    }
 
-    $('#btn-agregar-acceso').on('click', function(e) {
-        e.preventDefault();
-        const totalFormsInput = $('#id_accesos-TOTAL_FORMS');
-        const totalForms = parseInt(totalFormsInput.val()) || 0;
-
-        const templateHtml = $('#plantilla-fila-acceso').html();
-        const nuevaFilaHtml = templateHtml.replace(/__prefix__/g, totalForms);
-        const $nuevaFila = $(nuevaFilaHtml);
-
-        $('#contenedor-filas-accesos').append($nuevaFila);
-        totalFormsInput.val(totalForms + 1);
-
-        initSelect2Accesos($nuevaFila);
-        actualizarNumeracionAccesos();
-    });
-
-    $(document).on('click', '.btn-eliminar-acceso', function(e) {
-        e.preventDefault();
-        const $fila = $(this).closest('tr.fila-acceso');
-        $fila.find('input[name$="-DELETE"]').prop('checked', true);
-        $fila.hide();
-        actualizarNumeracionAccesos();
-    });
-
-    // Validación preventiva de selección duplicada de acceso
-    $(document).on('change select2:select', '.select-acceso-catalogo', function() {
-        const valSeleccionado = $(this).val();
-        if (!valSeleccionado) return;
-
-        let repeticiones = 0;
-        const currentSelect = this;
-
-        $('#contenedor-filas-accesos tr.fila-acceso:visible .select-acceso-catalogo').each(function() {
-            if ($(this).val() === valSeleccionado) {
-                repeticiones++;
+            function initSelect2Accesos(context) {
+                $(context).find('.select2-acceso').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    allowClear: true
+                });
             }
-        });
 
-        if (repeticiones > 1) {
-            alert('Este acceso ya ha sido seleccionado en otra fila. No se permiten accesos duplicados.');
-            $(currentSelect).val('').trigger('change');
-        }
-    });
+            // Inicializar Select2 en las filas ya renderizadas
+            initSelect2Beneficiarios('#contenedor-filas-beneficiarios');
+            initSelect2Accesos('#contenedor-filas-accesos');
 
-    // ==========================================
-    // REVISIÓN Y RESUMEN ANTES DE ENVIAR
-    // ==========================================
+            const defaultEstablecimiento = $('[data-user-establecimiento]').data('user-establecimiento') || '';
 
-    function validarFormulario() {
-        const form = document.getElementById('form-solicitud-vpn');
-        $('#form-solicitud-vpn').addClass('was-validated');
+            // Formateo de RUT
+            function formatearRut(rut) {
+                if (!rut) return '';
+                let valor = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+                if (valor.length <= 1) return valor;
+                let cuerpo = valor.slice(0, -1);
+                let dv = valor.slice(-1);
+                let puntos = '';
+                while (cuerpo.length > 3) {
+                    puntos = '.' + cuerpo.slice(-3) + puntos;
+                    cuerpo = cuerpo.slice(0, -3);
+                }
+                return cuerpo + puntos + '-' + dv;
+            }
 
-        // Validar formulario principal
-        let esValido = form.checkValidity();
+            $(document).on('blur', '.rut-input', function () {
+                $(this).val(formatearRut($(this).val()));
+            });
 
-        const depto = $('#id_departamento_solicitante').val();
-        const accion = $('#id_accion').val();
-        const tecNombre = ($('#id_tecnico_nombre').val() || '').trim();
-        const tecRut = ($('#id_tecnico_rut').val() || '').trim();
-        const tecEstablecimiento = ($('#id_tecnico_establecimiento').val() || '').trim();
-        const tecEmail = ($('#id_tecnico_email').val() || '').trim();
-        const tecFecha = ($('#id_tecnico_fecha').val() || '').trim();
+            // ==========================================
+            // BENEFICIARIOS FORMSET DYNAMIC MANAGEMENT
+            // ==========================================
 
-        if (!depto || !accion || !tecNombre || !tecRut || !tecEstablecimiento || !tecEmail || !tecFecha) {
-            esValido = false;
-        }
-
-        let totalBeneficiariosVisibles = 0;
-        let faltaDatosBeneficiario = false;
-
-        $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').each(function() {
-            totalBeneficiariosVisibles++;
-            const rut = ($(this).find('.input-rut').val() || '').trim();
-            const nombres = ($(this).find('.input-nombres').val() || '').trim();
-            if (!rut || !nombres) {
-                faltaDatosBeneficiario = true;
-                $(this).find('.input-rut, .input-nombres').each(function() {
-                    if (!$(this).val()) {
-                        $(this).addClass('is-invalid');
+            function actualizarNumeracionBeneficiarios() {
+                let visibleIdx = 1;
+                $('#contenedor-filas-beneficiarios tr.fila-beneficiario').each(function () {
+                    if ($(this).is(':visible')) {
+                        $(this).find('.col-numero-ben').text(visibleIdx);
+                        visibleIdx++;
                     }
                 });
             }
-        });
 
-        if (totalBeneficiariosVisibles === 0) {
-            alert('Debe ingresar al menos un beneficiario para generar la solicitud.');
-            return false;
-        }
+            $('#btn-agregar-beneficiario').on('click', function (e) {
+                e.preventDefault();
+                const totalFormsInput = $('#id_beneficiarios-TOTAL_FORMS');
+                const totalForms = parseInt(totalFormsInput.val()) || 0;
 
-        if (!esValido || faltaDatosBeneficiario) {
-            // Scroll hacia el primer error visible
-            const $primerInvalido = $('.is-invalid, :invalid').first();
-            if ($primerInvalido.length) {
-                $('html, body').animate({
-                    scrollTop: $primerInvalido.offset().top - 100
-                }, 300);
-                $primerInvalido.focus();
+                const templateHtml = $('#plantilla-fila-beneficiario').html();
+                const nuevaFilaHtml = templateHtml.replace(/__prefix__/g, totalForms);
+                const $nuevaFila = $(nuevaFilaHtml);
+
+                if (defaultEstablecimiento) {
+                    $nuevaFila.find('.input-establecimiento').val(defaultEstablecimiento);
+                }
+
+                $('#contenedor-filas-beneficiarios').append($nuevaFila);
+                totalFormsInput.val(totalForms + 1);
+
+                initSelect2Beneficiarios($nuevaFila);
+                actualizarNumeracionBeneficiarios();
+            });
+
+            $(document).on('click', '.btn-eliminar-beneficiario', function (e) {
+                e.preventDefault();
+                const $fila = $(this).closest('tr.fila-beneficiario');
+                const filasVisibles = $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').length;
+
+                if (filasVisibles <= 1) {
+                    alert('Debe conservar al menos un beneficiario en la solicitud.');
+                    return;
+                }
+
+                $fila.find('input[name$="-DELETE"]').prop('checked', true);
+                $fila.hide();
+                actualizarNumeracionBeneficiarios();
+            });
+
+            // Cargar datos automáticamente al seleccionar funcionario existente
+            const funcionarioApiUrlBase = "{% url 'solicitud_vpn:api_funcionario' pk=0 %}".replace('/0/', '/');
+
+            $(document).on('change select2:select', '.select-func-existente', function () {
+                const funcId = $(this).val();
+                const $fila = $(this).closest('tr.fila-beneficiario');
+
+                if (funcId) {
+                    $.ajax({
+                        url: funcionarioApiUrlBase + funcId + '/',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response && response.status === 'ok') {
+                                const d = response.data;
+                                $fila.find('.input-rut').val(formatearRut(d.rut || '')).trigger('input');
+                                $fila.find('.input-nombres').val(d.nombres || '').trigger('input');
+                                $fila.find('.input-apellidos').val(d.apellidos || '');
+                                $fila.find('.input-nombre-completo').val(d.nombre_completo || '');
+                                $fila.find('.input-establecimiento').val(d.establecimiento || defaultEstablecimiento);
+                                $fila.find('.input-cargo').val(d.cargo || '');
+                                $fila.find('.input-email').val(d.email || '');
+                                $fila.find('.input-telefono').val(d.telefono || '');
+                            }
+                        },
+                        error: function (err) {
+                            console.error('Error obteniendo datos del funcionario:', err);
+                        }
+                    });
+                }
+            });
+
+            // ==========================================
+            // ACCESOS FORMSET DYNAMIC MANAGEMENT
+            // ==========================================
+
+            function actualizarNumeracionAccesos() {
+                let visibleIdx = 1;
+                $('#contenedor-filas-accesos tr.fila-acceso').each(function () {
+                    if ($(this).is(':visible')) {
+                        $(this).find('.col-numero-acc').text(visibleIdx);
+                        visibleIdx++;
+                    }
+                });
             }
-            alert('Por favor complete todos los campos obligatorios marcados en rojo.');
-            return false;
-        }
 
-        return true;
-    }
+            $('#btn-agregar-acceso').on('click', function (e) {
+                e.preventDefault();
+                const totalFormsInput = $('#id_accesos-TOTAL_FORMS');
+                const totalForms = parseInt(totalFormsInput.val()) || 0;
 
-    $('#btn-revisar-enviar').on('click', function(e) {
-        e.preventDefault();
+                const templateHtml = $('#plantilla-fila-acceso').html();
+                const nuevaFilaHtml = templateHtml.replace(/__prefix__/g, totalForms);
+                const $nuevaFila = $(nuevaFilaHtml);
 
-        if (!validarFormulario()) {
-            return;
-        }
+                $('#contenedor-filas-accesos').append($nuevaFila);
+                totalFormsInput.val(totalForms + 1);
 
-        // Llenar resumen técnico
-        $('#res_tecnico_nombre').text($('#id_tecnico_nombre').val() || '-');
-        $('#res_tecnico_rut').text($('#id_tecnico_rut').val() || '-');
-        $('#res_tecnico_establecimiento').text($('#id_tecnico_establecimiento').val() || '-');
-        $('#res_tecnico_cargo').text($('#id_tecnico_cargo').val() || '-');
-        $('#res_tecnico_telefono').text($('#id_tecnico_telefono').val() || '-');
-        $('#res_tecnico_email').text($('#id_tecnico_email').val() || '-');
-        $('#res_es_proveedor').text($('#id_es_proveedor').is(':checked') ? 'SÍ' : 'NO');
+                initSelect2Accesos($nuevaFila);
+                actualizarNumeracionAccesos();
+            });
 
-        // Llenar resumen parámetros VPN
-        $('#res_accion').text($('#id_accion option:selected').text() || 'Crear');
-        $('#res_grupo_vpn').text($('#id_grupo_vpn').val() || 'No especificado');
-        $('#res_fecha_expiracion').text($('#id_fecha_expiracion').val() || 'Indefinida');
-        $('#res_timeout_vpn').text($('#id_timeout_vpn').val() || '1 hora');
-        $('#res_observaciones').text($('#id_observacion').val() || 'Sin observaciones');
+            $(document).on('click', '.btn-eliminar-acceso', function (e) {
+                e.preventDefault();
+                const $fila = $(this).closest('tr.fila-acceso');
+                $fila.find('input[name$="-DELETE"]').prop('checked', true);
+                $fila.hide();
+                actualizarNumeracionAccesos();
+            });
 
-        // Llenar resumen beneficiarios
-        let cantBen = 0;
-        let tablaBenHtml = `
+            // Validación preventiva de selección duplicada de acceso
+            $(document).on('change select2:select', '.select-acceso-catalogo', function () {
+                const valSeleccionado = $(this).val();
+                if (!valSeleccionado) return;
+
+                let repeticiones = 0;
+                const currentSelect = this;
+
+                $('#contenedor-filas-accesos tr.fila-acceso:visible .select-acceso-catalogo').each(function () {
+                    if ($(this).val() === valSeleccionado) {
+                        repeticiones++;
+                    }
+                });
+
+                if (repeticiones > 1) {
+                    alert('Este acceso ya ha sido seleccionado en otra fila. No se permiten accesos duplicados.');
+                    $(currentSelect).val('').trigger('change');
+                }
+            });
+
+            // ==========================================
+            // REVISIÓN Y RESUMEN ANTES DE ENVIAR
+            // ==========================================
+
+            function validarFormulario() {
+                const form = document.getElementById('form-solicitud-vpn');
+                $('#form-solicitud-vpn').addClass('was-validated');
+
+                // Validar formulario principal
+                let esValido = form.checkValidity();
+
+                const depto = $('#id_departamento_solicitante').val();
+                const accion = $('#id_accion').val();
+                const tecNombre = ($('#id_tecnico_nombre').val() || '').trim();
+                const tecRut = ($('#id_tecnico_rut').val() || '').trim();
+                const tecEstablecimiento = ($('#id_tecnico_establecimiento').val() || '').trim();
+                const tecEmail = ($('#id_tecnico_email').val() || '').trim();
+                const tecFecha = ($('#id_tecnico_fecha').val() || '').trim();
+
+                if (!depto || !accion || !tecNombre || !tecRut || !tecEstablecimiento || !tecEmail || !tecFecha) {
+                    esValido = false;
+                }
+
+                let totalBeneficiariosVisibles = 0;
+                let faltaDatosBeneficiario = false;
+
+                $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').each(function () {
+                    totalBeneficiariosVisibles++;
+                    const rut = ($(this).find('.input-rut').val() || '').trim();
+                    const nombres = ($(this).find('.input-nombres').val() || '').trim();
+                    if (!rut || !nombres) {
+                        faltaDatosBeneficiario = true;
+                        $(this).find('.input-rut, .input-nombres').each(function () {
+                            if (!$(this).val()) {
+                                $(this).addClass('is-invalid');
+                            }
+                        });
+                    }
+                });
+
+                if (totalBeneficiariosVisibles === 0) {
+                    alert('Debe ingresar al menos un beneficiario para generar la solicitud.');
+                    return false;
+                }
+
+                if (!esValido || faltaDatosBeneficiario) {
+                    // Scroll hacia el primer error visible
+                    const $primerInvalido = $('.is-invalid, :invalid').first();
+                    if ($primerInvalido.length) {
+                        $('html, body').animate({
+                            scrollTop: $primerInvalido.offset().top - 100
+                        }, 300);
+                        $primerInvalido.focus();
+                    }
+                    alert('Por favor complete todos los campos obligatorios marcados en rojo.');
+                    return false;
+                }
+
+                return true;
+            }
+
+            $('#btn-revisar-enviar').on('click', function (e) {
+                e.preventDefault();
+
+                if (!validarFormulario()) {
+                    return;
+                }
+
+                // Llenar resumen técnico
+                $('#res_tecnico_nombre').text($('#id_tecnico_nombre').val() || '-');
+                $('#res_tecnico_rut').text($('#id_tecnico_rut').val() || '-');
+                $('#res_tecnico_establecimiento').text($('#id_tecnico_establecimiento').val() || '-');
+                $('#res_tecnico_cargo').text($('#id_tecnico_cargo').val() || '-');
+                $('#res_tecnico_telefono').text($('#id_tecnico_telefono').val() || '-');
+                $('#res_tecnico_email').text($('#id_tecnico_email').val() || '-');
+                $('#res_es_proveedor').text($('#id_es_proveedor').is(':checked') ? 'SÍ' : 'NO');
+
+                // Llenar resumen parámetros VPN
+                $('#res_accion').text($('#id_accion option:selected').text() || 'Crear');
+                $('#res_grupo_vpn').text($('#id_grupo_vpn').val() || 'No especificado');
+                $('#res_fecha_expiracion').text($('#id_fecha_expiracion').val() || 'Indefinida');
+                $('#res_timeout_vpn').text($('#id_timeout_vpn').val() || '1 hora');
+                $('#res_observaciones').text($('#id_observacion').val() || 'Sin observaciones');
+
+                // Llenar resumen beneficiarios
+                let cantBen = 0;
+                let tablaBenHtml = `
             <table class="table table-sm table-bordered mb-0 small">
                 <thead class="table-light">
                     <tr>
@@ -843,17 +892,17 @@ $(document).ready(function() {
                 <tbody>
         `;
 
-        $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').each(function(idx) {
-            cantBen++;
-            const rut = $(this).find('.input-rut').val() || '-';
-            const nombres = $(this).find('.input-nombres').val() || '';
-            const apellidos = $(this).find('.input-apellidos').val() || '';
-            const nombreComp = (nombres + ' ' + apellidos).trim() || '-';
-            const est = $(this).find('.input-establecimiento').val() || '-';
-            const car = $(this).find('.input-cargo').val() || '-';
-            const ema = $(this).find('.input-email').val() || '-';
+                $('#contenedor-filas-beneficiarios tr.fila-beneficiario:visible').each(function (idx) {
+                    cantBen++;
+                    const rut = $(this).find('.input-rut').val() || '-';
+                    const nombres = $(this).find('.input-nombres').val() || '';
+                    const apellidos = $(this).find('.input-apellidos').val() || '';
+                    const nombreComp = (nombres + ' ' + apellidos).trim() || '-';
+                    const est = $(this).find('.input-establecimiento').val() || '-';
+                    const car = $(this).find('.input-cargo').val() || '-';
+                    const ema = $(this).find('.input-email').val() || '-';
 
-            tablaBenHtml += `
+                    tablaBenHtml += `
                 <tr>
                     <td class="text-center fw-bold">${idx + 1}</td>
                     <td class="fw-bold">${nombreComp}</td>
@@ -863,14 +912,14 @@ $(document).ready(function() {
                     <td>${ema}</td>
                 </tr>
             `;
-        });
-        tablaBenHtml += '</tbody></table>';
-        $('#res_cant_beneficiarios').text(cantBen);
-        $('#resumen_tabla_beneficiarios_container').html(tablaBenHtml);
+                });
+                tablaBenHtml += '</tbody></table>';
+                $('#res_cant_beneficiarios').text(cantBen);
+                $('#resumen_tabla_beneficiarios_container').html(tablaBenHtml);
 
-        // Llenar resumen accesos
-        let cantAcc = 0;
-        let tablaAccHtml = `
+                // Llenar resumen accesos
+                let cantAcc = 0;
+                let tablaAccHtml = `
             <table class="table table-sm table-bordered mb-0 small">
                 <thead class="table-light">
                     <tr>
@@ -881,53 +930,53 @@ $(document).ready(function() {
                 <tbody>
         `;
 
-        $('#contenedor-filas-accesos tr.fila-acceso:visible').each(function(idx) {
-            const selectVal = $(this).find('.select-acceso-catalogo').val();
-            const selectText = $(this).find('.select-acceso-catalogo option:selected').text();
-            if (selectVal) {
-                cantAcc++;
-                tablaAccHtml += `
+                $('#contenedor-filas-accesos tr.fila-acceso:visible').each(function (idx) {
+                    const selectVal = $(this).find('.select-acceso-catalogo').val();
+                    const selectText = $(this).find('.select-acceso-catalogo option:selected').text();
+                    if (selectVal) {
+                        cantAcc++;
+                        tablaAccHtml += `
                     <tr>
                         <td class="text-center fw-bold">${cantAcc}</td>
                         <td class="fw-bold text-primary">${selectText}</td>
                     </tr>
                 `;
-            }
-        });
+                    }
+                });
 
-        if (cantAcc === 0) {
-            tablaAccHtml += `
+                if (cantAcc === 0) {
+                    tablaAccHtml += `
                 <tr>
                     <td colspan="2" class="text-center text-muted py-2">
                         <em>No se seleccionaron accesos específicos del mantenedor.</em>
                     </td>
                 </tr>
             `;
-        }
-        tablaAccHtml += '</tbody></table>';
-        $('#res_cant_accesos').text(cantAcc);
-        $('#resumen_tabla_accesos_container').html(tablaAccHtml);
+                }
+                tablaAccHtml += '</tbody></table>';
+                $('#res_cant_accesos').text(cantAcc);
+                $('#resumen_tabla_accesos_container').html(tablaAccHtml);
 
-        $('#modalResumenSolicitud').modal('show');
-    });
+                $('#modalResumenSolicitud').modal('show');
+            });
 
-    $('#btn-guardar-borrador').on('click', function(e) {
-        e.preventDefault();
-        $('#input_guardar_borrador').val('1');
-        $('#form-solicitud-vpn')[0].submit();
-    });
+            $('#btn-guardar-borrador').on('click', function (e) {
+                e.preventDefault();
+                $('#input_guardar_borrador').val('1');
+                $('#form-solicitud-vpn')[0].submit();
+            });
 
-    $('#btn-confirmar-borrador').on('click', function(e) {
-        e.preventDefault();
-        $('#input_guardar_borrador').val('1');
-        $('#form-solicitud-vpn')[0].submit();
-    });
+            $('#btn-confirmar-borrador').on('click', function (e) {
+                e.preventDefault();
+                $('#input_guardar_borrador').val('1');
+                $('#form-solicitud-vpn')[0].submit();
+            });
 
-    $('#btn-confirmar-envio-final').on('click', function(e) {
-        e.preventDefault();
-        $('#input_guardar_borrador').val('0');
-        $('#form-solicitud-vpn')[0].submit();
-    });
-});
-</script>
+            $('#btn-confirmar-envio-final').on('click', function (e) {
+                e.preventDefault();
+                $('#input_guardar_borrador').val('0');
+                $('#form-solicitud-vpn')[0].submit();
+            });
+        });
+    </script>
 {% endblock %}

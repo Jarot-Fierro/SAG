@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'soporte:list_soportes' %}" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left-circle me-1"></i>
+        Volver
+    </a>
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="row mx-2">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}<br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <h6 class="mb-3">Datos del ticket</h6>
+
+                        <div class="row">
+                            <div class="mb-3 col-6">
+                                <label for="{{ form.departamento.id_for_label }}"
+                                       class="form-label">{{ form.departamento.label }}</label>
+                                {{ form.departamento }}
+                                {% for error in form.departamento.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3 col-6">
+                                <label for="{{ form.titulo.id_for_label }}"
+                                       class="form-label">{{ form.titulo.label }}</label>
+                                {{ form.titulo }}
+                                {% for error in form.titulo.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-3 col-4">
+                                <label for="{{ form.nombres.id_for_label }}"
+                                       class="form-label">{{ form.nombres.label }}</label>
+                                {{ form.nombres }}
+                                {% for error in form.nombres.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-3 col-4">
+                                <label for="{{ form.correo.id_for_label }}"
+                                       class="form-label">{{ form.correo.label }}</label>
+                                {{ form.correo }}
+                                {% for error in form.correo.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3 col-4">
+                                <label for="{{ form.area_soporte.id_for_label }}"
+                                       class="form-label">{{ form.area_soporte.label }}</label>
+                                {{ form.area_soporte }}
+                                {% for error in form.area_soporte.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+
+                            <div class="mb-3 col-12">
+                                <label for="{{ form.descripcion.id_for_label }}"
+                                       class="form-label">{{ form.descripcion.label }}</label>
+                                {{ form.descripcion }}
+                                {% for error in form.descripcion.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'soporte:list_soportes' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle me-1"></i>{{ submit_label|default:"Guardar" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'soporte/js/ticket_form.js' %}"></script>
+{% endblock %}

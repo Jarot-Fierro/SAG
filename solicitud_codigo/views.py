@@ -36,6 +36,13 @@ from solicitud_codigo.permissions import (
 )
 
 
+def _as_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def get_estado_badge(estado):
     badges = {
         SolicitudCodigo.ESTADO_PENDIENTE_VALIDACION: '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente de Validación</span>',
@@ -117,65 +124,79 @@ class MisSolicitudesListView(SolicitanteRequiredMixin, ListView):
         context["column_control_options"] = self.get_column_control_options()
         return context
 
-    def get(self, request, *args, **kwargs):
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return self.datatables_response(request)
-        return super().get(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') != 'search':
+            return JsonResponse(
+                {'error': 'Acción no válida'},
+                status=400
+            )
 
-    def datatables_response(self, request):
+        draw = int(request.POST.get('draw', 1))
+        start = max(0, int(request.POST.get('start', 0)))
+        length = int(request.POST.get('length', 10))
+
         queryset = self.get_queryset()
-
-        draw = int(request.GET.get("draw", 1))
-        start = max(int(request.GET.get("start", 0)), 0)
-        length = int(request.GET.get("length", 10))
 
         records_total = queryset.count()
 
         # Búsqueda global
-        search_value = request.GET.get("search[value]", "").strip()
-        if search_value:
+        search = request.POST.get('search[value]', '').strip()
+        if search:
             search_query = Q()
             for column in self.searchable_columns:
-                search_query |= Q(**{f"{column}__icontains": search_value})
+                search_query |= Q(**{f"{column}__icontains": search})
             queryset = queryset.filter(search_query)
 
-        # Filtro de columna para Área (columna índice 2)
-        area_filter = request.GET.get("columns[2][search][value]", "").strip()
-        if area_filter:
-            queryset = queryset.filter(area__nombre__icontains=area_filter)
+        # Filtro de columna: Área (columna índice 2)
+        prefijo_area = 'columns[2][columnControl][list]'
+        areas_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_area or key.startswith(prefijo_area + '['):
+                areas_filtro.extend(values)
+        if areas_filtro:
+            queryset = queryset.filter(area__nombre__in=areas_filtro)
+        else:
+            area_search = request.POST.get('columns[2][search][value]', '').strip()
+            if area_search:
+                queryset = queryset.filter(area__nombre__icontains=area_search)
 
-        # Filtro de columna para Estado (columna índice 6)
-        estado_filter = request.GET.get("columns[6][search][value]", "").strip()
-        if estado_filter:
-            queryset = queryset.filter(estado=estado_filter)
+        # Filtro de columna: Estado (columna índice 6)
+        prefijo_estado = 'columns[6][columnControl][list]'
+        estados_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_estado or key.startswith(prefijo_estado + '['):
+                estados_filtro.extend(values)
+        if estados_filtro:
+            queryset = queryset.filter(estado__in=estados_filtro)
+        else:
+            estado_search = request.POST.get('columns[6][search][value]', '').strip()
+            if estado_search:
+                queryset = queryset.filter(estado=estado_search)
 
-        records_filtered = queryset.count()
-
-        # Ordenamiento
-        order_column = request.GET.get("order[0][column]")
-        order_dir = request.GET.get("order[0][dir]", "desc")
-
-        order_map = {
-            0: "numero_solicitud",
-            1: "fecha_solicitud",
-            2: "area__nombre",
-            3: "subarea__nombre",
-            4: "producto_base",
-            5: "presentacion",
-            6: "estado",
+        # Ordenamiento: mismo orden de columnas
+        columnas = {
+            0: 'numero_solicitud',
+            1: 'fecha_solicitud',
+            2: 'area__nombre',
+            3: 'subarea__nombre',
+            4: 'producto_base',
+            5: 'presentacion',
+            6: 'estado',
         }
 
-        if order_column is not None:
-            try:
-                col_idx = int(order_column)
-                field = order_map.get(col_idx)
-                if field:
-                    if order_dir == "desc":
-                        field = f"-{field}"
-                    queryset = queryset.order_by(field)
-            except (ValueError, TypeError):
-                pass
+        order_index = _as_int(request.POST.get('order[0][column]'), 1)
+        order_dir = request.POST.get('order[0][dir]', 'desc')
 
+        campo = columnas.get(order_index, 'fecha_solicitud')
+        if order_dir == 'desc':
+            campo = f'-{campo}'
+
+        queryset = queryset.order_by(campo, '-id')
+
+        # Total después de filtrar
+        records_filtered = queryset.count()
+
+        # Paginación
         if length != -1:
             queryset = queryset[start:start + min(length, 500)]
 
@@ -185,11 +206,17 @@ class MisSolicitudesListView(SolicitanteRequiredMixin, ListView):
         ]
 
         return JsonResponse({
-            "draw": draw,
-            "recordsTotal": records_total,
-            "recordsFiltered": records_filtered,
-            "data": data,
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': self.get_column_control_options(),
         })
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return self.post(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def serialize_solicitud(self, sol):
         detalle_url = reverse("solicitud_codigo:detalle", kwargs={"pk": sol.pk})
@@ -315,50 +342,74 @@ class BandejaReferenteListView(ReferenteRequiredMixin, ListView):
         context["column_control_options"] = self.get_column_control_options()
         return context
 
-    def get(self, request, *args, **kwargs):
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return self.datatables_response(request)
-        return super().get(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') != 'search':
+            return JsonResponse(
+                {'error': 'Acción no válida'},
+                status=400
+            )
 
-    def datatables_response(self, request):
+        draw = int(request.POST.get('draw', 1))
+        start = max(0, int(request.POST.get('start', 0)))
+        length = int(request.POST.get('length', 10))
+
         queryset = self.get_queryset()
-
-        draw = int(request.GET.get("draw", 1))
-        start = max(int(request.GET.get("start", 0)), 0)
-        length = int(request.GET.get("length", 10))
 
         records_total = queryset.count()
 
         # Búsqueda global
-        search_value = request.GET.get("search[value]", "").strip()
-        if search_value:
+        search = request.POST.get('search[value]', '').strip()
+        if search:
             search_query = Q()
             for column in self.searchable_columns:
-                search_query |= Q(**{f"{column}__icontains": search_value})
+                search_query |= Q(**{f"{column}__icontains": search})
             queryset = queryset.filter(search_query)
 
         # Filtro de columna: Establecimiento (índice 2)
-        est_filter = request.GET.get("columns[2][search][value]", "").strip()
-        if est_filter:
-            queryset = queryset.filter(establecimiento__nombre__icontains=est_filter)
+        prefijo_est = 'columns[2][columnControl][list]'
+        est_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_est or key.startswith(prefijo_est + '['):
+                est_filtro.extend(values)
+        if est_filtro:
+            queryset = queryset.filter(
+                Q(establecimiento__nombre__in=est_filtro) | Q(establecimiento__alias__in=est_filtro)
+            )
+        else:
+            est_search = request.POST.get('columns[2][search][value]', '').strip()
+            if est_search:
+                queryset = queryset.filter(
+                    Q(establecimiento__nombre__icontains=est_search) | Q(establecimiento__alias__icontains=est_search)
+                )
 
         # Filtro de columna: Área (índice 4)
-        area_filter = request.GET.get("columns[4][search][value]", "").strip()
-        if area_filter:
-            queryset = queryset.filter(area__nombre__icontains=area_filter)
+        prefijo_area = 'columns[4][columnControl][list]'
+        areas_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_area or key.startswith(prefijo_area + '['):
+                areas_filtro.extend(values)
+        if areas_filtro:
+            queryset = queryset.filter(area__nombre__in=areas_filtro)
+        else:
+            area_search = request.POST.get('columns[4][search][value]', '').strip()
+            if area_search:
+                queryset = queryset.filter(area__nombre__icontains=area_search)
 
         # Filtro de columna: Estado (índice 7)
-        estado_filter = request.GET.get("columns[7][search][value]", "").strip()
-        if estado_filter:
-            queryset = queryset.filter(estado=estado_filter)
-
-        records_filtered = queryset.count()
+        prefijo_estado = 'columns[7][columnControl][list]'
+        estados_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_estado or key.startswith(prefijo_estado + '['):
+                estados_filtro.extend(values)
+        if estados_filtro:
+            queryset = queryset.filter(estado__in=estados_filtro)
+        else:
+            estado_search = request.POST.get('columns[7][search][value]', '').strip()
+            if estado_search:
+                queryset = queryset.filter(estado=estado_search)
 
         # Ordenamiento
-        order_column = request.GET.get("order[0][column]")
-        order_dir = request.GET.get("order[0][dir]", "desc")
-
-        order_map = {
+        columnas = {
             0: "numero_solicitud",
             1: "fecha_solicitud",
             2: "establecimiento__nombre",
@@ -369,17 +420,19 @@ class BandejaReferenteListView(ReferenteRequiredMixin, ListView):
             7: "estado",
         }
 
-        if order_column is not None:
-            try:
-                col_idx = int(order_column)
-                field = order_map.get(col_idx)
-                if field:
-                    if order_dir == "desc":
-                        field = f"-{field}"
-                    queryset = queryset.order_by(field)
-            except (ValueError, TypeError):
-                pass
+        order_index = _as_int(request.POST.get('order[0][column]'), 1)
+        order_dir = request.POST.get('order[0][dir]', 'desc')
 
+        campo = columnas.get(order_index, 'fecha_solicitud')
+        if order_dir == 'desc':
+            campo = f'-{campo}'
+
+        queryset = queryset.order_by(campo, '-id')
+
+        # Total después de filtrar
+        records_filtered = queryset.count()
+
+        # Paginación
         if length != -1:
             queryset = queryset[start:start + min(length, 500)]
 
@@ -389,11 +442,17 @@ class BandejaReferenteListView(ReferenteRequiredMixin, ListView):
         ]
 
         return JsonResponse({
-            "draw": draw,
-            "recordsTotal": records_total,
-            "recordsFiltered": records_filtered,
-            "data": data,
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': self.get_column_control_options(),
         })
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return self.post(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def serialize_solicitud(self, sol):
         detalle_url = reverse("solicitud_codigo:detalle", kwargs={"pk": sol.pk})
@@ -506,44 +565,62 @@ class BandejaPendientesCreacionListView(CreadorCodigoRequiredMixin, ListView):
         context["column_control_options"] = self.get_column_control_options()
         return context
 
-    def get(self, request, *args, **kwargs):
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return self.datatables_response(request)
-        return super().get(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') != 'search':
+            return JsonResponse(
+                {'error': 'Acción no válida'},
+                status=400
+            )
 
-    def datatables_response(self, request):
+        draw = int(request.POST.get('draw', 1))
+        start = max(0, int(request.POST.get('start', 0)))
+        length = int(request.POST.get('length', 10))
+
         queryset = self.get_queryset()
-
-        draw = int(request.GET.get("draw", 1))
-        start = max(int(request.GET.get("start", 0)), 0)
-        length = int(request.GET.get("length", 10))
 
         records_total = queryset.count()
 
-        search_value = request.GET.get("search[value]", "").strip()
-        if search_value:
+        search = request.POST.get('search[value]', '').strip()
+        if search:
             search_query = Q()
             for column in self.searchable_columns:
-                search_query |= Q(**{f"{column}__icontains": search_value})
+                search_query |= Q(**{f"{column}__icontains": search})
             queryset = queryset.filter(search_query)
 
         # Filtro de columna: Establecimiento (índice 2)
-        est_filter = request.GET.get("columns[2][search][value]", "").strip()
-        if est_filter:
-            queryset = queryset.filter(establecimiento__nombre__icontains=est_filter)
+        prefijo_est = 'columns[2][columnControl][list]'
+        est_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_est or key.startswith(prefijo_est + '['):
+                est_filtro.extend(values)
+        if est_filtro:
+            queryset = queryset.filter(
+                Q(establecimiento__nombre__in=est_filtro) | Q(establecimiento__alias__in=est_filtro)
+            )
+        else:
+            est_search = request.POST.get('columns[2][search][value]', '').strip()
+            if est_search:
+                queryset = queryset.filter(
+                    Q(establecimiento__nombre__icontains=est_search) | Q(establecimiento__alias__icontains=est_search)
+                )
 
         # Filtro de columna: Área (índice 4)
-        area_filter = request.GET.get("columns[4][search][value]", "").strip()
-        if area_filter:
-            queryset = queryset.filter(area__nombre__icontains=area_filter)
+        prefijo_area = 'columns[4][columnControl][list]'
+        areas_filtro = []
+        for key, values in request.POST.lists():
+            if key == prefijo_area or key.startswith(prefijo_area + '['):
+                areas_filtro.extend(values)
+        if areas_filtro:
+            queryset = queryset.filter(area__nombre__in=areas_filtro)
+        else:
+            area_search = request.POST.get('columns[4][search][value]', '').strip()
+            if area_search:
+                queryset = queryset.filter(area__nombre__icontains=area_search)
 
         records_filtered = queryset.count()
 
         # Ordenamiento
-        order_column = request.GET.get("order[0][column]")
-        order_dir = request.GET.get("order[0][dir]", "asc")
-
-        order_map = {
+        columnas = {
             0: "numero_solicitud",
             1: "fecha_validacion",
             2: "establecimiento__nombre",
@@ -555,16 +632,14 @@ class BandejaPendientesCreacionListView(CreadorCodigoRequiredMixin, ListView):
             8: "estado",
         }
 
-        if order_column is not None:
-            try:
-                col_idx = int(order_column)
-                field = order_map.get(col_idx)
-                if field:
-                    if order_dir == "desc":
-                        field = f"-{field}"
-                    queryset = queryset.order_by(field)
-            except (ValueError, TypeError):
-                pass
+        order_index = _as_int(request.POST.get('order[0][column]'), 1)
+        order_dir = request.POST.get('order[0][dir]', 'asc')
+
+        campo = columnas.get(order_index, 'fecha_validacion')
+        if order_dir == 'desc':
+            campo = f'-{campo}'
+
+        queryset = queryset.order_by(campo, '-id')
 
         if length != -1:
             queryset = queryset[start:start + min(length, 500)]
@@ -575,11 +650,17 @@ class BandejaPendientesCreacionListView(CreadorCodigoRequiredMixin, ListView):
         ]
 
         return JsonResponse({
-            "draw": draw,
-            "recordsTotal": records_total,
-            "recordsFiltered": records_filtered,
-            "data": data,
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': self.get_column_control_options(),
         })
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return self.post(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def serialize_solicitud(self, sol):
         detalle_url = reverse("solicitud_codigo:detalle", kwargs={"pk": sol.pk})
@@ -683,13 +764,13 @@ class SolicitudDetailView(LoginRequiredMixin, DetailView):
         # Permisos contextuales según estado y rol del usuario
         context["puede_corregir"] = sol.puede_ser_editada_por(user)
         context["puede_gestionar_referente"] = (
-            user_can_manage_solicitud(user, sol) and sol.estado == SolicitudCodigo.ESTADO_PENDIENTE_VALIDACION
+                user_can_manage_solicitud(user, sol) and sol.estado == SolicitudCodigo.ESTADO_PENDIENTE_VALIDACION
         )
         context["puede_crear_codigo"] = (
-            user_can_create_codes(user) and sol.estado in [
-                SolicitudCodigo.ESTADO_VALIDADA,
-                SolicitudCodigo.ESTADO_PENDIENTE_CREACION,
-            ]
+                user_can_create_codes(user) and sol.estado in [
+            SolicitudCodigo.ESTADO_VALIDADA,
+            SolicitudCodigo.ESTADO_PENDIENTE_CREACION,
+        ]
         )
 
         # Formularios para acciones modales
@@ -977,10 +1058,10 @@ class BuscarCoincidenciasAPIView(LoginRequiredMixin, View):
                 pass
 
         maestra_filtro = (
-            Q(codigo__icontains=query) |
-            Q(nombre_producto__icontains=query) |
-            Q(presentacion__icontains=query) |
-            Q(descripcion__icontains=query)
+                Q(codigo__icontains=query) |
+                Q(nombre_producto__icontains=query) |
+                Q(presentacion__icontains=query) |
+                Q(descripcion__icontains=query)
         )
 
         for item in maestra_qs.filter(maestra_filtro)[:15]:
@@ -1018,9 +1099,9 @@ class BuscarCoincidenciasAPIView(LoginRequiredMixin, View):
         ).exclude(codigo_creado="")
 
         sol_filtro = (
-            Q(codigo_creado__icontains=query) |
-            Q(producto_base__icontains=query) |
-            Q(presentacion__icontains=query)
+                Q(codigo_creado__icontains=query) |
+                Q(producto_base__icontains=query) |
+                Q(presentacion__icontains=query)
         )
 
         for sol in sol_qs.filter(sol_filtro)[:10]:

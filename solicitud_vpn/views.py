@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, View
 
@@ -31,6 +32,27 @@ logger = logging.getLogger(__name__)
 MODULE_NAME = 'Solicitudes de Acceso VPN'
 
 
+def get_estado_badge(estado):
+    badges = {
+        'BORRADOR': '<span class="badge bg-secondary"><i class="bi bi-pencil me-1"></i>Borrador</span>',
+        'PENDIENTE': '<span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pendiente</span>',
+        'EN_REVISION': '<span class="badge bg-primary"><i class="bi bi-search me-1"></i>En revisión</span>',
+        'ENVIADO_ECONECTA': '<span class="badge text-white" style="background-color: #6f42c1;"><i class="bi bi-send me-1"></i>Enviado a eConecta</span>',
+        'COMPLETADO': '<span class="badge bg-success"><i class="bi bi-check-all me-1"></i>Completado</span>',
+        'RECHAZADO': '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rechazado</span>',
+    }
+    return badges.get(estado, f'<span class="badge bg-secondary">{escape(estado)}</span>')
+
+
+def get_accion_badge(accion):
+    badges = {
+        'CREAR': '<span class="badge bg-success">Crear</span>',
+        'ACTUALIZAR': '<span class="badge bg-primary text-light">Actualizar</span>',
+        'ELIMINAR': '<span class="badge bg-danger">Eliminar</span>',
+    }
+    return badges.get(accion, f'<span class="badge bg-secondary">{escape(accion)}</span>')
+
+
 class SolicitudVPNMisSolicitudesListView(LoginRequiredMixin, ListView):
     """
     Bandeja 'Mis solicitudes': Muestra las solicitudes creadas por el usuario autenticado.
@@ -50,7 +72,8 @@ class SolicitudVPNMisSolicitudesListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(usuario_solicitante=self.request.user)
 
         # Filtros
-        form = FiltroSolicitudVPNForm(self.request.GET)
+        params = self.request.POST if self.request.method == 'POST' else self.request.GET
+        form = FiltroSolicitudVPNForm(params)
         if form.is_valid():
             numero = form.cleaned_data.get('numero_solicitud')
             estado = form.cleaned_data.get('estado')
@@ -72,6 +95,140 @@ class SolicitudVPNMisSolicitudesListView(LoginRequiredMixin, ListView):
                 ).distinct()
 
         return queryset.order_by('-id')
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('draw'):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'search' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.datatables_response(request)
+        return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+        params = request.POST if request.method == 'POST' else request.GET
+
+        draw = int(params.get('draw', 1))
+        start = max(int(params.get('start', 0)), 0)
+        length = int(params.get('length', 10))
+
+        records_total = queryset.count()
+
+        search_value = params.get('search[value]', '').strip()
+        if search_value:
+            queryset = queryset.filter(
+                Q(numero_solicitud__icontains=search_value) |
+                Q(establecimiento__nombre__icontains=search_value) |
+                Q(tecnico_establecimiento__icontains=search_value) |
+                Q(departamento_nombre__icontains=search_value) |
+                Q(grupo_vpn__icontains=search_value) |
+                Q(ticket_econecta__icontains=search_value) |
+                Q(beneficiarios__rut__icontains=search_value) |
+                Q(beneficiarios__nombres__icontains=search_value) |
+                Q(beneficiarios__apellidos__icontains=search_value) |
+                Q(beneficiarios__nombre_completo__icontains=search_value)
+            ).distinct()
+
+        # Filtros por columna
+        accion_filter = params.get('columns[3][search][value]', '').strip()
+        if accion_filter:
+            queryset = queryset.filter(accion=accion_filter)
+
+        estado_filter = params.get('columns[5][search][value]', '').strip()
+        if estado_filter:
+            queryset = queryset.filter(estado=estado_filter)
+
+        records_filtered = queryset.count()
+
+        order_column = params.get('order[0][column]')
+        order_dir = params.get('order[0][dir]', 'desc')
+
+        order_map = {
+            0: 'numero_solicitud',
+            1: 'fecha_solicitud',
+            2: 'establecimiento__nombre',
+            3: 'accion',
+            5: 'estado',
+        }
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                field = order_map.get(col_idx)
+                if field:
+                    if order_dir == 'desc':
+                        field = f'-{field}'
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                queryset = queryset.order_by('-id')
+        else:
+            queryset = queryset.order_by('-id')
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_solicitud(sol)
+            for sol in queryset
+        ]
+
+        opciones_estados = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudVPN.ESTADOS
+        ]
+        opciones_acciones = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudVPN.ACCIONES
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'accion': opciones_acciones,
+                'estado': opciones_estados,
+            }
+        })
+
+    def serialize_solicitud(self, sol):
+        detalle_url = reverse('solicitud_vpn:detalle', args=[sol.pk])
+
+        folio_str = escape(sol.numero_solicitud or str(sol.id))
+        folio_html = f'<a href="{detalle_url}" class="fw-bold text-decoration-none font-monospace text-primary">{folio_str}</a>'
+        if sol.grupo_vpn:
+            folio_html += f'<small class="d-block text-muted">Grupo: {escape(sol.grupo_vpn)}</small>'
+
+        fecha_html = ""
+        if sol.fecha_solicitud:
+            fecha_html = f'<div>{sol.fecha_solicitud.strftime("%d/%m/%Y")}</div><small class="text-muted">{sol.fecha_solicitud.strftime("%H:%M")} hrs</small>'
+
+        est_nombre = sol.establecimiento.nombre if sol.establecimiento else (sol.tecnico_establecimiento or '-')
+        est_html = f'<span class="fw-semibold">{escape(est_nombre)}</span>'
+        if sol.departamento_nombre:
+            est_html += f'<small class="d-block text-muted">{escape(sol.departamento_nombre)}</small>'
+
+        ben_html = f'<span class="badge bg-info text-dark"><i class="bi bi-people-fill me-1"></i>{sol.total_beneficiarios} pers.</span>'
+        ben_html += f'<small class="text-muted ms-1">({sol.total_accesos} accesos)</small>'
+
+        estado_html = get_estado_badge(sol.estado)
+        if sol.ticket_econecta:
+            estado_html += f'<small class="d-block text-muted">Ticket: {escape(sol.ticket_econecta)}</small>'
+
+        acciones_html = f'<a href="{detalle_url}" class="btn btn-sm btn-outline-primary" title="Ver Detalle"><i class="bi bi-eye me-1"></i> Ver Detalle</a>'
+
+        return {
+            'numero_solicitud': folio_html,
+            'fecha_solicitud': fecha_html,
+            'establecimiento': est_html,
+            'accion': get_accion_badge(sol.accion),
+            'beneficiarios': ben_html,
+            'estado': estado_html,
+            'acciones': acciones_html,
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -216,7 +373,8 @@ class SolicitudVPNBandejaTICListView(VPNRequiredMixin, ListView):
             'establecimiento', 'departamento_solicitante', 'usuario_solicitante', 'usuario_revision'
         ).prefetch_related('beneficiarios', 'accesos')
 
-        form = FiltroSolicitudVPNForm(self.request.GET)
+        params = self.request.POST if self.request.method == 'POST' else self.request.GET
+        form = FiltroSolicitudVPNForm(params)
         if form.is_valid():
             numero = form.cleaned_data.get('numero_solicitud')
             estado = form.cleaned_data.get('estado')
@@ -241,6 +399,174 @@ class SolicitudVPNBandejaTICListView(VPNRequiredMixin, ListView):
                 ).distinct()
 
         return queryset.order_by('-id')
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('draw'):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'search' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.datatables_response(request)
+        return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+        params = request.POST if request.method == 'POST' else request.GET
+
+        draw = int(params.get('draw', 1))
+        start = max(int(params.get('start', 0)), 0)
+        length = int(params.get('length', 10))
+
+        records_total = queryset.count()
+
+        search_value = params.get('search[value]', '').strip()
+        if search_value:
+            queryset = queryset.filter(
+                Q(numero_solicitud__icontains=search_value) |
+                Q(establecimiento__nombre__icontains=search_value) |
+                Q(tecnico_establecimiento__icontains=search_value) |
+                Q(departamento_nombre__icontains=search_value) |
+                Q(tecnico_nombre__icontains=search_value) |
+                Q(usuario_solicitante__first_name__icontains=search_value) |
+                Q(usuario_solicitante__last_name__icontains=search_value) |
+                Q(usuario_solicitante__username__icontains=search_value) |
+                Q(grupo_vpn__icontains=search_value) |
+                Q(ticket_econecta__icontains=search_value) |
+                Q(beneficiarios__rut__icontains=search_value) |
+                Q(beneficiarios__nombres__icontains=search_value) |
+                Q(beneficiarios__apellidos__icontains=search_value) |
+                Q(beneficiarios__nombre_completo__icontains=search_value)
+            ).distinct()
+
+        # Filtros por columna
+        establecimiento_filter = params.get('columns[2][search][value]', '').strip()
+        if establecimiento_filter:
+            queryset = queryset.filter(
+                Q(establecimiento__nombre__icontains=establecimiento_filter) |
+                Q(tecnico_establecimiento__icontains=establecimiento_filter)
+            )
+
+        accion_filter = params.get('columns[4][search][value]', '').strip()
+        if accion_filter:
+            queryset = queryset.filter(accion=accion_filter)
+
+        estado_filter = params.get('columns[6][search][value]', '').strip()
+        if estado_filter:
+            queryset = queryset.filter(estado=estado_filter)
+
+        records_filtered = queryset.count()
+
+        order_column = params.get('order[0][column]')
+        order_dir = params.get('order[0][dir]', 'desc')
+
+        order_map = {
+            0: 'numero_solicitud',
+            1: 'fecha_solicitud',
+            2: 'establecimiento__nombre',
+            3: 'tecnico_nombre',
+            4: 'accion',
+            6: 'estado',
+        }
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                field = order_map.get(col_idx)
+                if field:
+                    if order_dir == 'desc':
+                        field = f'-{field}'
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                queryset = queryset.order_by('-id')
+        else:
+            queryset = queryset.order_by('-id')
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_solicitud(sol)
+            for sol in queryset
+        ]
+
+        opciones_estados = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudVPN.ESTADOS
+        ]
+        opciones_acciones = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudVPN.ACCIONES
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'accion': opciones_acciones,
+                'estado': opciones_estados,
+            }
+        })
+
+    def serialize_solicitud(self, sol):
+        detalle_url = reverse('solicitud_vpn:detalle', args=[sol.pk])
+
+        folio_str = escape(sol.numero_solicitud or str(sol.id))
+        folio_html = f'<a href="{detalle_url}" class="fw-bold text-decoration-none font-monospace text-primary">{folio_str}</a>'
+        if sol.grupo_vpn:
+            folio_html += f'<small class="d-block text-muted">Grupo: {escape(sol.grupo_vpn)}</small>'
+
+        fecha_html = ""
+        if sol.fecha_solicitud:
+            fecha_html = f'<div>{sol.fecha_solicitud.strftime("%d/%m/%Y")}</div><small class="text-muted">{sol.fecha_solicitud.strftime("%H:%M")} hrs</small>'
+
+        est_nombre = sol.establecimiento.nombre if sol.establecimiento else (sol.tecnico_establecimiento or '-')
+        est_html = f'<span class="fw-semibold text-primary"><i class="bi bi-hospital me-1"></i>{escape(est_nombre)}</span>'
+        if sol.departamento_nombre:
+            est_html += f'<small class="d-block text-muted">{escape(sol.departamento_nombre)}</small>'
+
+        solicitante_nombre = escape(
+            sol.tecnico_nombre or (sol.usuario_solicitante.get_full_name() if sol.usuario_solicitante else '-'))
+        solicitante_cargo = escape(sol.tecnico_cargo or sol.tecnico_rut or (
+            sol.usuario_solicitante.username if sol.usuario_solicitante else ''))
+        solicitante_html = f'<div class="fw-bold">{solicitante_nombre}</div><small class="text-muted d-block">{solicitante_cargo}'
+        if sol.es_proveedor:
+            solicitante_html += ' <span class="badge bg-warning text-dark ms-1">Proveedor</span>'
+        solicitante_html += '</small>'
+
+        ben_html = f'<span class="badge bg-info text-dark"><i class="bi bi-people-fill me-1"></i>{sol.total_beneficiarios} pers.</span>'
+        ben_html += f'<small class="text-muted d-block">{sol.total_accesos} accesos</small>'
+
+        estado_html = get_estado_badge(sol.estado)
+        if sol.ticket_econecta:
+            estado_html += f'<small class="d-block text-muted">Ticket: {escape(sol.ticket_econecta)}</small>'
+
+        destinatario = escape(
+            sol.tecnico_nombre or (sol.usuario_solicitante.get_full_name() if sol.usuario_solicitante else ''))
+        email = escape(sol.tecnico_email or (sol.usuario_solicitante.email if sol.usuario_solicitante else ''))
+        estado_display = escape(sol.get_estado_display())
+        ticket_val = escape(sol.ticket_econecta or '')
+
+        acciones_html = f'''<div class="btn-group btn-group-sm" role="group">
+            <a href="{detalle_url}" class="btn btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Ver y revisar detalle de la solicitud"><i class="bi bi-eye"></i></a>
+            <button type="button" class="btn btn-outline-purple text-white btn-econecta-modal" style="background-color: #6f42c1; border-color: #6f42c1;" data-bs-toggle="tooltip" data-bs-placement="top" title="Cambiar estado a Enviado a eConecta" data-sol-id="{sol.pk}" data-sol-folio="{folio_str}" data-sol-ticket="{ticket_val}"><i class="bi bi-send"></i></button>
+            <button type="button" class="btn btn-outline-success btn-completar-modal" data-bs-toggle="tooltip" data-bs-placement="top" title="Marcar solicitud como Completada" data-sol-id="{sol.pk}" data-sol-folio="{folio_str}"><i class="bi bi-check-lg"></i></button>
+            <button type="button" class="btn btn-outline-info btn-notificar-modal" data-bs-toggle="tooltip" data-bs-placement="top" title="Notificar por correo al solicitante / referente TIC" data-sol-id="{sol.pk}" data-sol-folio="{folio_str}" data-sol-destinatario="{destinatario}" data-sol-email="{email}" data-sol-estado="{estado_display}"><i class="bi bi-bell"></i></button>
+            <button type="button" class="btn btn-outline-danger btn-eliminar-modal" data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar solicitud" data-sol-id="{sol.pk}" data-sol-folio="{folio_str}"><i class="bi bi-trash"></i></button>
+        </div>'''
+
+        return {
+            'numero_solicitud': folio_html,
+            'fecha_solicitud': fecha_html,
+            'establecimiento': est_html,
+            'solicitante': solicitante_html,
+            'accion': get_accion_badge(sol.accion),
+            'beneficiarios': ben_html,
+            'estado': estado_html,
+            'acciones': acciones_html,
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -299,7 +625,8 @@ class SolicitudVPNDetalleView(LoginRequiredMixin, DetailView):
         econecta_text_lines.append("=== DATOS DEL SOLICITANTE / REFERENTE INFORMÁTICO ===")
         econecta_text_lines.append(f"Nombre Completo: {solicitud.tecnico_nombre or '-'}")
         econecta_text_lines.append(f"RUT: {solicitud.tecnico_rut or '-'}")
-        econecta_text_lines.append(f"Establecimiento: {solicitud.tecnico_establecimiento or (solicitud.establecimiento.nombre if solicitud.establecimiento else '-')}")
+        econecta_text_lines.append(
+            f"Establecimiento: {solicitud.tecnico_establecimiento or (solicitud.establecimiento.nombre if solicitud.establecimiento else '-')}")
         econecta_text_lines.append(f"Teléfono: {solicitud.tecnico_telefono or '-'}")
         econecta_text_lines.append(f"Cargo: {solicitud.tecnico_cargo or '-'}")
         econecta_text_lines.append(f"Fecha Requerimiento: {solicitud.tecnico_fecha or timezone.now().date()}")
@@ -317,7 +644,8 @@ class SolicitudVPNDetalleView(LoginRequiredMixin, DetailView):
         econecta_text_lines.append(f"=== BENEFICIARIOS ({solicitud.beneficiarios.count()}) ===")
 
         for idx, ben in enumerate(solicitud.beneficiarios.all(), 1):
-            econecta_text_lines.append(f"[{idx}] Nombre: {ben.get_nombre_completo()} | RUT: {ben.rut or '-'} | Cargo: {ben.cargo or '-'} | Establecimiento: {ben.establecimiento or '-'} | Email: {ben.email or '-'} | Teléfono: {ben.telefono or '-'}")
+            econecta_text_lines.append(
+                f"[{idx}] Nombre: {ben.get_nombre_completo()} | RUT: {ben.rut or '-'} | Cargo: {ben.cargo or '-'} | Establecimiento: {ben.establecimiento or '-'} | Email: {ben.email or '-'} | Teléfono: {ben.telefono or '-'}")
 
         econecta_text_lines.append("")
         econecta_text_lines.append(f"=== ACCESOS VPN SOLICITADOS ({solicitud.accesos.count()}) ===")
@@ -338,6 +666,7 @@ class SolicitudVPNCambiarEstadoView(VPNRequiredMixin, View):
     """
     Endpoint para cambiar el estado de la solicitud VPN, registrar el ticket eConecta y observaciones.
     """
+
     def post(self, request, pk):
         solicitud = get_object_or_404(SolicitudVPN, pk=pk)
         form = GestionTICSolicitudForm(request.POST)
@@ -425,6 +754,7 @@ class FuncionarioDataAPIView(LoginRequiredMixin, View):
     """
     API JSON que retorna los datos de un Funcionario para autocompletar filas de beneficiarios.
     """
+
     def get(self, request, pk):
         try:
             f = Funcionario.objects.get(pk=pk, is_active=True)
@@ -534,13 +864,13 @@ def solicitud_notificar_solicitante(request, pk):
 
     # Determinar el email de destino (técnico solicitante o usuario solicitante)
     email_destinatario = (
-        solicitud.tecnico_email or
-        (solicitud.usuario_solicitante.email if solicitud.usuario_solicitante else None)
+            solicitud.tecnico_email or
+            (solicitud.usuario_solicitante.email if solicitud.usuario_solicitante else None)
     )
 
     nombre_destinatario = (
-        solicitud.tecnico_nombre or
-        (solicitud.usuario_solicitante.get_full_name() if solicitud.usuario_solicitante else 'Referente TIC')
+            solicitud.tecnico_nombre or
+            (solicitud.usuario_solicitante.get_full_name() if solicitud.usuario_solicitante else 'Referente TIC')
     )
 
     enviado_email = False

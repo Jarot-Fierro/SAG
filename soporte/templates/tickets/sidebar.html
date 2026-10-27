@@ -1,10 +1,10 @@
-{% if request.user.perfil_soporte %}
-    <li class="nav-item">
-        <a href="{% url 'soporte:ticket_dashboard' %}" class="nav-link">
-            <i class="nav-icon bi bi-speedometer2"></i>
-            <p>Dashboard</p>
-        </a>
-    </li>
+{% if request.user.perfil_soporte or request.user.is_superuser %}
+    {#    <li class="nav-item">#}
+    {#        <a href="{% url 'soporte:ticket_dashboard' %}" class="nav-link">#}
+    {#            <i class="nav-icon bi bi-speedometer2"></i>#}
+    {#            <p>Dashboard</p>#}
+    {#        </a>#}
+    {#    </li>#}
     <li class="nav-item">
         <a href="{% url 'soporte:ticket_editor_list' %}" class="nav-link">
             <i class="nav-icon bi bi-tools"></i>
@@ -15,15 +15,15 @@
 {% endif %}
 
 <li class="nav-item">
-    <a href="{% url 'soporte:ticket_list' %}" class="nav-link">
+    <a href="{% url 'soporte:list_soportes' %}" class="nav-link">
         <i class="nav-icon bi bi-list-ul"></i>
         <p>Lista de mis Soportes</p>
     </a>
 </li>
 
 <li class="nav-item">
-    <a href="{% url 'soporte:ticket_para_funcionario_create' %}" class="nav-link">
+    <a href="{% url 'soporte:create_soportes' %}" class="nav-link">
         <i class="nav-icon bi bi-person-plus"></i>
-        <p>Soporte a Funcionario</p>
+        <p>Solicitar Soporte</p>
     </a>
 </li>

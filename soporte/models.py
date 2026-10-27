@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.forms import model_to_dict
 from django.utils import timezone
 
 from core.standard.models import StandardModel, StandardModelEstablishment
@@ -16,6 +17,11 @@ class TicketConfig(StandardModel):
     def __str__(self):
         return f"Configuración para {self.establecimiento.nombre}"
 
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        return item
+
 
 class PerfilSoporte(StandardModel):
     area_soporte = models.ManyToManyField('soporte.AreaSoporte', blank=True, verbose_name='Areas de Soporte')
@@ -28,6 +34,11 @@ class PerfilSoporte(StandardModel):
 
     def __str__(self):
         return str(self.usuario) if self.usuario else f"Perfil #{self.id}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['usuario'] = self.usuario.toJSON()
+        return item
 
 
 class TipoSoporte(StandardModelEstablishment):
@@ -43,6 +54,11 @@ class TipoSoporte(StandardModelEstablishment):
     def __str__(self):
         return self.nombre
 
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        return item
+
 
 class AreaSoporte(StandardModelEstablishment):
     nombre = models.CharField(max_length=100, verbose_name='Nombre del área de Soporte')
@@ -55,6 +71,11 @@ class AreaSoporte(StandardModelEstablishment):
 
     def __str__(self):
         return f"{self.nombre} {self.establecimiento}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        return item
 
 
 class Ticket(StandardModel):
@@ -96,6 +117,15 @@ class Ticket(StandardModel):
 
     def __str__(self):
         return self.numero_ticket or f"Ticket #{self.id}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['establecimiento'] = self.establecimiento.toJSON()
+        item['asignado_a'] = self.asignado_a.toJSON()
+        item['funcionario'] = self.funcionario.toJSON()
+        item['area_soporte'] = self.area_soporte.toJSON()
+        item['tipo_soporte'] = self.tipo_soporte.toJSON()
+        return item
 
     @property
     def duracion_cierre(self):

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block sidebar %}
-    {% include 'anexos/components/menu_sidebar.html' %}
+    {% include 'anexos/menu_sidebar.html' %}
 {% endblock %}
 
 {% block buttons %}
@@ -111,7 +111,7 @@
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check2-circle me-1"></i>{{ submit_label }}
+                                <i class="bi bi-check2-circle me-1"></i>{{ submit_label|default:"Guardar" }}
                             </button>
                         </div>
                     </form>

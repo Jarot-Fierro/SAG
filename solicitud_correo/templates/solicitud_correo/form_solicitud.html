@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block sidebar %}
     {% include 'solicitud_correo/sidebar.html' %}
 {% endblock %}
@@ -12,63 +13,67 @@
 {% block title %}Nueva Solicitud de Correos Electrónicos{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3">
-    <form method="post" id="form-solicitud-correo">
-        {% csrf_token %}
+    <div class="container-fluid px-3">
+        <form method="post" id="form-solicitud-correo">
+            {% csrf_token %}
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-card-checklist me-2"></i>1. Datos Generales de la Solicitud
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Establecimiento</label>
-                        <input type="text" class="form-control" value="{{ user.establecimiento.nombre|default:'General' }}" disabled>
-                    </div>
-                    <div class="col-md-9">
-                        <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold">
-                            Departamento / Unidad Solicitante <span class="text-danger">*</span>
-                        </label>
-                        {{ form.departamento_solicitante }}
-                        {% if form.departamento_solicitante.errors %}
-                            <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-12">
-                        <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold">
-                            Observaciones / Justificación de la Solicitud
-                        </label>
-                        {{ form.observacion }}
-                        {% if form.observacion.errors %}
-                            <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
-                        {% endif %}
-                        <div class="form-text">Indique cualquier información relevante o motivo general para la creación de estas cuentas.</div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-card-checklist me-2"></i>1. Datos Generales de la Solicitud
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Establecimiento</label>
+                            <input type="text" class="form-control"
+                                   value="{{ user.establecimiento.nombre|default:'General' }}" disabled>
+                        </div>
+                        <div class="col-md-9">
+                            <label for="{{ form.departamento_solicitante.id_for_label }}" class="form-label fw-bold">
+                                Departamento / Unidad Solicitante <span class="text-danger">*</span>
+                            </label>
+                            {{ form.departamento_solicitante }}
+                            {% if form.departamento_solicitante.errors %}
+                                <div class="text-danger small mt-1">{{ form.departamento_solicitante.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold">
+                                Observaciones / Justificación de la Solicitud
+                            </label>
+                            {{ form.observacion }}
+                            {% if form.observacion.errors %}
+                                <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Indique cualquier información relevante o motivo general para la
+                                creación de estas cuentas.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-people-fill me-2"></i>2. Funcionarios para Crear Cuenta de Correo
-                </h5>
-{#                <button type="button" class="btn btn-sm btn-light fw-bold" id="btn-agregar-funcionario">#}
-{#                    <i class="bi bi-plus-circle-fill text-primary me-1"></i> Agregar Otro Funcionario#}
-{#                </button>#}
-            </div>
-            <div class="card-body p-0">
-                <div class="p-3 bg-light border-bottom text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos manualmente si aún no está registrado en el sistema.
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people-fill me-2"></i>2. Funcionarios para Crear Cuenta de Correo
+                    </h5>
+                    {#                <button type="button" class="btn btn-sm btn-light fw-bold" id="btn-agregar-funcionario">#}
+                    {#                    <i class="bi bi-plus-circle-fill text-primary me-1"></i> Agregar Otro Funcionario#}
+                    {#                </button>#}
                 </div>
+                <div class="card-body p-0">
+                    <div class="p-3 bg-light border-bottom text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Puede seleccionar un funcionario existente para autocompletar sus datos o ingresarlos
+                        manualmente si aún no está registrado en el sistema.
+                    </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle mb-0" id="tabla-funcionarios">
-                        <thead class="table-light">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle mb-0" id="tabla-funcionarios">
+                            <thead class="table-light">
                             <tr>
                                 <th style="width: 50px;">#</th>
                                 <th style="min-width: 220px;">Funcionario Existente (Opcional)</th>
@@ -79,13 +84,14 @@
                                 <th style="min-width: 140px;">Cargo</th>
                                 <th style="width: 60px;" class="text-center">Quitar</th>
                             </tr>
-                        </thead>
-                        <tbody id="contenedor-filas-funcionarios">
+                            </thead>
+                            <tbody id="contenedor-filas-funcionarios">
                             <!-- Fila 1 inicial -->
                             <tr class="fila-funcionario" data-indice="0">
                                 <td class="text-center fw-bold numero-fila">1</td>
                                 <td>
-                                    <select class="form-select form-select-sm select-funcionario-existente select2" name="det_funcionario_id[]">
+                                    <select class="form-select form-select-sm select-funcionario-existente select2"
+                                            name="det_funcionario_id[]">
                                         <option value="">-- Ingreso Manual / Seleccionar --</option>
                                         {% for f in funcionarios_disponibles %}
                                             <option value="{{ f.id }}"
@@ -100,169 +106,60 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" name="det_rut[]" class="form-control form-control-sm input-rut" placeholder="12.345.678-9" required>
+                                    <input type="text" name="det_rut[]" class="form-control form-control-sm input-rut"
+                                           placeholder="12.345.678-9" required>
                                 </td>
                                 <td>
-                                    <input type="text" name="det_nombres[]" class="form-control form-control-sm input-nombres" placeholder="Nombres" required>
+                                    <input type="text" name="det_nombres[]"
+                                           class="form-control form-control-sm input-nombres" placeholder="Nombres"
+                                           required>
                                 </td>
                                 <td>
-                                    <input type="text" name="det_apellidos[]" class="form-control form-control-sm input-apellidos" placeholder="Apellidos" required>
+                                    <input type="text" name="det_apellidos[]"
+                                           class="form-control form-control-sm input-apellidos" placeholder="Apellidos"
+                                           required>
                                 </td>
                                 <td>
-                                    <input type="text" name="det_departamento[]" class="form-control form-control-sm input-depto" placeholder="Departamento">
+                                    <input type="text" name="det_departamento[]"
+                                           class="form-control form-control-sm input-depto" placeholder="Departamento">
                                 </td>
                                 <td>
-                                    <input type="text" name="det_cargo[]" class="form-control form-control-sm input-cargo" placeholder="Cargo">
+                                    <input type="text" name="det_cargo[]"
+                                           class="form-control form-control-sm input-cargo" placeholder="Cargo">
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-fila" disabled title="Eliminar funcionario">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-fila"
+                                            disabled title="Eliminar funcionario">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
                             </tr>
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-agregar-funcionario-pie">
+                        <i class="bi bi-plus-lg me-1"></i> Agregar Otro Funcionario
+                    </button>
+                    <span class="text-muted small" id="contador-funcionarios">Total: 1 funcionario</span>
                 </div>
             </div>
-            <div class="card-footer bg-light d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-agregar-funcionario-pie">
-                    <i class="bi bi-plus-lg me-1"></i> Agregar Otro Funcionario
-                </button>
-                <span class="text-muted small" id="contador-funcionarios">Total: 1 funcionario</span>
-            </div>
-        </div>
 
-        <div class="d-flex justify-content-end gap-2 mb-5">
-            <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle me-1"></i> Cancelar
-            </a>
-            <button type="submit" class="btn btn-success fw-bold px-4">
-                <i class="bi bi-send-check me-1"></i> Enviar Solicitud a RR.HH.
-            </button>
-        </div>
-    </form>
-</div>
+            <div class="d-flex justify-content-end gap-2 mb-5">
+                <a href="{% url 'solicitud_correo:mis_solicitudes' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-success fw-bold px-4">
+                    <i class="bi bi-send-check me-1"></i> Enviar Solicitud a RR.HH.
+                </button>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const contenedor = document.getElementById('contenedor-filas-funcionarios');
-    const btnAgregar = document.getElementById('btn-agregar-funcionario');
-    const btnAgregarPie = document.getElementById('btn-agregar-funcionario-pie');
-    const contador = document.getElementById('contador-funcionarios');
-
-    function inicializarSelect2(elemento) {
-        if (typeof $ !== 'undefined' && $.fn.select2) {
-            $(elemento).find('.select2').each(function () {
-                $(this).select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    placeholder: '-- Ingreso Manual / Seleccionar --',
-                    allowClear: true
-                });
-            });
-        }
-    }
-
-    function actualizarNumeracionYBotones() {
-        const filas = contenedor.querySelectorAll('.fila-funcionario');
-        filas.forEach((fila, idx) => {
-            const numCell = fila.querySelector('.numero-fila');
-            if (numCell) numCell.textContent = (idx + 1);
-            const btnEliminar = fila.querySelector('.btn-eliminar-fila');
-            if (btnEliminar) {
-                btnEliminar.disabled = (filas.length === 1);
-            }
-        });
-        if (contador) {
-            contador.textContent = `Total: ${filas.length} funcionario${filas.length !== 1 ? 's' : ''}`;
-        }
-    }
-
-    function vincularEventosFila(fila) {
-        const select = fila.querySelector('.select-funcionario-existente');
-        const inputRut = fila.querySelector('.input-rut');
-        const inputNom = fila.querySelector('.input-nombres');
-        const inputApe = fila.querySelector('.input-apellidos');
-        const inputDep = fila.querySelector('.input-depto');
-        const inputCar = fila.querySelector('.input-cargo');
-        const btnEliminar = fila.querySelector('.btn-eliminar-fila');
-
-        if (select) {
-            function alCambiarFuncionario() {
-                const opt = select.options[select.selectedIndex];
-                if (opt && opt.value) {
-                    if (inputRut) inputRut.value = opt.dataset.rut || '';
-                    if (inputNom) inputNom.value = opt.dataset.nombres || '';
-                    if (inputApe) inputApe.value = opt.dataset.apellidos || '';
-                    if (inputCar) inputCar.value = opt.dataset.cargo || '';
-                    if (inputDep) inputDep.value = opt.dataset.depto || '';
-                } else {
-                    if (inputRut) inputRut.value = '';
-                    if (inputNom) inputNom.value = '';
-                    if (inputApe) inputApe.value = '';
-                    if (inputCar) inputCar.value = '';
-                    if (inputDep) inputDep.value = '';
-                }
-            }
-
-            select.addEventListener('change', alCambiarFuncionario);
-            if (typeof $ !== 'undefined') {
-                $(select).on('change select2:select select2:clear', alCambiarFuncionario);
-            }
-        }
-
-        if (btnEliminar) {
-            btnEliminar.addEventListener('click', function () {
-                const filas = contenedor.querySelectorAll('.fila-funcionario');
-                if (filas.length > 1) {
-                    if (typeof $ !== 'undefined' && select && $(select).data('select2')) {
-                        $(select).select2('destroy');
-                    }
-                    fila.remove();
-                    actualizarNumeracionYBotones();
-                }
-            });
-        }
-    }
-
-    function agregarFila() {
-        const filas = contenedor.querySelectorAll('.fila-funcionario');
-        const primeraFila = filas[0];
-        const nuevaFila = primeraFila.cloneNode(true);
-
-        // Remover contenedor residual de Select2 si existe
-        nuevaFila.querySelectorAll('.select2-container').forEach(el => el.remove());
-
-        // Limpiar inputs en la nueva fila
-        nuevaFila.querySelectorAll('input').forEach(inp => inp.value = '');
-        const select = nuevaFila.querySelector('select');
-        if (select) {
-            select.selectedIndex = 0;
-            // Limpiar atributos y clases residuales de Select2
-            select.removeAttribute('data-select2-id');
-            select.removeAttribute('tabindex');
-            select.removeAttribute('aria-hidden');
-            select.classList.remove('select2-hidden-accessible');
-            select.querySelectorAll('option').forEach(opt => opt.removeAttribute('data-select2-id'));
-        }
-
-        contenedor.appendChild(nuevaFila);
-        vincularEventosFila(nuevaFila);
-        inicializarSelect2(nuevaFila);
-        actualizarNumeracionYBotones();
-    }
-
-    // Inicializar fila existente
-    contenedor.querySelectorAll('.fila-funcionario').forEach(f => {
-        vincularEventosFila(f);
-        inicializarSelect2(f);
-    });
-    actualizarNumeracionYBotones();
-
-    if (btnAgregar) btnAgregar.addEventListener('click', agregarFila);
-    if (btnAgregarPie) btnAgregarPie.addEventListener('click', agregarFila);
-});
-</script>
+    {{ block.super }}
+    <script src="{% static 'solicitud_correo/js/solicitud_form.js' %}"></script>
+    <script src="{% static 'solicitud_correo/js/solicitud_modal.js' %}"></script>
 {% endblock %}

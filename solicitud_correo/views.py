@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
+from django.utils.html import escape
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, DetailView
 
@@ -38,6 +39,19 @@ logger = logging.getLogger(__name__)
 MODULE_NAME = 'Solicitudes de Correo'
 
 
+def get_estado_badge(estado):
+    badges = {
+        'BORRADOR': '<span class="badge bg-secondary">Borrador</span>',
+        'PENDIENTE_RRHH': '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente RR.HH.</span>',
+        'EN_REVISION_RRHH': '<span class="badge bg-warning text-dark"><i class="bi bi-person-check me-1"></i>En Revisión RR.HH.</span>',
+        'EN_TIC': '<span class="badge bg-info text-dark"><i class="bi bi-send me-1"></i>Enviada a TIC</span>',
+        'EN_PROCESO_TIC': '<span class="badge bg-primary"><i class="bi bi-gear-wide-connected me-1"></i>En Proceso TIC</span>',
+        'FINALIZADA': '<span class="badge bg-success"><i class="bi bi-check2-all me-1"></i>Finalizada</span>',
+        'CANCELADA': '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Cancelada</span>',
+    }
+    return badges.get(estado, f'<span class="badge bg-secondary">{escape(estado)}</span>')
+
+
 class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
     """
     Bandeja de 'Mis Solicitudes': muestra las solicitudes creadas por el usuario conectado.
@@ -53,7 +67,8 @@ class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
         ).prefetch_related('detalles')
 
         # Siempre filtrar por establecimiento si el usuario lo tiene y no es superuser
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
 
         # Si no es superuser ni RR.HH./TIC, solo ve sus propias solicitudes
@@ -80,6 +95,139 @@ class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
 
         return queryset.order_by('-id')
 
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('draw'):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'search' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.datatables_response(request)
+        return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+        params = request.POST if request.method == 'POST' else request.GET
+
+        draw = int(params.get('draw', 1))
+        start = max(int(params.get('start', 0)), 0)
+        length = int(params.get('length', 10))
+
+        records_total = queryset.count()
+
+        search_value = params.get('search[value]', '').strip()
+        if search_value:
+            queryset = queryset.filter(
+                Q(numero_solicitud__icontains=search_value) |
+                Q(departamento_nombre__icontains=search_value) |
+                Q(departamento_solicitante__nombre__icontains=search_value) |
+                Q(establecimiento__nombre__icontains=search_value) |
+                Q(detalles__rut__icontains=search_value) |
+                Q(detalles__nombres__icontains=search_value) |
+                Q(detalles__apellidos__icontains=search_value)
+            ).distinct()
+
+        # Filtros de columna
+        depto_filter = params.get('columns[1][search][value]', '').strip()
+        if depto_filter:
+            queryset = queryset.filter(
+                Q(departamento_nombre__icontains=depto_filter) |
+                Q(departamento_solicitante__nombre__icontains=depto_filter)
+            )
+
+        estado_filter = params.get('columns[3][search][value]', '').strip()
+        if estado_filter:
+            queryset = queryset.filter(estado=estado_filter)
+
+        records_filtered = queryset.count()
+
+        order_column = params.get('order[0][column]')
+        order_dir = params.get('order[0][dir]', 'desc')
+
+        order_map = {
+            0: 'numero_solicitud',
+            1: 'departamento_nombre',
+            3: 'estado',
+            4: 'fecha_solicitud',
+        }
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                field = order_map.get(col_idx)
+                if field:
+                    if order_dir == 'desc':
+                        field = f'-{field}'
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                queryset = queryset.order_by('-id')
+        else:
+            queryset = queryset.order_by('-id')
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_solicitud(sol)
+            for sol in queryset
+        ]
+
+        opciones_estados = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudCorreo.ESTADOS
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'estado': opciones_estados
+            }
+        })
+
+    def serialize_solicitud(self, sol):
+        detalle_url = reverse('solicitud_correo:detalle', args=[sol.pk])
+        historial_url = reverse('solicitud_correo:historial', args=[sol.pk])
+        cancelar_url = reverse('solicitud_correo:cancelar', args=[sol.pk])
+
+        badge_func = '<div class="d-flex align-items-center gap-1 flex-wrap">'
+        badge_func += f'<span class="badge bg-secondary" title="Total Funcionarios"><i class="bi bi-people me-1"></i>{sol.total_funcionarios}</span>'
+        if sol.total_creados > 0:
+            badge_func += f'<span class="badge bg-success" title="Cuentas Creadas"><i class="bi bi-check-lg me-1"></i>{sol.total_creados} Creados</span>'
+        if sol.total_rechazados > 0:
+            badge_func += f'<span class="badge bg-danger" title="Rechazados por RR.HH."><i class="bi bi-x-lg me-1"></i>{sol.total_rechazados} Rechazados</span>'
+        badge_func += '</div>'
+
+        acciones = '<div class="btn-group btn-group-sm" role="group">'
+        acciones += f'<a href="{detalle_url}" class="btn btn-outline-primary" title="Ver Detalle" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>'
+        acciones += f'<button type="button" class="btn btn-outline-info" hx-get="{historial_url}" hx-target="#genericModalContent" data-bs-toggle="modal" data-bs-target="#genericModal" title="Historial"><i class="bi bi-clock-history"></i></button>'
+        if sol.estado in ['PENDIENTE_RRHH', 'BORRADOR']:
+            acciones += f'<form method="post" action="{cancelar_url}" class="d-inline form-cancelar-solicitud" onsubmit="return confirm(\'¿Está seguro de que desea cancelar esta solicitud?\');">'
+            acciones += '<button type="submit" class="btn btn-outline-danger" title="Cancelar Solicitud" data-bs-toggle="tooltip"><i class="bi bi-x-circle"></i></button></form>'
+        acciones += '</div>'
+
+        depto_texto = escape(sol.departamento_nombre or (
+            sol.departamento_solicitante.nombre if sol.departamento_solicitante else "Sin departamento"))
+        est_texto = escape(sol.establecimiento.alias or sol.establecimiento.nombre if sol.establecimiento else "")
+
+        folio_str = escape(sol.numero_solicitud or str(sol.id))
+        folio_html = f'<a href="{detalle_url}" class="fw-bold text-decoration-none font-monospace text-primary">{folio_str}</a>'
+
+        fecha_html = ""
+        if sol.fecha_solicitud:
+            fecha_html = f'<div>{sol.fecha_solicitud.strftime("%d/%m/%Y")}</div><small class="text-muted">{sol.fecha_solicitud.strftime("%H:%M")} hrs</small>'
+
+        return {
+            'numero_solicitud': folio_html,
+            'departamento_solicitante': f'<div>{depto_texto}</div><small class="text-muted">{est_texto}</small>',
+            'funcionarios': badge_func,
+            'estado': get_estado_badge(sol.estado),
+            'fecha_solicitud': fecha_html,
+            'acciones': acciones,
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Mis Solicitudes de Correo'
@@ -90,7 +238,8 @@ class SolicitudMisSolicitudesListView(LoginRequiredMixin, ListView):
 
         # Contadores rápidos
         user_solicitudes = SolicitudCorreo.objects.filter(is_active=True, usuario_solicitante=self.request.user)
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             user_solicitudes = user_solicitudes.filter(establecimiento=self.request.user.establecimiento)
         context['total_pendientes'] = user_solicitudes.filter(estado__in=['PENDIENTE_RRHH', 'EN_REVISION_RRHH']).count()
         context['total_en_tic'] = user_solicitudes.filter(estado__in=['EN_TIC', 'EN_PROCESO_TIC']).count()
@@ -210,7 +359,8 @@ class SolicitudCorreoDetailView(LoginRequiredMixin, DetailView):
             'detalles', 'detalles__funcionario', 'detalles__usuario_rrhh',
             'detalles__tecnico_responsable', 'detalles__notificado_por'
         )
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
 
@@ -245,11 +395,12 @@ class SolicitudBandejaRRHHListView(RRHHRequiredMixin, ListView):
             'establecimiento', 'departamento_solicitante', 'usuario_solicitante', 'usuario_rrhh'
         ).prefetch_related('detalles')
 
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
 
         # Filtros
-        estado_filtro = self.request.GET.get('filtro_estado')
+        estado_filtro = self.request.GET.get('filtro_estado') or self.request.POST.get('filtro_estado')
         if estado_filtro:
             if estado_filtro == 'PENDIENTES':
                 queryset = queryset.filter(estado__in=['PENDIENTE_RRHH', 'EN_REVISION_RRHH'])
@@ -257,9 +408,6 @@ class SolicitudBandejaRRHHListView(RRHHRequiredMixin, ListView):
                 queryset = queryset.filter(estado__in=['EN_TIC', 'EN_PROCESO_TIC'])
             elif estado_filtro == 'FINALIZADAS':
                 queryset = queryset.filter(estado='FINALIZADA')
-        else:
-            # Por defecto mostrar todas pero ordenando pendientes primero
-            pass
 
         form = FiltroSolicitudForm(self.request.GET)
         if form.is_valid():
@@ -280,6 +428,146 @@ class SolicitudBandejaRRHHListView(RRHHRequiredMixin, ListView):
 
         return queryset.order_by('-id')
 
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('draw'):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'search' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.datatables_response(request)
+        return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+        params = request.POST if request.method == 'POST' else request.GET
+
+        draw = int(params.get('draw', 1))
+        start = max(int(params.get('start', 0)), 0)
+        length = int(params.get('length', 10))
+
+        records_total = queryset.count()
+
+        search_value = params.get('search[value]', '').strip()
+        if search_value:
+            queryset = queryset.filter(
+                Q(numero_solicitud__icontains=search_value) |
+                Q(departamento_nombre__icontains=search_value) |
+                Q(departamento_solicitante__nombre__icontains=search_value) |
+                Q(establecimiento__nombre__icontains=search_value) |
+                Q(usuario_solicitante__first_name__icontains=search_value) |
+                Q(usuario_solicitante__last_name__icontains=search_value) |
+                Q(usuario_solicitante__username__icontains=search_value) |
+                Q(detalles__rut__icontains=search_value) |
+                Q(detalles__nombres__icontains=search_value) |
+                Q(detalles__apellidos__icontains=search_value)
+            ).distinct()
+
+        # Filtros de columna
+        depto_filter = params.get('columns[2][search][value]', '').strip()
+        if depto_filter:
+            queryset = queryset.filter(
+                Q(departamento_nombre__icontains=depto_filter) |
+                Q(departamento_solicitante__nombre__icontains=depto_filter)
+            )
+
+        estado_filter = params.get('columns[4][search][value]', '').strip()
+        if estado_filter:
+            queryset = queryset.filter(estado=estado_filter)
+
+        records_filtered = queryset.count()
+
+        order_column = params.get('order[0][column]')
+        order_dir = params.get('order[0][dir]', 'desc')
+
+        order_map = {
+            0: 'numero_solicitud',
+            1: 'usuario_solicitante__first_name',
+            2: 'departamento_nombre',
+            4: 'estado',
+            5: 'fecha_solicitud',
+        }
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                field = order_map.get(col_idx)
+                if field:
+                    if order_dir == 'desc':
+                        field = f'-{field}'
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                queryset = queryset.order_by('-id')
+        else:
+            queryset = queryset.order_by('-id')
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_solicitud(sol)
+            for sol in queryset
+        ]
+
+        opciones_estados = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudCorreo.ESTADOS
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'estado': opciones_estados
+            }
+        })
+
+    def serialize_solicitud(self, sol):
+        detalle_url = reverse('solicitud_correo:detalle', args=[sol.pk])
+        revision_url = reverse('solicitud_correo:revision_rrhh', args=[sol.pk])
+        historial_url = reverse('solicitud_correo:historial', args=[sol.pk])
+
+        badge_func = '<div class="d-flex align-items-center gap-1 flex-wrap">'
+        badge_func += f'<span class="badge bg-secondary" title="Total Funcionarios"><i class="bi bi-people me-1"></i>{sol.total_funcionarios}</span>'
+        if sol.total_pendientes_rrhh > 0:
+            badge_func += f'<span class="badge bg-warning text-dark" title="Pendientes RR.HH."><i class="bi bi-clock me-1"></i>{sol.total_pendientes_rrhh} Pend.</span>'
+        if sol.total_aprobados > 0:
+            badge_func += f'<span class="badge bg-success" title="Aprobados RR.HH."><i class="bi bi-check-lg me-1"></i>{sol.total_aprobados} Aprob.</span>'
+        if sol.total_rechazados > 0:
+            badge_func += f'<span class="badge bg-danger" title="Rechazados por RR.HH."><i class="bi bi-x-lg me-1"></i>{sol.total_rechazados} Rech.</span>'
+        badge_func += '</div>'
+
+        acciones = '<div class="btn-group btn-group-sm" role="group">'
+        if sol.total_pendientes_rrhh > 0 or sol.estado in ['PENDIENTE_RRHH', 'EN_REVISION_RRHH']:
+            acciones += f'<a href="{revision_url}" class="btn btn-warning" title="Revisar Solicitud"><i class="bi bi-person-check-fill me-1"></i> Revisar</a>'
+        acciones += f'<a href="{detalle_url}" class="btn btn-outline-primary" title="Ver Detalle" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>'
+        acciones += f'<button type="button" class="btn btn-outline-info" hx-get="{historial_url}" hx-target="#genericModalContent" data-bs-toggle="modal" data-bs-target="#genericModal" title="Historial"><i class="bi bi-clock-history"></i></button>'
+        acciones += '</div>'
+
+        solicitante_str = escape(sol.usuario_solicitante.get_full_name() or sol.usuario_solicitante.username)
+        est_str = escape(sol.establecimiento.nombre if sol.establecimiento else "")
+        depto_str = escape(
+            sol.departamento_nombre or (sol.departamento_solicitante.nombre if sol.departamento_solicitante else "-"))
+
+        folio_str = escape(sol.numero_solicitud or str(sol.id))
+        folio_html = f'<a href="{detalle_url}" class="fw-bold text-decoration-none font-monospace text-primary">{folio_str}</a>'
+
+        fecha_html = ""
+        if sol.fecha_solicitud:
+            fecha_html = f'<div>{sol.fecha_solicitud.strftime("%d/%m/%Y")}</div><small class="text-muted">{sol.fecha_solicitud.strftime("%H:%M")} hrs</small>'
+
+        return {
+            'numero_solicitud': folio_html,
+            'usuario_solicitante__nombre': f'<div>{solicitante_str}</div><small class="text-muted">{est_str}</small>',
+            'departamento_solicitante': depto_str,
+            'funcionarios': badge_func,
+            'estado': get_estado_badge(sol.estado),
+            'fecha_solicitud': fecha_html,
+            'acciones': acciones,
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Bandeja de Recursos Humanos'
@@ -291,7 +579,8 @@ class SolicitudBandejaRRHHListView(RRHHRequiredMixin, ListView):
 
         # Contadores de la bandeja
         base_qs = SolicitudCorreo.objects.filter(is_active=True)
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             base_qs = base_qs.filter(establecimiento=self.request.user.establecimiento)
 
         context['total_pendientes_rrhh'] = base_qs.filter(estado__in=['PENDIENTE_RRHH', 'EN_REVISION_RRHH']).count()
@@ -311,7 +600,8 @@ class SolicitudRevisionRRHHView(RRHHRequiredMixin, DetailView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
 
@@ -342,10 +632,11 @@ class SolicitudBandejaTICListView(TICRequiredMixin, ListView):
             'establecimiento', 'departamento_solicitante', 'usuario_solicitante', 'tecnico_tic'
         ).prefetch_related('detalles')
 
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
 
-        filtro_estado = self.request.GET.get('filtro_estado')
+        filtro_estado = self.request.GET.get('filtro_estado') or self.request.POST.get('filtro_estado')
         if filtro_estado == 'PENDIENTES':
             queryset = queryset.filter(estado__in=['EN_TIC', 'EN_PROCESO_TIC'])
         elif filtro_estado == 'FINALIZADAS':
@@ -370,6 +661,144 @@ class SolicitudBandejaTICListView(TICRequiredMixin, ListView):
 
         return queryset.order_by('-id')
 
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('draw'):
+            return self.datatables_response(request)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'search' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return self.datatables_response(request)
+        return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+    def datatables_response(self, request):
+        queryset = self.get_queryset()
+        params = request.POST if request.method == 'POST' else request.GET
+
+        draw = int(params.get('draw', 1))
+        start = max(int(params.get('start', 0)), 0)
+        length = int(params.get('length', 10))
+
+        records_total = queryset.count()
+
+        search_value = params.get('search[value]', '').strip()
+        if search_value:
+            queryset = queryset.filter(
+                Q(numero_solicitud__icontains=search_value) |
+                Q(departamento_nombre__icontains=search_value) |
+                Q(departamento_solicitante__nombre__icontains=search_value) |
+                Q(establecimiento__nombre__icontains=search_value) |
+                Q(usuario_solicitante__first_name__icontains=search_value) |
+                Q(usuario_solicitante__last_name__icontains=search_value) |
+                Q(usuario_solicitante__username__icontains=search_value) |
+                Q(detalles__rut__icontains=search_value) |
+                Q(detalles__nombres__icontains=search_value) |
+                Q(detalles__apellidos__icontains=search_value)
+            ).distinct()
+
+        depto_filter = params.get('columns[2][search][value]', '').strip()
+        if depto_filter:
+            queryset = queryset.filter(
+                Q(departamento_nombre__icontains=depto_filter) |
+                Q(departamento_solicitante__nombre__icontains=depto_filter)
+            )
+
+        estado_filter = params.get('columns[4][search][value]', '').strip()
+        if estado_filter:
+            queryset = queryset.filter(estado=estado_filter)
+
+        records_filtered = queryset.count()
+
+        order_column = params.get('order[0][column]')
+        order_dir = params.get('order[0][dir]', 'desc')
+
+        order_map = {
+            0: 'numero_solicitud',
+            1: 'usuario_solicitante__first_name',
+            2: 'departamento_nombre',
+            4: 'estado',
+            5: 'fecha_solicitud',
+        }
+
+        if order_column is not None:
+            try:
+                col_idx = int(order_column)
+                field = order_map.get(col_idx)
+                if field:
+                    if order_dir == 'desc':
+                        field = f'-{field}'
+                    queryset = queryset.order_by(field)
+            except (ValueError, TypeError):
+                queryset = queryset.order_by('-id')
+        else:
+            queryset = queryset.order_by('-id')
+
+        if length != -1:
+            queryset = queryset[start:start + min(length, 500)]
+
+        data = [
+            self.serialize_solicitud(sol)
+            for sol in queryset
+        ]
+
+        opciones_estados = [
+            {'label': label, 'value': code}
+            for code, label in SolicitudCorreo.ESTADOS
+            if code in ['EN_TIC', 'EN_PROCESO_TIC', 'FINALIZADA']
+        ]
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+            'columnControl': {
+                'estado': opciones_estados
+            }
+        })
+
+    def serialize_solicitud(self, sol):
+        detalle_url = reverse('solicitud_correo:detalle', args=[sol.pk])
+        procesamiento_url = reverse('solicitud_correo:procesamiento_tic', args=[sol.pk])
+        historial_url = reverse('solicitud_correo:historial', args=[sol.pk])
+
+        badge_func = '<div class="d-flex align-items-center gap-1 flex-wrap">'
+        badge_func += f'<span class="badge bg-secondary" title="Total Funcionarios"><i class="bi bi-people me-1"></i>{sol.total_funcionarios}</span>'
+        if sol.total_creados > 0:
+            badge_func += f'<span class="badge bg-success" title="Cuentas Creadas"><i class="bi bi-check-lg me-1"></i>{sol.total_creados} Creados</span>'
+        if sol.total_pendientes_tic > 0:
+            badge_func += f'<span class="badge bg-info text-dark" title="Pendientes TIC"><i class="bi bi-hourglass-split me-1"></i>{sol.total_pendientes_tic} Pend. TIC</span>'
+        badge_func += '</div>'
+
+        acciones = '<div class="btn-group btn-group-sm" role="group">'
+        if sol.total_pendientes_tic > 0 or sol.estado in ['EN_TIC', 'EN_PROCESO_TIC']:
+            acciones += f'<a href="{procesamiento_url}" class="btn btn-primary" title="Procesar Solicitud TIC"><i class="bi bi-gear-fill me-1"></i> Procesar</a>'
+        acciones += f'<a href="{detalle_url}" class="btn btn-outline-primary" title="Ver Detalle" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>'
+        acciones += f'<button type="button" class="btn btn-outline-info" hx-get="{historial_url}" hx-target="#genericModalContent" data-bs-toggle="modal" data-bs-target="#genericModal" title="Historial"><i class="bi bi-clock-history"></i></button>'
+        acciones += '</div>'
+
+        solicitante_str = escape(sol.usuario_solicitante.get_full_name() or sol.usuario_solicitante.username)
+        est_str = escape(sol.establecimiento.nombre if sol.establecimiento else "")
+        depto_str = escape(
+            sol.departamento_nombre or (sol.departamento_solicitante.nombre if sol.departamento_solicitante else "-"))
+
+        folio_str = escape(sol.numero_solicitud or str(sol.id))
+        folio_html = f'<a href="{detalle_url}" class="fw-bold text-decoration-none font-monospace text-primary">{folio_str}</a>'
+
+        fecha_html = ""
+        if sol.fecha_solicitud:
+            fecha_html = f'<div>{sol.fecha_solicitud.strftime("%d/%m/%Y")}</div><small class="text-muted">{sol.fecha_solicitud.strftime("%H:%M")} hrs</small>'
+
+        return {
+            'numero_solicitud': folio_html,
+            'usuario_solicitante__nombre': f'<div>{solicitante_str}</div><small class="text-muted">{est_str}</small>',
+            'departamento_solicitante': depto_str,
+            'funcionarios': badge_func,
+            'estado': get_estado_badge(sol.estado),
+            'fecha_solicitud': fecha_html,
+            'acciones': acciones,
+        }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Bandeja de TIC / Informática'
@@ -380,7 +809,8 @@ class SolicitudBandejaTICListView(TICRequiredMixin, ListView):
         context['es_tic'] = True
 
         base_detalles = SolicitudCorreoDetalle.objects.filter(is_active=True)
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             base_detalles = base_detalles.filter(solicitud__establecimiento=self.request.user.establecimiento)
 
         context['total_pendientes_tic'] = base_detalles.filter(estado__in=['APROBADO_RRHH', 'EN_PROCESO_TIC']).count()
@@ -408,7 +838,8 @@ class SolicitudProcesamientoTICView(TICRequiredMixin, DetailView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
         return queryset
 
@@ -455,7 +886,8 @@ def detalle_revisar_rrhh(request, pk):
             messages.error(request, "Debe especificar un motivo de rechazo.")
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': 'Debe especificar un motivo de rechazo.'}, status=400)
-            return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
+            return redirect(
+                request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
 
         detalle.estado = 'RECHAZADO_RRHH'
         detalle.motivo_rechazo = motivo_rechazo
@@ -547,8 +979,10 @@ def detalle_procesar_tic(request, pk):
         if not correo_creado:
             messages.error(request, "Debe ingresar el correo electrónico creado.")
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': 'Debe ingresar el correo electrónico creado.'}, status=400)
-            return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
+                return JsonResponse({'success': False, 'error': 'Debe ingresar el correo electrónico creado.'},
+                                    status=400)
+            return redirect(
+                request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
 
         detalle.estado = 'CREADO'
         detalle.correo_creado = correo_creado.lower()
@@ -565,8 +999,10 @@ def detalle_procesar_tic(request, pk):
         if not observacion_tic:
             messages.error(request, "Debe ingresar una observación explicando el error.")
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': 'Debe ingresar una observación explicando el error.'}, status=400)
-            return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
+                return JsonResponse({'success': False, 'error': 'Debe ingresar una observación explicando el error.'},
+                                    status=400)
+            return redirect(
+                request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[solicitud.pk]))
 
         detalle.estado = 'ERROR'
         detalle.observacion_tic = observacion_tic
@@ -647,7 +1083,8 @@ def detalle_notificar_funcionario(request, pk):
                     logger.error(f"Error al enviar notificación por correo a {correo_destinatario}: {str(e)}")
 
     messages.success(request, f"Notificación registrada exitosamente para {detalle.nombre_completo}.")
-    return redirect(request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[detalle.solicitud.pk]))
+    return redirect(
+        request.META.get('HTTP_REFERER') or reverse('solicitud_correo:detalle', args=[detalle.solicitud.pk]))
 
 
 @login_required
@@ -667,7 +1104,8 @@ def solicitud_cancelar(request, pk):
         return redirect('solicitud_correo:mis_solicitudes')
 
     if solicitud.estado in ['FINALIZADA', 'CANCELADA']:
-        messages.warning(request, f"La solicitud {solicitud.numero_solicitud} ya se encuentra {solicitud.get_estado_display()}.")
+        messages.warning(request,
+                         f"La solicitud {solicitud.numero_solicitud} ya se encuentra {solicitud.get_estado_display()}.")
         return redirect('solicitud_correo:detalle', pk=solicitud.pk)
 
     solicitud.estado = 'CANCELADA'
@@ -687,9 +1125,11 @@ class SolicitudHistorialView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         queryset = SolicitudCorreo.objects.all()
-        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
+        if hasattr(self.request.user,
+                   'establecimiento') and self.request.user.establecimiento and not self.request.user.is_superuser:
             queryset = queryset.filter(establecimiento=self.request.user.establecimiento)
-        if not self.request.user.is_superuser and not user_is_rrhh(self.request.user) and not user_is_tic(self.request.user):
+        if not self.request.user.is_superuser and not user_is_rrhh(self.request.user) and not user_is_tic(
+                self.request.user):
             queryset = queryset.filter(usuario_solicitante=self.request.user)
         return queryset
 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block sidebar %}
     {% include 'solicitud_correo/sidebar.html' %}
@@ -18,47 +19,47 @@
 {% block title %}Procesamiento TIC - Solicitud {{ solicitud.numero_solicitud|default:solicitud.id }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3">
-    <!-- Resumen Solicitud -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-hdd-network me-2"></i>Gestión Técnica TIC: Creación Externa en MINSAL
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Folio Solicitud</small>
-                    <span class="fw-bold">{{ solicitud.numero_solicitud }}</span>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Solicitante</small>
-                    <span>{{ solicitud.usuario_solicitante.get_full_name|default:solicitud.usuario_solicitante.username }}</span>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Departamento Solicitante</small>
-                    <span>{{ solicitud.departamento_nombre|default:solicitud.departamento_solicitante|default:'-' }}</span>
-                </div>
-                <div class="col-md-3">
-                    <small class="text-muted d-block">Establecimiento</small>
-                    <span>{{ solicitud.establecimiento.nombre|default:'General' }}</span>
+    <div class="container-fluid px-3">
+        <!-- Resumen Solicitud -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-hdd-network me-2"></i>Gestión Técnica TIC: Creación Externa en MINSAL
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Folio Solicitud</small>
+                        <span class="fw-bold">{{ solicitud.numero_solicitud }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Solicitante</small>
+                        <span>{{ solicitud.usuario_solicitante.get_full_name|default:solicitud.usuario_solicitante.username }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Departamento Solicitante</small>
+                        <span>{{ solicitud.departamento_nombre|default:solicitud.departamento_solicitante|default:'-' }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Establecimiento</small>
+                        <span>{{ solicitud.establecimiento.nombre|default:'General' }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Lista de Funcionarios a Procesar -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h6 class="card-title mb-0">
-                <i class="bi bi-list-check me-2"></i>Funcionarios de la Solicitud
-            </h6>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle mb-0">
-                    <thead class="table-light">
+        <!-- Lista de Funcionarios a Procesar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i>Funcionarios de la Solicitud
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light">
                         <tr>
                             <th style="width: 40px;">#</th>
                             <th>Funcionario</th>
@@ -68,8 +69,8 @@
                             <th>Cuenta Creada / MINSAL</th>
                             <th class="text-center" style="width: 220px;">Acción Técnica</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
                         {% for det in solicitud.detalles.all %}
                             <tr class="{% if det.estado == 'APROBADO_RRHH' or det.estado == 'EN_PROCESO_TIC' %}table-primary-subtle{% endif %}">
                                 <td class="text-center fw-bold">{{ forloop.counter }}</td>
@@ -102,13 +103,15 @@
                                     {% if det.correo_creado %}
                                         <div class="fw-bold text-primary">{{ det.correo_creado }}</div>
                                         {% if det.referencia_externa %}
-                                            <small class="text-muted d-block">Ref MINSAL: {{ det.referencia_externa }}</small>
+                                            <small class="text-muted d-block">Ref
+                                                MINSAL: {{ det.referencia_externa }}</small>
                                         {% endif %}
                                         {% if det.fecha_creacion %}
                                             <small class="text-muted d-block">Fecha: {{ det.fecha_creacion|date:"d/m/Y H:i" }}</small>
                                         {% endif %}
                                     {% elif det.estado == 'ERROR' %}
-                                        <div class="text-danger small"><strong>Obs Error:</strong> {{ det.observacion_tic|default:'Sin detalle' }}</div>
+                                        <div class="text-danger small"><strong>Obs
+                                            Error:</strong> {{ det.observacion_tic|default:'Sin detalle' }}</div>
                                     {% else %}
                                         <span class="text-muted small">-</span>
                                     {% endif %}
@@ -125,7 +128,8 @@
                                             <i class="bi bi-envelope-plus me-1"></i> Registrar Creación MINSAL
                                         </button>
                                     {% elif det.estado == 'CREADO' %}
-                                        <button type="button" class="btn btn-sm btn-outline-secondary btn-modal-tic w-100"
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary btn-modal-tic w-100"
                                                 data-bs-toggle="modal" data-bs-target="#modalTIC"
                                                 data-id="{{ det.pk }}" data-nombre="{{ det.nombre_completo }}"
                                                 data-rut="{{ det.rut|default:'' }}"
@@ -140,108 +144,116 @@
                                 </td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal Registro TIC -->
-<div class="modal fade" id="modalTIC" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <form method="post" id="formModalTIC">
-            {% csrf_token %}
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="bi bi-hdd-network me-2"></i>Registrar Creación Externa en MINSAL</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info py-2">
-                        <div class="fw-bold">Funcionario: <span id="modalTICNombre"></span></div>
-                        <div class="small">RUT: <span id="modalTICRut"></span> | Depto: <span id="modalTICDepto"></span></div>
+    <!-- Modal Registro TIC -->
+    <div class="modal fade" id="modalTIC" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form method="post" id="formModalTIC">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title"><i class="bi bi-hdd-network me-2"></i>Registrar Creación Externa en
+                            MINSAL</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                     </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info py-2">
+                            <div class="fw-bold">Funcionario: <span id="modalTICNombre"></span></div>
+                            <div class="small">RUT: <span id="modalTICRut"></span> | Depto: <span
+                                    id="modalTICDepto"></span></div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Resultado</label>
-                        <div class="d-flex gap-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="accion" id="radioTICCrear" value="CREADO" checked>
-                                <label class="form-check-label text-success fw-bold" for="radioTICCrear">
-                                    <i class="bi bi-check-circle me-1"></i> Cuenta Creada Exitosamente
-                                </label>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Resultado</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="accion" id="radioTICCrear"
+                                           value="CREADO" checked>
+                                    <label class="form-check-label text-success fw-bold" for="radioTICCrear">
+                                        <i class="bi bi-check-circle me-1"></i> Cuenta Creada Exitosamente
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="accion" id="radioTICError"
+                                           value="ERROR">
+                                    <label class="form-check-label text-danger fw-bold" for="radioTICError">
+                                        <i class="bi bi-exclamation-triangle me-1"></i> Error en Creación
+                                    </label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="accion" id="radioTICError" value="ERROR">
-                                <label class="form-check-label text-danger fw-bold" for="radioTICError">
-                                    <i class="bi bi-exclamation-triangle me-1"></i> Error en Creación
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="ticCorreoInput" class="form-label fw-bold">
+                                    Correo Creado <span class="text-danger">*</span>
                                 </label>
+                                <input type="email" name="correo_creado" id="ticCorreoInput" class="form-control"
+                                       placeholder="nombre.apellido@redsalud.gob.cl">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ticRefInput" class="form-label fw-bold">
+                                    Referencia / N° Solicitud MINSAL
+                                </label>
+                                <input type="text" name="referencia_externa" id="ticRefInput" class="form-control"
+                                       placeholder="Ej: TCK-MINSAL-12345">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ticFechaInput" class="form-label fw-bold">
+                                    Fecha de Creación
+                                </label>
+                                <input type="datetime-local" name="fecha_creacion" id="ticFechaInput"
+                                       class="form-control"
+                                       value="{% now 'Y-m-d\TH:i' %}">
+                            </div>
+                            <div class="col-12">
+                                <label for="ticObsInput" class="form-label fw-bold">
+                                    Observaciones Técnicas
+                                </label>
+                                <textarea name="observacion_tic" id="ticObsInput" class="form-control" rows="2"
+                                          placeholder="Observaciones o descripción de error si corresponde..."></textarea>
                             </div>
                         </div>
                     </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="ticCorreoInput" class="form-label fw-bold">
-                                Correo Creado <span class="text-danger">*</span>
-                            </label>
-                            <input type="email" name="correo_creado" id="ticCorreoInput" class="form-control"
-                                   placeholder="nombre.apellido@redsalud.gob.cl">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="ticRefInput" class="form-label fw-bold">
-                                Referencia / N° Solicitud MINSAL
-                            </label>
-                            <input type="text" name="referencia_externa" id="ticRefInput" class="form-control"
-                                   placeholder="Ej: TCK-MINSAL-12345">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="ticFechaInput" class="form-label fw-bold">
-                                Fecha de Creación
-                            </label>
-                            <input type="datetime-local" name="fecha_creacion" id="ticFechaInput" class="form-control"
-                                   value="{% now 'Y-m-d\TH:i' %}">
-                        </div>
-                        <div class="col-12">
-                            <label for="ticObsInput" class="form-label fw-bold">
-                                Observaciones Técnicas
-                            </label>
-                            <textarea name="observacion_tic" id="ticObsInput" class="form-control" rows="2"
-                                      placeholder="Observaciones o descripción de error si corresponde..."></textarea>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold">Guardar Registro</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary fw-bold">Guardar Registro</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.btn-modal-tic').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id;
-            const nombre = this.dataset.nombre;
-            const rut = this.dataset.rut;
-            const depto = this.dataset.depto;
-            const correo = this.dataset.correo || '';
-            const ref = this.dataset.ref || '';
+    {{ block.super }}
+    <script src="{% static 'solicitud_correo/js/solicitud_modal.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.btn-modal-tic').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const nombre = this.dataset.nombre;
+                    const rut = this.dataset.rut;
+                    const depto = this.dataset.depto;
+                    const correo = this.dataset.correo || '';
+                    const ref = this.dataset.ref || '';
 
-            document.getElementById('modalTICNombre').textContent = nombre;
-            document.getElementById('modalTICRut').textContent = rut;
-            document.getElementById('modalTICDepto').textContent = depto;
-            document.getElementById('ticCorreoInput').value = correo;
-            document.getElementById('ticRefInput').value = ref;
-            document.getElementById('formModalTIC').action = `/solicitudes-correo/tic/procesar-detalle/${id}/`;
+                    document.getElementById('modalTICNombre').textContent = nombre;
+                    document.getElementById('modalTICRut').textContent = rut;
+                    document.getElementById('modalTICDepto').textContent = depto;
+                    document.getElementById('ticCorreoInput').value = correo;
+                    document.getElementById('ticRefInput').value = ref;
+                    document.getElementById('formModalTIC').action = `/solicitudes-correo/tic/procesar-detalle/${id}/`;
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 {% endblock %}

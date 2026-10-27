@@ -1,5 +1,7 @@
 from django.db import models, transaction
+from django.forms import model_to_dict
 from django.utils import timezone
+
 from config import settings
 from core.standard.models import StandardModel
 
@@ -18,6 +20,10 @@ class AreaSolicitud(StandardModel):
 
     def __str__(self):
         return self.nombre
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        return item
 
 
 class SubareaSolicitud(StandardModel):
@@ -43,6 +49,11 @@ class SubareaSolicitud(StandardModel):
 
     def __str__(self):
         return f"{self.area.nombre} - {self.nombre}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['area'] = self.area.toJSON()
+        return item
 
 
 class MaestraCodigoSISSA(StandardModel):
@@ -76,6 +87,12 @@ class MaestraCodigoSISSA(StandardModel):
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre_producto}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['area'] = self.area.toJSON()
+        item['subarea'] = self.subarea.toJSON()
+        return item
 
 
 class PerfilCodigo(StandardModel):
@@ -118,6 +135,11 @@ class PerfilCodigo(StandardModel):
 
     def __str__(self):
         return f"Perfil Códigos: {self.usuario}"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['usuario'] = self.usuario.toJSON()
+        return item
 
     def tiene_acceso_area(self, area):
         if not self.es_referente:
@@ -299,6 +321,16 @@ class SolicitudCodigo(StandardModel):
     def __str__(self):
         return self.numero_solicitud or f"Solicitud #{self.id}"
 
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['usuario_solicitante'] = self.usuario_solicitante.toJSON()
+        item['establecimiento'] = self.establecimiento.toJSON()
+        item['area'] = self.area.toJSON()
+        item['subarea'] = self.subarea.toJSON()
+        item['usuario_referente'] = self.usuario_referente.toJSON()
+        item['usuario_creador_codigo'] = self.usuario_creador_codigo.toJSON()
+        return item
+
     def generar_folio(self):
         year = timezone.now().year
         alias = 'DIR'
@@ -403,3 +435,9 @@ class HistorialSolicitudCodigo(models.Model):
 
     def __str__(self):
         return f"{self.solicitud.numero_solicitud} - {self.accion} ({self.fecha:%Y-%m-%d %H:%M})"
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['solicitud'] = self.solicitud.toJSON()
+        item['usuario'] = self.usuario.toJSON()
+        return item

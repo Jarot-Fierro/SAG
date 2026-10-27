@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ view_title }}{% endblock %}
 
 {% block sidebar %}
@@ -21,6 +22,7 @@
 
 {% block content %}
     <div class="card shadow-sm mx-2">
+        {% csrf_token %}
         <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
             <span class="text-body-secondary fw-semibold">
                 <i class="bi bi-shield-check me-1 text-primary"></i>
@@ -32,7 +34,9 @@
         <!-- Tabla -->
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0">
+                <table id="myTable"
+                       class="table-datatable table table-sm table-striped table-hover border w-100 align-middle mb-0"
+                       data-ajax-url="{{ ajax_url|default:request.path }}">
                     <thead class="table-light">
                     <tr>
                         <th>Folio</th>
@@ -70,103 +74,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        $(function () {
-            const table = initDataTable({
-                selector: '.table-datatable',
-                ajaxUrl: "{{ ajax_url|default:request.path|escapejs }}",
-
-                columns: [
-                    {
-                        data: 'numero_solicitud',
-                        columnControl: ['order'],
-                        render: function (data, type, row) {
-                            if (type !== 'display') return data || '';
-                            return `<span class="fw-bold font-monospace text-primary">${data}</span>`;
-                        }
-                    },
-                    {
-                        data: 'fecha_solicitud',
-                        columnControl: ['order']
-                    },
-                    {
-                        data: 'establecimiento__nombre',
-                        columnControl: ['order', 'searchDropdown']
-                    },
-                    {
-                        data: 'usuario_solicitante__nombre',
-                        columnControl: ['order', 'searchDropdown']
-                    },
-                    {
-                        data: 'area__nombre',
-                        columnControl: [
-                            'order',
-                            [
-                                {
-                                    extend: 'searchList',
-                                    search: true,
-                                    select: true
-                                },
-                                'spacer',
-                                'orderAsc',
-                                'orderDesc',
-                                'orderClear'
-                            ]
-                        ]
-                    },
-                    {
-                        data: 'subarea__nombre',
-                        columnControl: ['order', 'searchDropdown']
-                    },
-                    {
-                        data: 'producto_base',
-                        columnControl: ['order', 'searchDropdown'],
-                        render: function (data, type, row) {
-                            if (type !== 'display') return data || '';
-                            return `<span class="fw-semibold">${data}</span>`;
-                        }
-                    },
-                    {
-                        data: 'estado',
-                        columnControl: ['order', 'searchDropdown'],
-                        render: function (data, type, row) {
-                            return data || '';
-                        }
-                    },
-                    {
-                        data: 'acciones',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-
-                order: [[1, 'desc']],
-
-                extraConfig: {
-                    pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100]
-                }
-            });
-
-            // Actualización automática cada 3 minutos
-            let seconds = 180;
-            $('#countdown').text(seconds);
-
-            setInterval(function () {
-                seconds--;
-
-                if (seconds <= 0) {
-                    seconds = 180;
-                    table.ajax.reload(function () {
-                        $('#last-update').text(
-                            'Actualizado: ' + new Date().toLocaleTimeString('es-CL')
-                        );
-                    }, false);
-                }
-
-                $('#countdown').text(seconds);
-            }, 1000);
-        });
-    </script>
+    <script src="{% static 'solicitud_codigo/js/bandeja_referente_datatable.js' %}"></script>
 {% endblock %}
