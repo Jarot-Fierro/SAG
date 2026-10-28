@@ -219,11 +219,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 {
                     text: '<i class="bi bi-funnel"></i> Estado',
-                    action: function (e, dt) { abrirFiltro(e, dt, 3); }
+                    action: function (e, dt) {
+                        abrirFiltro(e, dt, 3);
+                    }
                 },
                 {
                     text: '<i class="bi bi-funnel"></i> Área de soporte',
-                    action: function (e, dt) { abrirFiltro(e, dt, 4); }
+                    action: function (e, dt) {
+                        abrirFiltro(e, dt, 4);
+                    }
                 },
                 {
                     text: '<i class="bi bi-arrow-clockwise"></i> Recargar',
@@ -356,5 +360,36 @@ document.addEventListener('DOMContentLoaded', function () {
             url: 'https://cdn.datatables.net/plug-ins/2.3.6/i18n/es-ES.json',
             processing: 'Cargando datos, por favor espera...'
         }
+    });
+    // Actualización automática cada 3 minutos
+    const countdownEl = document.getElementById('countdown');
+    const lastUpdateEl = document.getElementById('last-update');
+
+    let seconds = 180;
+    if (countdownEl) {
+        countdownEl.textContent = '3:00';
+    }
+
+    const refreshInterval = setInterval(function () {
+        seconds--;
+
+        if (seconds <= 0) {
+            seconds = 180;
+            table.ajax.reload(function () {
+                if (lastUpdateEl) {
+                    lastUpdateEl.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CL');
+                }
+            }, false);
+        }
+
+        const mins = Math.floor(seconds / 60);
+        const remSecs = seconds % 60;
+        if (countdownEl) {
+            countdownEl.textContent = `${mins}:${remSecs < 10 ? '0' : ''}${remSecs}`;
+        }
+    }, 1000);
+
+    table.on('destroy', function () {
+        clearInterval(refreshInterval);
     });
 });

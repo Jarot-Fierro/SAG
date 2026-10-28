@@ -1,11 +1,22 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
+from rangefilter.filters import DateRangeFilter
 from simple_history.admin import SimpleHistoryAdmin
 
 
 class StandardAdmin(ImportExportModelAdmin, SimpleHistoryAdmin):
     readonly_fields = ('created_by', 'updated_by', 'created_at', 'updated_at')
     actions = ['activate_records', 'deactivate_records']
+
+    def get_list_filter(self, request):
+        date_fields = ('created_at', 'updated_at')
+        list_filter = []
+        for item in super().get_list_filter(request):
+            field_name = item[0] if isinstance(item, (tuple, list)) else item
+            if field_name not in date_fields:
+                list_filter.append(item)
+        list_filter.extend((field_name, DateRangeFilter) for field_name in date_fields)
+        return list_filter
 
     def save_model(self, request, obj, form, change):
         if not change:

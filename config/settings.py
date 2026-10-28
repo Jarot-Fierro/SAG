@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'colorfield',
     'simple_history',
     'import_export',
+    'rangefilter',
     'django_select2',
     'mptt',
     'django_user_agents',

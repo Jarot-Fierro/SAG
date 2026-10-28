@@ -10,10 +10,10 @@ from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from core.models.establecimientos import Establecimiento
+from core.standard.views import StandardCreateView, StandardUpdateView
 from soporte.forms.forms_tickets import FormTicket
 from soporte.models import AreaSoporte, TipoSoporte
 from soporte.models import Ticket
-from core.standard.views import StandardCreateView, StandardUpdateView
 
 
 def _as_int(value, default=0):
@@ -25,7 +25,7 @@ def _as_int(value, default=0):
 
 class TicketListView(LoginRequiredMixin, TemplateView):
     template_name = 'tickets/ticket_list.html'
-    title = 'Mis Tickets'
+    title = f'Mis Tickets {request.user.funcionario.unidad_organizacional.nombre}'
 
     def post(self, request, *args, **kwargs):
         if request.POST.get('action') != 'search':
@@ -46,7 +46,8 @@ class TicketListView(LoginRequiredMixin, TemplateView):
         )
 
         queryset = Ticket.objects.filter(
-            is_active=True
+            is_active=True,
+            created_by=request.user,
         ).select_related(
             'area_soporte',
             'funcionario',
@@ -308,6 +309,7 @@ class TicketUpdateView(StandardUpdateView):
         context['title'] = self.title
         return context
 
+
 class ListEditTicketView(LoginRequiredMixin, TemplateView):
     template_name = 'tickets/ticket_editor_list.html'
     title = 'Gestión de Tickets'
@@ -540,8 +542,6 @@ class ListEditTicketView(LoginRequiredMixin, TemplateView):
         return context
 
 
-
-
 @login_required
 @require_POST
 def tickets_eliminar(request, pk):
@@ -559,6 +559,7 @@ def tickets_eliminar(request, pk):
         ticket.is_active = False
 
         if hasattr(ticket, 'updated_by'):
+            ticket.estado = 'CANCELADO'
             ticket.updated_by = request.user
 
         ticket.save()
