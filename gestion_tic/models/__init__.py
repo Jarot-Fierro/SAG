@@ -1,3 +1,4 @@
+from .accesorio import Accesorio, MovimientoActivoAccesorio
 from .activo import Activo
 from .activo_caracteristica import ActivoCaracteristica
 from .campo_tipo_activo import CampoTipoActivo

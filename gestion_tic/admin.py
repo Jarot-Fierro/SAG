@@ -3,7 +3,8 @@ from django.contrib import admin, messages
 from core.standard.admin import StandardAdmin
 from gestion_tic.models import (
     TipoActivo, CampoTipoActivo, OpcionCampoTipoActivo,
-    Activo, ActivoCaracteristica, TipoMovimiento, MovimientoActivo
+    Activo, ActivoCaracteristica, TipoMovimiento, MovimientoActivo,
+    Accesorio, MovimientoActivoAccesorio
 )
 from gestion_tic.models.catalogo import (
     Marca, Modelo, Propietario, JefeTic, Contrato, Ips
@@ -128,10 +129,21 @@ class CampoTipoActivoAdmin(TicStandardAdmin):
     inlines = [OpcionCampoTipoActivoInline]
 
 
+@admin.register(Accesorio)
+class AccesorioAdmin(TicStandardAdmin):
+    list_display = ('id', 'nombre', 'incluido_en_estacion_completa', 'cantidad_estacion_completa', 'establecimiento',
+                    'is_active')
+    search_fields = ('nombre', 'descripcion')
+    list_filter = ('incluido_en_estacion_completa', 'establecimiento', 'is_active')
+    list_display_links = ('nombre',)
+    ordering = ('nombre',)
+
+
 @admin.register(TipoMovimiento)
 class TipoMovimientoAdmin(TicStandardAdmin):
-    list_display = ('nombre',)
+    list_display = ('id', 'nombre', 'requiere_recepcion', 'es_asignacion', 'establecimiento', 'is_active')
     search_fields = ('nombre',)
+    list_filter = ('requiere_recepcion', 'es_asignacion', 'establecimiento', 'is_active')
 
 
 class ActivoCaracteristicaInline(admin.TabularInline):
@@ -140,10 +152,18 @@ class ActivoCaracteristicaInline(admin.TabularInline):
     autocomplete_fields = ['campo']
 
 
+class MovimientoActivoAccesorioInline(admin.TabularInline):
+    model = MovimientoActivoAccesorio
+    extra = 0
+    fields = ('accesorio', 'nombre', 'cantidad', 'observacion')
+    autocomplete_fields = ['accesorio']
+
+
 class MovimientoActivoInline(admin.TabularInline):
     model = MovimientoActivo
     extra = 0
-    fields = ('tipo_movimiento', 'funcionario', 'unidad_organizacional', 'ip', 'created_at')
+    fields = ('tipo_movimiento', 'recepcionado', 'nombre_completo', 'departamento', 'funcionario',
+              'unidad_organizacional', 'ip', 'created_at')
     readonly_fields = ('created_at',)
     autocomplete_fields = ['funcionario', 'unidad_organizacional', 'ip']
 
@@ -159,7 +179,9 @@ class ActivoAdmin(TicStandardAdmin):
 
 @admin.register(MovimientoActivo)
 class MovimientoActivoAdmin(TicStandardAdmin):
-    list_display = ('activo', 'tipo_movimiento', 'funcionario', 'unidad_organizacional', 'created_at')
-    list_filter = ('tipo_movimiento', 'establecimiento', 'created_at')
-    search_fields = ('activo__codigo_barra', 'activo__serie', 'funcionario__nombre')
+    list_display = ('id', 'activo', 'tipo_movimiento', 'recepcionado', 'nombre_completo', 'departamento', 'funcionario',
+                    'unidad_organizacional', 'created_at')
+    list_filter = ('tipo_movimiento', 'recepcionado', 'establecimiento', 'created_at')
+    search_fields = ('activo__codigo_barra', 'activo__serie', 'nombre_completo', 'departamento', 'funcionario__nombre')
+    inlines = [MovimientoActivoAccesorioInline]
     autocomplete_fields = ['activo', 'funcionario', 'unidad_organizacional', 'ip']

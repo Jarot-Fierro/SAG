@@ -12,7 +12,7 @@ class FormTicket(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         deptos_qs = UnidadOrganizacional.objects.filter(
-            Q(es_departamento=True) | Q(es_subdepartamento=True)
+            Q(es_departamento=True) | Q(es_subdepartamento=True) | Q(unidad_principal=True)
         )
         if request and hasattr(request.user, 'establecimiento') and request.user.establecimiento:
             self.fields["area_soporte"].queryset = AreaSoporte.objects.filter(

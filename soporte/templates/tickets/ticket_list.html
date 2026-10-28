@@ -13,7 +13,8 @@
 {% block content %}
     <div class="card table-responsive m-2 p-0">
         {% csrf_token %}
-        <table id="myTable" class="table display ">
+        <table id="myTable" class="table display "
+               data-url-delete="{% url 'soporte:ticket_delete' 0 %}">
             <thead>
             <tr>
                 <th>N-Ticket</th>
@@ -23,7 +24,8 @@
                 <th>Area de Soporte</th>
                 <th>Asignado a</th>
                 <th>F. Creación</th>
-                <th>F. Cierre</th>
+                <th>Departamento</th>
+                <th>Acciones</th>
             </tr>
             </thead>
             <tbody class="p-0">
@@ -47,4 +49,5 @@
 {% endblock %}
 {% block scripts %}
     <script src="{% static 'soporte/js/ticket_list_datatable.js' %}"></script>
+    <script src="{% static 'soporte/js/ticket_list_edit_modal.js' %}"></script>
 {% endblock %}

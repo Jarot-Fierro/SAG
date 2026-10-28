@@ -198,24 +198,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     attr: {title: 'Copiar', 'aria-label': 'Copiar'}
                 },
                 {
-                    extend: 'csv',
-                    text: '<i class="bi bi-filetype-csv"></i> CSV',
-                    attr: {title: 'Exportar CSV', 'aria-label': 'Exportar CSV'}
-                },
-                {
                     extend: 'excel',
                     text: '<i class="bi bi-file-earmark-excel"></i> XLS',
                     attr: {title: 'Exportar Excel', 'aria-label': 'Exportar Excel'}
-                },
-                {
-                    extend: 'pdf',
-                    text: '<i class="bi bi-file-earmark-pdf"></i> PDF',
-                    attr: {title: 'Exportar PDF', 'aria-label': 'Exportar PDF'}
-                },
-                {
-                    extend: 'print',
-                    text: '<i class="bi bi-printer"></i> Imprimir',
-                    attr: {title: 'Imprimir', 'aria-label': 'Imprimir'}
                 },
                 {
                     text: '<i class="bi bi-funnel"></i> Estado',

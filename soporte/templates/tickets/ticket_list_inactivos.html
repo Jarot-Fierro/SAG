@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'tickets/sidebar.html' %}
+{% endblock %}
+{% block buttons %}
+    <a href="{% url 'soporte:create_soportes' %}" class="btn btn-primary btn-sm">Solicitar Soporte</a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="myTable" class="table display ">
+            <thead>
+            <tr>
+                <th>N-Ticket</th>
+                <th>Título</th>
+                <th>Solicitante</th>
+                <th>Estado</th>
+                <th>Area de Soporte</th>
+                <th>Asignado a</th>
+                <th>F. Creación</th>
+                <th>Departamento</th>
+                <th>F. Cierre</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+        <div class="card-footer bg-body-tertiary py-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="spinner-grow spinner-grow-sm text-success" role="status" aria-hidden="true"></span>
+                    <small class="text-body-secondary">Actualización automática en</small>
+                    <span class="badge bg-primary font-monospace" id="countdown">3:00</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-clock-history text-secondary"></i>
+                    <small class="text-body-secondary" id="last-update">Esperando actualización...</small>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'soporte/js/ticket_list_inactivo_datatable.js' %}"></script>
+{% endblock %}

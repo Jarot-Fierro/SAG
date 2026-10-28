@@ -9,8 +9,9 @@ from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 
 from ..forms.catalogo import (
-    FormMarca, FormContrato, FormIps, FormJefeTic, FormModelo, FormPropietario
+    FormMarca, FormContrato, FormIps, FormJefeTic, FormModelo, FormPropietario, FormAccesorio
 )
+from ..models.accesorio import Accesorio
 from ..models.catalogo import (
     Marca, Contrato, Ips, JefeTic,
     Modelo, Propietario,
@@ -1042,6 +1043,154 @@ def ips_desactivar(request, pk):
             'status': 'success',
             'success': True,
             'message': f'La dirección IP "{nombre}" (ID: {pk}) fue desactivada correctamente.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'success': False,
+            'message': f'Ocurrió un error al intentar desactivar el registro: {str(e)}'
+        }, status=400)
+
+
+# ==============================================================================
+# 7. ACCESORIO
+# ==============================================================================
+
+class AccesorioListView(LoginRequiredMixin, TemplateView):
+    template_name = 'gestion_tic/catalogo/catalogo_list.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') != 'search':
+            return JsonResponse({'error': 'Acción no válida'}, status=400)
+
+        draw = int(request.POST.get('draw', 1))
+        start = max(0, int(request.POST.get('start', 0)))
+        length = int(request.POST.get('length', 10))
+
+        if hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+            queryset = Accesorio.objects.filter(
+                establecimiento=request.user.establecimiento,
+                is_active=True
+            )
+        else:
+            queryset = Accesorio.objects.filter(is_active=True)
+
+        records_total = queryset.count()
+
+        search = request.POST.get('search[value]', '').strip()
+        if search:
+            queryset = queryset.filter(
+                Q(nombre__icontains=search) |
+                Q(descripcion__icontains=search)
+            )
+
+        columnas = {
+            0: 'id',
+            1: 'nombre',
+        }
+
+        order_index = _as_int(request.POST.get('order[0][column]'), 1)
+        order_dir = request.POST.get('order[0][dir]', 'asc')
+        campo = columnas.get(order_index, 'nombre')
+        if order_dir == 'desc':
+            campo = f'-{campo}'
+
+        queryset = queryset.order_by(campo, 'pk')
+        records_filtered = queryset.count()
+
+        if length != -1:
+            queryset = queryset[start:start + length]
+
+        data = list(queryset.values('id', 'nombre'))
+
+        return JsonResponse({
+            'draw': draw,
+            'recordsTotal': records_total,
+            'recordsFiltered': records_filtered,
+            'data': data,
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Listado de Accesorios'
+        context['resource_type'] = 'accesorio'
+        context['create_url'] = reverse_lazy('gestion_tic:accesorio_create')
+        context['edit_url_template'] = reverse_lazy('gestion_tic:accesorio_update', kwargs={'pk': 0})
+        context['delete_url_template'] = reverse_lazy('gestion_tic:accesorio_deactivate', kwargs={'pk': 0})
+        return context
+
+
+class AccesorioCreateView(LoginRequiredMixin, CreateView):
+    model = Accesorio
+    form_class = FormAccesorio
+    template_name = 'gestion_tic/catalogo/catalogo_form.html'
+    title = 'Crear Accesorio'
+    success_url = reverse_lazy('gestion_tic:accesorio_list')
+
+    def form_valid(self, form):
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento:
+            form.instance.establecimiento = self.request.user.establecimiento
+        if hasattr(form.instance, 'created_by'):
+            form.instance.created_by = self.request.user
+        messages.success(self.request, 'Accesorio creado correctamente.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.title
+        context['submit_label'] = 'Guardar'
+        context['list_url'] = reverse_lazy('gestion_tic:accesorio_list')
+        return context
+
+
+class AccesorioUpdateView(LoginRequiredMixin, UpdateView):
+    model = Accesorio
+    form_class = FormAccesorio
+    template_name = 'gestion_tic/catalogo/catalogo_form.html'
+    title = 'Editar Accesorio'
+    success_url = reverse_lazy('gestion_tic:accesorio_list')
+
+    def get_queryset(self):
+        if hasattr(self.request.user, 'establecimiento') and self.request.user.establecimiento:
+            return Accesorio.objects.filter(
+                establecimiento=self.request.user.establecimiento,
+                is_active=True
+            )
+        return Accesorio.objects.filter(is_active=True)
+
+    def form_valid(self, form):
+        if hasattr(form.instance, 'updated_by'):
+            form.instance.updated_by = self.request.user
+        messages.success(self.request, 'Accesorio actualizado correctamente.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.title
+        context['submit_label'] = 'Actualizar'
+        context['list_url'] = reverse_lazy('gestion_tic:accesorio_list')
+        return context
+
+
+@login_required
+@require_POST
+def accesorio_desactivar(request, pk):
+    try:
+        if hasattr(request.user, 'establecimiento') and request.user.establecimiento:
+            obj = get_object_or_404(Accesorio, pk=pk, establecimiento=request.user.establecimiento)
+        else:
+            obj = get_object_or_404(Accesorio, pk=pk)
+
+        nombre = str(obj.nombre)
+        obj.is_active = False
+        if hasattr(obj, 'updated_by'):
+            obj.updated_by = request.user
+        obj.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'success': True,
+            'message': f'El accesorio "{nombre}" (ID: {pk}) fue desactivado correctamente.'
         })
     except Exception as e:
         return JsonResponse({

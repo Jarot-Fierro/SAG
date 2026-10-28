@@ -2,7 +2,10 @@ from unittest.mock import patch
 
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
-from soporte.tickets import serialize_ticket
+
+from core.standard.view_example import SoporteListCBV
+
+serialize_ticket = SoporteListCBV.serialize_ticket
 
 from core.models.configuracion_correo import ConfiguracionCorreo
 from core.models.establecimientos import Establecimiento
@@ -517,8 +520,10 @@ class SoporteDataTablesTests(TestCase):
             establecimiento=self.establecimiento,
             funcionario=self.user_solicitante,
             area_soporte=self.area_soporte,
+            departamento="Recursos Humanos",
             estado='ABIERTO',
-            is_active=True
+            is_active=True,
+            created_by=self.user_solicitante,
         )
         self.ticket_activo2 = Ticket.objects.create(
             titulo="Problema impresora farmacia",
@@ -527,8 +532,10 @@ class SoporteDataTablesTests(TestCase):
             funcionario=self.user_solicitante,
             area_soporte=self.area_soporte,
             asignado_a=self.perfil_soporte,
+            departamento="Farmacia",
             estado='EN PROCESO',
-            is_active=True
+            is_active=True,
+            created_by=self.user_solicitante,
         )
         self.ticket_cerrado = Ticket.objects.create(
             titulo="Cambio de teclado",
@@ -537,15 +544,19 @@ class SoporteDataTablesTests(TestCase):
             funcionario=self.user_solicitante,
             area_soporte=self.area_soporte,
             asignado_a=self.perfil_soporte,
+            departamento="Finanzas",
             estado='CERRADO',
-            is_active=False
+            is_active=False,
+            created_by=self.user_solicitante,
         )
         self.ticket_otro_est = Ticket.objects.create(
             titulo="Ticket otro hospital",
             descripcion="No debe ser visible",
             establecimiento=self.otro_establecimiento,
+            departamento="Urgencias",
             estado='ABIERTO',
-            is_active=True
+            is_active=True,
+            created_by=self.user_solicitante,
         )
 
     def test_serializer_ticket_fields_and_formats(self):
@@ -563,14 +574,13 @@ class SoporteDataTablesTests(TestCase):
 
     def test_ticket_list_html_and_ajax_datatables(self):
         self.client.force_login(self.user_solicitante)
-        url = reverse('soporte:ticket_list')
+        url = reverse('soporte:list_soportes')
 
         # 1. Petición GET estándar (renderiza HTML con DataTables)
         response_html = self.client.get(url)
         self.assertEqual(response_html.status_code, 200)
         self.assertContains(response_html, "myTable")
-        self.assertContains(response_html, "ticket_datatable.js")
-        self.assertContains(response_html, "ticket_modal.js")
+        self.assertContains(response_html, "ticket_list_datatable.js")
 
         # 2. Petición POST DataTables server-side (action=search)
         response_post = self.client.post(
@@ -583,52 +593,48 @@ class SoporteDataTablesTests(TestCase):
         self.assertEqual(data_post["recordsTotal"], 2)
         self.assertEqual(data_post["recordsFiltered"], 2)
         self.assertEqual(len(data_post["data"]), 2)
+        # Verificar que el campo departamento está presente en los datos
+        self.assertIn("departamento", data_post["data"][0])
 
-        # 3. Petición AJAX DataTables GET compatibilidad
-        response_ajax = self.client.get(
-            url,
-            {"draw": "1", "start": "0", "length": "10"},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
-        )
-        self.assertEqual(response_ajax.status_code, 200)
-        data = response_ajax.json()
-
-        self.assertEqual(data["draw"], 1)
-        # Solo tickets activos de su establecimiento (2 tickets activos)
-        self.assertEqual(data["recordsTotal"], 2)
-        self.assertEqual(data["recordsFiltered"], 2)
-        self.assertEqual(len(data["data"]), 2)
-
-    def test_ticket_list_ajax_search_and_ordering(self):
+    def test_ticket_list_post_search_and_ordering(self):
         self.client.force_login(self.user_solicitante)
-        url = reverse('soporte:ticket_list')
+        url = reverse('soporte:list_soportes')
 
         # Búsqueda global por término "impresora"
-        response_search = self.client.get(
+        response_search = self.client.post(
             url,
-            {"draw": "2", "start": "0", "length": "10", "search[value]": "impresora"},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            {"action": "search", "draw": "2", "start": "0", "length": "10", "search[value]": "impresora"}
         )
         self.assertEqual(response_search.status_code, 200)
         data = response_search.json()
         self.assertEqual(data["recordsFiltered"], 1)
         self.assertEqual(data["data"][0]["titulo"].upper(), "PROBLEMA IMPRESORA FARMACIA")
 
-        # Ordenamiento ascendente por titulo (columna 1)
-        response_order = self.client.get(
+        # Búsqueda global por departamento "Recursos Humanos"
+        response_search_depto = self.client.post(
             url,
-            {"draw": "3", "start": "0", "length": "10", "order[0][column]": "1", "order[0][dir]": "asc"},
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+            {"action": "search", "draw": "3", "start": "0", "length": "10", "search[value]": "Recursos Humanos"}
+        )
+        self.assertEqual(response_search_depto.status_code, 200)
+        data_depto = response_search_depto.json()
+        self.assertEqual(data_depto["recordsFiltered"], 1)
+        self.assertEqual(data_depto["data"][0]["departamento"], "Recursos Humanos")
+
+        # Ordenamiento ascendente por departamento (columna 7)
+        response_order = self.client.post(
+            url,
+            {"action": "search", "draw": "4", "start": "0", "length": "10", "order[0][column]": "7",
+             "order[0][dir]": "asc"}
         )
         self.assertEqual(response_order.status_code, 200)
         data_order = response_order.json()
         self.assertEqual(len(data_order["data"]), 2)
-        self.assertEqual(data_order["data"][0]["titulo"].upper(), "PROBLEMA DE RED EN PISO 1")
-        self.assertEqual(data_order["data"][1]["titulo"].upper(), "PROBLEMA IMPRESORA FARMACIA")
+        self.assertEqual(data_order["data"][0]["departamento"], "Farmacia")
+        self.assertEqual(data_order["data"][1]["departamento"], "Recursos Humanos")
 
     def test_ticket_list_post_search_and_column_control(self):
         self.client.force_login(self.user_solicitante)
-        url = reverse('soporte:ticket_list')
+        url = reverse('soporte:list_soportes')
 
         # 1. Búsqueda por término global vía POST DataTables
         response_search = self.client.post(
@@ -650,6 +656,63 @@ class SoporteDataTablesTests(TestCase):
         data_filtered = response_filter.json()
         self.assertEqual(data_filtered["recordsFiltered"], 1)
         self.assertEqual(data_filtered["data"][0]["estado"], "EN PROCESO")
+
+    def test_ticket_inactive_list_html_and_ajax_datatables(self):
+        self.client.force_login(self.user_solicitante)
+        url = reverse('soporte:list_soportes_inactivos')
+
+        # 1. Petición GET estándar (renderiza HTML con DataTables)
+        response_html = self.client.get(url)
+        self.assertEqual(response_html.status_code, 200)
+        self.assertContains(response_html, "myTable")
+        self.assertContains(response_html, "ticket_list_inactivo_datatable.js")
+        self.assertContains(response_html, "Departamento")
+        self.assertContains(response_html, "F. Cierre")
+
+        # 2. Petición POST DataTables server-side (action=search)
+        response_post = self.client.post(
+            url,
+            {"action": "search", "draw": "1", "start": "0", "length": "10"}
+        )
+        self.assertEqual(response_post.status_code, 200)
+        data_post = response_post.json()
+        self.assertEqual(data_post["draw"], 1)
+        self.assertEqual(data_post["recordsTotal"], 1)
+        self.assertEqual(data_post["recordsFiltered"], 1)
+        self.assertEqual(len(data_post["data"]), 1)
+        self.assertEqual(data_post["data"][0]["departamento"], "Finanzas")
+        self.assertIn("fecha_cierre", data_post["data"][0])
+
+        # 3. Búsqueda por departamento
+        response_search = self.client.post(
+            url,
+            {"action": "search", "draw": "2", "start": "0", "length": "10", "search[value]": "Finanzas"}
+        )
+        self.assertEqual(response_search.status_code, 200)
+        data_search = response_search.json()
+        self.assertEqual(data_search["recordsFiltered"], 1)
+        self.assertEqual(data_search["data"][0]["departamento"], "Finanzas")
+
+        # 4. Ordenamiento por departamento (columna 7)
+        response_order = self.client.post(
+            url,
+            {"action": "search", "draw": "3", "start": "0", "length": "10", "order[0][column]": "7",
+             "order[0][dir]": "desc"}
+        )
+        self.assertEqual(response_order.status_code, 200)
+        data_order = response_order.json()
+        self.assertEqual(len(data_order["data"]), 1)
+        self.assertEqual(data_order["data"][0]["departamento"], "Finanzas")
+
+        # 5. Ordenamiento por fecha_cierre (columna 8)
+        response_order_cierre = self.client.post(
+            url,
+            {"action": "search", "draw": "4", "start": "0", "length": "10", "order[0][column]": "8",
+             "order[0][dir]": "desc"}
+        )
+        self.assertEqual(response_order_cierre.status_code, 200)
+        data_order_cierre = response_order_cierre.json()
+        self.assertEqual(len(data_order_cierre["data"]), 1)
 
     def test_ticket_update_view_get_and_post(self):
         self.client.force_login(self.user_solicitante)

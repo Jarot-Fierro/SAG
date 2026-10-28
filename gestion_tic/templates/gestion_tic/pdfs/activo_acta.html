@@ -3,213 +3,312 @@
 <head>
     {% load static %}
     <meta charset="UTF-8"/>
-    <title>Acta de Entrega</title>
+    <title>Acta de Entrega de Equipo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="{% static 'media/favicon.ico' %}">
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @page {
             size: A4;
-            margin: 30px;
+            margin: 20mm 15mm 20mm 15mm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+                color: #555;
+                font-family: Arial, sans-serif;
+            }
         }
 
         body {
             margin: 0;
             font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #212529;
+            line-height: 1.4;
         }
 
         h1 {
             text-align: center;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin-top: 5px;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
+        }
+
+        .badge-status {
+            text-align: center;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .badge-conforme {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .section-title {
             font-weight: bold;
-            margin: 15px 0;
-            font-size: 16px;
+            margin: 12px 0 6px 0;
+            font-size: 13px;
+            background-color: #f1f3f5;
+            padding: 4px 8px;
+            border-left: 4px solid #0d6efd;
+            text-transform: uppercase;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 6px;
+            margin-bottom: 8px;
         }
 
         th, td {
-            padding: 6px 10px;
-            font-size: 14px;
+            padding: 5px 8px;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            width: 32%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-accesorios th {
+            width: auto;
+            text-align: center;
+        }
+
+        .table-accesorios td {
+            text-align: center;
+        }
+
+        .table-accesorios td.text-start {
+            text-align: left;
         }
 
         .note {
-            padding: 10px;
-            margin-top: 20px;
+            padding: 8px 12px;
+            margin-top: 15px;
             background-color: #f8f9fa;
-            font-size: 14px;
+            border-left: 3px solid #6c757d;
+            font-size: 11px;
+            page-break-inside: avoid;
         }
 
         .signature-block {
-            margin-top: 40px;
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            width: 90%;
+            margin: 0 auto;
+            text-align: center;
         }
 
         .signature-line {
             border-top: 1px solid #000;
-            width: 220px;
-            text-align: center;
-            margin: 30px auto 0 auto;
+            margin-top: 50px;
             padding-top: 5px;
-            font-size: 14px;
-        }
-        .signature-line-2 {
-            border-top: 1px solid #000;
-            width: 300px;
+            font-size: 12px;
             text-align: center;
-            margin: 30px auto 0 auto;
-            padding-top: 5px;
-            font-size: 14px;
         }
 
-        footer {
-            text-align: center;
+        .signature-line-pending {
+            border-top: 1px dashed #dc3545;
+            margin-top: 50px;
+            padding-top: 5px;
             font-size: 12px;
-            margin-top: 5px;
-            color: #555;
+            text-align: center;
         }
 
         .text-normal {
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 12px;
+            margin-bottom: 2px;
         }
     </style>
 </head>
 <body>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-2">
     <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Logo_del_MINSAL_Chile.png"
-         alt="Logo Gobierno" style="height: 80px;">
+         alt="Logo Gobierno" style="height: 65px;">
     <div class="d-flex flex-column text-end">
-        <div class="text-normal"><strong>FECHA:</strong> {{ fecha }}</div>
-        <div class="text-normal"><strong>HORA:</strong> {{ hora }}</div>
+        <div class="text-normal"><strong>FECHA EMISIÓN:</strong> {{ fecha_emision }} {{ hora_emision }}</div>
+        <div class="text-normal"><strong>FECHA MOVIMIENTO:</strong> {{ fecha_movimiento|default:"-" }}</div>
+        <div class="text-normal">
+            <strong>FECHA RECEPCIÓN:</strong>
+            {% if es_recepcionado %}
+                {{ fecha_recepcion|default:"-" }}
+            {% else %}
+                <span class="text-danger fw-bold">(Pendiente)</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 
+<div class="text-center">
+    <h1>ACTA DE ENTREGA DE EQUIPO</h1>
+    {% if requiere_recepcion and not es_recepcionado %}
+        <div class="badge-status badge-pendiente">
+            ESTADO: PENDIENTE DE RECEPCIÓN CONFORME
+        </div>
+    {% elif es_recepcionado %}
+        <div class="badge-status badge-conforme">
+            ESTADO: RECEPCIONADO CONFORME
+        </div>
+    {% endif %}
+</div>
+<hr style="margin: 4px 0 10px 0;">
 
-<h1>ACTA DE ENTREGA</h1>
-<hr>
-
-<div class="section-title">1.- IDENTIFICACIÓN DEL PRODUCTO - {{ activo.tipo.nombre|upper }}</div>
+<div class="section-title">1.- IDENTIFICACIÓN DEL EQUIPO - {{ activo_info.tipo|upper|default:"ACTIVO" }}</div>
 
 <table>
     <tbody>
     <tr>
         <th>TIPO DE EQUIPO</th>
-        <td>{{ activo.tipo.nombre }}</td>
+        <td>{{ activo_info.tipo|default:"-" }}</td>
     </tr>
     <tr>
         <th>MARCA - MODELO</th>
-        <td>{{ activo.marca.nombre|default:"" }} - {{ activo.modelo.nombre|default:"" }}</td>
+        <td>{{ activo_info.marca|default:"" }} - {{ activo_info.modelo|default:"" }}</td>
     </tr>
     <tr>
         <th>N° DE SERIE</th>
-        <td>{{ activo.serie|default:"" }}</td>
+        <td>{{ activo_info.serie|default:"-" }}</td>
     </tr>
     <tr>
         <th>CÓDIGO DE BARRAS</th>
-        <td>{{ activo.codigo_barra }}</td>
+        <td><strong>{{ activo_info.codigo_barra|default:"-" }}</strong></td>
     </tr>
 
-    {% for caracteristica in caracteristicas %}
+    {% for carac in caracteristicas %}
         <tr>
-            <th>{{ caracteristica.campo.nombre|upper }}</th>
-            <td>{{ caracteristica.valor }}</td>
+            <th>{{ carac.campo|upper }}</th>
+            <td>{{ carac.valor }}</td>
         </tr>
     {% endfor %}
 
-    {% if ultimo_movimiento.ip %}
+    {% if ip_str %}
         <tr>
-            <th>IP</th>
-            <td>{{ ultimo_movimiento.ip.ip }}</td>
+            <th>DIRECCIÓN IP</th>
+            <td><code class="text-dark">{{ ip_str }}</code></td>
         </tr>
     {% endif %}
 
-    {% if ultimo_movimiento.funcionario %}
+    {% if tipo_movimiento_nombre %}
         <tr>
-            <th>FUNCIONARIO</th>
-            <td>{{ ultimo_movimiento.funcionario }}</td>
+            <th>TIPO DE MOVIMIENTO</th>
+            <td>{{ tipo_movimiento_nombre }}</td>
         </tr>
     {% endif %}
 
-    {% if ultimo_movimiento.observacion %}
+    {% if observacion_entrega %}
         <tr>
             <th>OBSERVACIÓN ENTREGA</th>
-            <td>{{ ultimo_movimiento.observacion }}</td>
+            <td>{{ observacion_entrega }}</td>
         </tr>
     {% endif %}
 
-    {% if activo.observacion %}
+    {% if activo_info.observacion %}
         <tr>
             <th>DESCRIPCIÓN / OBS GENERAL</th>
-            <td>{{ activo.observacion }}</td>
+            <td>{{ activo_info.observacion }}</td>
         </tr>
     {% endif %}
+    </tbody>
+</table>
 
+<div class="section-title">2.- ACCESORIOS ENTREGADOS</div>
+
+<table class="table-accesorios">
+    <thead>
+    <tr>
+        <th style="width: 45%; text-align: left;">ACCESORIO</th>
+        <th style="width: 15%; text-align: center;">CANTIDAD</th>
+        <th style="width: 40%; text-align: left;">OBSERVACIÓN / ESTADO</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for acc in accesorios %}
+        <tr>
+            <td class="text-start"><strong>{{ acc.nombre }}</strong></td>
+            <td>{{ acc.cantidad }}</td>
+            <td class="text-start">{{ acc.observacion|default:"En buen estado" }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="3" class="text-muted text-center py-2">
+                No se registraron accesorios adicionales en esta entrega.
+            </td>
+        </tr>
+    {% endfor %}
     </tbody>
 </table>
 
 <div class="note">
     <strong>NOTA:</strong><br>
-    EL USUARIO QUE ESTA A CARGO DEL EQUIPO (CELULAR, PC, ETC) SERÁ RESPONSABLE DE SU REPARACIÓN, EXTRAVÍO O MAL USO DE
-    ESTE, O EN SU DEFECTO ENTREGAR EN BUENAS CONDICIONES Y TODOS SUS ACCESORIOS
+    EL USUARIO QUE ESTÁ A CARGO DEL EQUIPO SERÁ RESPONSABLE DE SU CUIDADO, REPARACIÓN, EXTRAVÍO O MAL USO DE ÉSTE,
+    Y DE SU DEVOLUCIÓN EN BUENAS CONDICIONES JUNTO CON TODOS SUS ACCESORIOS ENTREGADOS.
 </div>
 
-<div class="signature-block text-center ">
-    <p>ENTREGUE CONFORME A:</p>
+<div class="signature-block">
+    <table style="border: none; margin-top: 10px;">
+        <tr style="border: none;">
+            <td style="width: 50%; border: none; vertical-align: top; text-align: center;">
+                <div class="signature-box">
+                    <p style="font-weight: bold; margin-bottom: 5px;">RECIBÍ CONFORME</p>
+                    {% if es_recepcionado or not requiere_recepcion %}
+                        <div class="signature-line">
+                            <strong>{{ receptor_nombre|upper|default:"____________________" }}</strong><br>
+                            <span>{{ receptor_depto|upper|default:"-" }}</span><br>
+                            <small class="text-muted">FIRMA RECEPTOR</small>
+                        </div>
+                    {% else %}
+                        <div class="signature-line-pending">
+                            <span style="color: #856404; font-weight: bold;">PENDIENTE DE RECEPCIÓN CONFORME</span><br>
+                            <span>{{ receptor_depto|upper|default:"-" }}</span><br>
+                            <small class="text-muted">ENTREGA PENDIENTE DE CONFIRMACIÓN</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+            <td style="width: 50%; border: none; vertical-align: top; text-align: center;">
+                <div class="signature-box">
+                    <p style="font-weight: bold; margin-bottom: 5px;">ENTREGADO POR TIC</p>
+                    <div class="signature-line">
+                        {% if jefe_firmante_info.posicion %}
+                            <span>{{ jefe_firmante_info.posicion|upper }}</span><br>
+                        {% endif %}
+                        <strong>{{ jefe_firmante_info.nombre|upper|default:"JEFE DEPARTAMENTO TIC" }}</strong><br>
+                        <small class="text-muted">FIRMA Y TIMBRE</small>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
-    <div class="row" style="margin-top: 100px">
-        <div class="col-6 text-center">
-            <div class="signature-line-2">
-                {% if ultimo_movimiento.funcionario.cargo %}
-                    {{ ultimo_movimiento.funcionario.cargo|upper }}<br>
-                {% elif ultimo_movimiento.funcionario.unidad_organizacional %}
-                    {{ ultimo_movimiento.funcionario.unidad_organizacional|upper }}<br>
-                {% endif %}
-                {% if ultimo_movimiento.funcionario %}
-                    {{ ultimo_movimiento.funcionario|upper }}
-                {% else %}
-                    &nbsp;
-                {% endif %}
-            </div>
+    {% if establecimiento_nombre %}
+        <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #555;">
+            {{ establecimiento_nombre }}
         </div>
-        <div class="col-6 text-center">
-            <div class="signature-line">
-                {% if ultimo_movimiento.jefe_firmante.posicion %}
-                    {{ ultimo_movimiento.jefe_firmante.posicion|upper }}<br>
-                {% endif %}
-                {% if ultimo_movimiento.jefe_firmante.nombre %}
-                    {{ ultimo_movimiento.jefe_firmante.nombre|upper }}
-                {% else %}
-                    &nbsp;
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div>
-        <div>{{ activo.establecimiento.nombre }}</div>
-    </div>
+    {% endif %}
 </div>
-
-<footer>
-    Página 1/1
-    <br>
-    <a href="http://www.ssarauco.cl">http://www.ssarauco.cl</a>
-</footer>
 
 </body>
 </html>

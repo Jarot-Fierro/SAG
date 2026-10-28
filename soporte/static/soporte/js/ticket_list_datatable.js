@@ -3,6 +3,14 @@ document.addEventListener('DOMContentLoaded', function () {
         '[name=csrfmiddlewaretoken]'
     ).value;
 
+    const tableEl = document.querySelector('#myTable');
+    const urlDeleteTemplate = tableEl.dataset.urlDelete;
+
+    function getDeleteUrl(id) {
+        if (!urlDeleteTemplate || id === undefined || id === null || id === '') return '#';
+        return urlDeleteTemplate.replace('/0/', `/${id}/`).replace('/0', `/${id}`);
+    }
+
     function escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, character => ({
             '&': '&amp;',
@@ -117,7 +125,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const table = new DataTable('#myTable', {
         paging: true,
         processing: true,
-        select: 'single',
+        select: {
+            style: 'single',
+            selector: 'td:not(:last-child)'
+        },
         responsive: true,
         pageLength: 25,
         lengthMenu: [10, 25, 50, 100],
@@ -250,9 +261,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 render: renderFecha
             },
             {
-                data: 'fecha_cierre',
+                data: 'departamento',
                 defaultContent: '',
-                render: renderFecha
+                render: renderTexto
+            },
+            {
+                data: null,
+                defaultContent: '',
+                orderable: false,
+                searchable: false,
+                className: 'text-center',
+                render: function (data, type, row) {
+                    if (type !== 'display') return '';
+
+                    const rowId = row.id;
+                    const rowName = row.numero_ticket || row.titulo || `ID ${rowId}`;
+                    const deleteUrl = getDeleteUrl(rowId);
+
+                    return `
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger btn-eliminar-ticket"
+                                    data-id="${escapeHtml(rowId)}"
+                                    data-name="${escapeHtml(rowName)}"
+                                    data-url="${escapeHtml(deleteUrl)}"
+                                    title="Eliminar"
+                                    aria-label="Eliminar"
+                                    data-bs-toggle="tooltip">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
             }
         ],
 
@@ -260,6 +300,12 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 targets: [3, 4],
                 columnControl: ['order', ['searchList']]
+            },
+            {
+                targets: [8],
+                orderable: false,
+                searchable: false,
+                columnControl: []
             }
         ],
 

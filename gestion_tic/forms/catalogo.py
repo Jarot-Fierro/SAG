@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
+from ..models.accesorio import Accesorio
 from ..models.catalogo import Contrato, Ips, JefeTic, Modelo
 from ..models.catalogo import Propietario, Marca
 
@@ -230,3 +231,57 @@ class FormPropietario(forms.ModelForm):
     class Meta:
         model = Propietario
         fields = ['nombre']
+
+
+class FormAccesorio(forms.ModelForm):
+    nombre = forms.CharField(
+        label='Nombre del accesorio',
+        widget=forms.TextInput(
+            attrs={
+                'id': 'nombre_accesorio',
+                'class': 'form-control',
+                'placeholder': 'Mouse, Teclado, etc.',
+                'minlength': '1',
+                'maxlength': '100'
+            }),
+        required=True
+    )
+    descripcion = forms.CharField(
+        label='Descripción',
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'id': 'descripcion_accesorio',
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Descripción del accesorio (opcional)'
+            }
+        )
+    )
+    incluido_en_estacion_completa = forms.BooleanField(
+        label='¿Incluido en Estación Completa?',
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                'id': 'incluido_estacion_completa',
+                'class': 'form-check-input'
+            }
+        )
+    )
+    cantidad_estacion_completa = forms.IntegerField(
+        label='Cantidad en Estación Completa',
+        required=False,
+        initial=1,
+        min_value=1,
+        widget=forms.NumberInput(
+            attrs={
+                'id': 'cantidad_estacion_completa',
+                'class': 'form-control',
+                'min': '1'
+            }
+        )
+    )
+
+    class Meta:
+        model = Accesorio
+        fields = ['nombre', 'descripcion', 'incluido_en_estacion_completa', 'cantidad_estacion_completa']

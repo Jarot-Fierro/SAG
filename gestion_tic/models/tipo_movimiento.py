@@ -19,6 +19,16 @@ class TipoMovimiento(StandardModelEstablishment):
     nombre = models.CharField(
         max_length=100,
     )
+    requiere_recepcion = models.BooleanField(
+        default=False,
+        verbose_name="¿Requiere Recepción Conforme?",
+        help_text="Indica si este tipo de movimiento requiere confirmación de recepción conforme por el receptor."
+    )
+    es_asignacion = models.BooleanField(
+        default=False,
+        verbose_name="¿Es Asignación?",
+        help_text="Indica si este tipo de movimiento representa una asignación del equipo."
+    )
 
     class Meta:
         ordering = ["nombre"]

@@ -77,6 +77,15 @@ urlpatterns = [
     path('catalogo/contrato/editar/<int:pk>/', catalogo.ContratoUpdateView.as_view()),
     path('catalogo/contrato/desactivar/<int:pk>/', catalogo.contrato_desactivar, name='contrato_delete'),
 
+    # Accesorio
+    path('catalogo/accesorio/', catalogo.AccesorioListView.as_view(), name='accesorio_list'),
+    path('catalogo/accesorio/crear/', catalogo.AccesorioCreateView.as_view(), name='accesorio_create'),
+    path('catalogo/accesorio/<int:pk>/editar/', catalogo.AccesorioUpdateView.as_view(), name='accesorio_update'),
+    path('catalogo/accesorio/<int:pk>/desactivar/', catalogo.accesorio_desactivar, name='accesorio_deactivate'),
+    path('catalogo/accesorio/nuevo/', catalogo.AccesorioCreateView.as_view()),
+    path('catalogo/accesorio/editar/<int:pk>/', catalogo.AccesorioUpdateView.as_view()),
+    path('catalogo/accesorio/desactivar/<int:pk>/', catalogo.accesorio_desactivar, name='accesorio_delete'),
+
     # Tipo Activo
     path('tipo-activo/', tipo_activo.TipoActivoListView.as_view(), name='tipo_activo_list'),
     path('tipo-activo/nuevo/', tipo_activo.TipoActivoCreateView.as_view(), name='tipo_activo_create'),

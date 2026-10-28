@@ -278,16 +278,25 @@ def activo_list_asignado(request):
     establecimiento = getattr(request.user, 'establecimiento', None)
     ultimo_movimiento = MovimientoActivo.objects.filter(
         activo=OuterRef('activo')
-    ).order_by('-updated_at', '-id')
+    ).order_by('-created_at', '-id')
+
+    # Regla de asignación:
+    # 1. Si requiere recepción conforme, DEBE estar recepcionado (recepcionado=True)
+    # 2. Si no requiere recepción, debe ser asignación o tener funcionario asignado (histórico)
+    condicion_asignado = (
+            (Q(tipo_movimiento__requiere_recepcion=True) & Q(recepcionado=True)) |
+            (Q(tipo_movimiento__requiere_recepcion=False) & (
+                        Q(tipo_movimiento__es_asignacion=True) | Q(funcionario__isnull=False)))
+    )
 
     queryset = (
         MovimientoActivo.objects
         .filter(
             id=Subquery(ultimo_movimiento.values('id')[:1]),
-            funcionario__isnull=False,
             activo__is_active=True,
             activo__de_baja=False
         )
+        .filter(condicion_asignado)
     )
     if establecimiento:
         queryset = queryset.filter(establecimiento=establecimiento)
@@ -338,6 +347,9 @@ def activo_list_asignado(request):
                 Q(funcionario__nombres__icontains=search) |
                 Q(funcionario__apellidos__icontains=search) |
                 Q(funcionario__unidad_organizacional__nombre__icontains=search) |
+                Q(nombre_completo__icontains=search) |
+                Q(departamento__icontains=search) |
+                Q(unidad_organizacional__nombre__icontains=search) |
                 Q(ip__ip__icontains=search)
             )
 
@@ -361,7 +373,8 @@ def activo_list_asignado(request):
         queryset = queryset.select_related(
             'activo', 'activo__tipo', 'activo__marca', 'activo__modelo', 'activo__contrato',
             'funcionario', 'funcionario__unidad_organizacional', 'funcionario__unidad_organizacional__padre',
-            'ip'
+            'unidad_organizacional', 'unidad_organizacional__padre',
+            'ip', 'tipo_movimiento'
         ).order_by(campo, 'pk')
 
         records_filtered = queryset.count()
@@ -372,7 +385,9 @@ def activo_list_asignado(request):
         data = []
         for mov in queryset:
             func_nombre = '-'
-            if mov.funcionario:
+            if mov.nombre_completo:
+                func_nombre = mov.nombre_completo
+            elif mov.funcionario:
                 if hasattr(mov.funcionario, 'nombre') and mov.funcionario.nombre:
                     func_nombre = mov.funcionario.nombre
                 else:
@@ -381,7 +396,15 @@ def activo_list_asignado(request):
 
             unidad_nombre = '-'
             unidad_padre = ''
-            if mov.funcionario and mov.funcionario.unidad_organizacional:
+            if mov.departamento:
+                unidad_nombre = mov.departamento
+                if mov.unidad_organizacional and mov.unidad_organizacional.padre:
+                    unidad_padre = mov.unidad_organizacional.padre.nombre or ''
+            elif mov.unidad_organizacional:
+                unidad_nombre = mov.unidad_organizacional.nombre or '-'
+                if mov.unidad_organizacional.padre:
+                    unidad_padre = mov.unidad_organizacional.padre.nombre or ''
+            elif mov.funcionario and mov.funcionario.unidad_organizacional:
                 unidad_nombre = mov.funcionario.unidad_organizacional.nombre or '-'
                 if mov.funcionario.unidad_organizacional.padre:
                     unidad_padre = mov.funcionario.unidad_organizacional.padre.nombre or ''

@@ -123,10 +123,27 @@ class RecepcionConformeForm(forms.ModelForm):
             )
             self.fields['departamento'].queryset = departamentos_qs
 
+    def clean_nombre_completo(self):
+        nombre = self.cleaned_data.get('nombre_completo', '')
+        if not nombre or not nombre.strip():
+            raise forms.ValidationError(
+                'El nombre completo es obligatorio y no puede contener únicamente espacios en blanco.')
+        return nombre.strip()
+
     def clean_departamento(self):
         depto = self.cleaned_data.get('departamento')
+        if not depto:
+            raise forms.ValidationError('Debe seleccionar un departamento válido.')
+        return depto
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        depto = self.cleaned_data.get('departamento')
         if isinstance(depto, UnidadOrganizacional):
-            return str(depto.nombre)
+            instance.unidad_organizacional = depto
+            instance.departamento = str(depto.nombre)
         elif depto:
-            return str(depto)
-        return ''
+            instance.departamento = str(depto)
+        if commit:
+            instance.save()
+        return instance
