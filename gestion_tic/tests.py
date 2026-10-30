@@ -7,7 +7,8 @@ from core.models.funcionario import Funcionario
 from core.models.unidad_organizacional import UnidadOrganizacional
 from gestion_tic.models import (
     Activo, TipoActivo, MovimientoActivo, TipoMovimiento,
-    Accesorio, MovimientoActivoAccesorio
+    Accesorio, MovimientoActivoAccesorio,
+    CampoTipoActivo, ActivoCaracteristica
 )
 from gestion_tic.models.catalogo import (
     Marca, Modelo, Propietario, JefeTic, Contrato, Ips
@@ -277,6 +278,12 @@ class CatalogoViewsTestCase(TestCase):
         self.assertIn('create_url', response.context)
         self.assertIn('edit_url_template', response.context)
         self.assertIn('delete_url_template', response.context)
+        self.assertNotIn('filter_form', response.context)
+        content = response.content.decode('utf-8')
+        self.assertNotIn('Filtros de búsqueda', content)
+        self.assertNotIn('filter-form', content)
+        self.assertNotIn('<th>Serie</th>', content)
+        self.assertNotIn('<th>Estado</th>', content)
 
     def test_activo_datatable_search_post(self):
         url = reverse('gestion_tic:activo_list')
@@ -292,9 +299,518 @@ class CatalogoViewsTestCase(TestCase):
         self.assertEqual(data['draw'], 1)
         self.assertEqual(data['recordsTotal'], 2)  # Excluye el inactivo
         self.assertEqual(data['recordsFiltered'], 2)
+        self.assertEqual(data.get('columns'), [])
         codigos = [item['codigo_barra'] for item in data['data']]
         self.assertIn('ACT-001', codigos)
         self.assertIn('ACT-002', codigos)
+
+    def test_activo_datatable_tipo_sin_campos(self):
+        tipo_vacio = TipoActivo.objects.create(
+            nombre="Tipo Sin Campos",
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        url = reverse('gestion_tic:activo_list')
+        response = self.client.post(url, {
+            'action': 'search',
+            'tipo': tipo_vacio.pk,
+            'draw': 1,
+            'start': 0,
+            'length': 10,
+            'search[value]': ''
+        })
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['columns'], [])
+        self.assertEqual(data['recordsFiltered'], 0)
+
+    def test_activo_get_columns_action(self):
+        campo1 = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Memoria RAM",
+            tipo_campo="text",
+            orden=2,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo2 = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Procesador",
+            tipo_campo="text",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        url = reverse('gestion_tic:activo_list')
+        response = self.client.post(url, {
+            'action': 'get_columns',
+            'tipo': self.tipo_activo1.pk
+        })
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['tipo_id'], self.tipo_activo1.pk)
+        self.assertEqual(len(data['columns']), 2)
+        # Debe respetar orden (orden=1 Procesador antes que orden=2 Memoria RAM)
+        self.assertEqual(data['columns'][0]['id'], campo2.pk)
+        self.assertEqual(data['columns'][0]['nombre'], "Procesador")
+        self.assertEqual(data['columns'][1]['id'], campo1.pk)
+        self.assertEqual(data['columns'][1]['nombre'], "Memoria RAM")
+
+    def test_activo_dynamic_columns_values_and_formatting(self):
+        campo_ram = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="RAM",
+            tipo_campo="text",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_disco = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Capacidad Disco",
+            tipo_campo="number",
+            orden=2,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_fecha = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Fecha Compra",
+            tipo_campo="date",
+            orden=3,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_garantia = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Garantía",
+            tipo_campo="boolean",
+            orden=4,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_tipo_pc = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Formato",
+            tipo_campo="select",
+            orden=5,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+
+        # Asignar características a activo1
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_ram,
+            valor="16 GB",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_disco,
+            valor="512",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_fecha,
+            valor="2026-10-29",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_garantia,
+            valor="True",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_tipo_pc,
+            valor="Desktop",
+            establecimiento=self.establecimiento
+        )
+
+        # Activo 2 con garantia False y otros vacíos
+        ActivoCaracteristica.objects.create(
+            activo=self.activo2,
+            campo=campo_garantia,
+            valor="False",
+            establecimiento=self.establecimiento
+        )
+
+        url = reverse('gestion_tic:activo_list')
+        response = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'draw': 1,
+            'start': 0,
+            'length': 10
+        })
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data['columns']), 5)
+
+        row_1 = next(item for item in data['data'] if item['id'] == self.activo1.id)
+        self.assertEqual(row_1[f'caracteristica_{campo_ram.id}'], '16 GB')
+        self.assertEqual(row_1[f'caracteristica_{campo_disco.id}'], '512')
+        self.assertEqual(row_1[f'caracteristica_{campo_fecha.id}'], '29/10/2026')
+        self.assertEqual(row_1[f'caracteristica_{campo_garantia.id}'], 'Sí')
+        self.assertEqual(row_1[f'caracteristica_{campo_tipo_pc.id}'], 'Desktop')
+
+        row_2 = next(item for item in data['data'] if item['id'] == self.activo2.id)
+        self.assertEqual(row_2[f'caracteristica_{campo_ram.id}'], '-')
+        self.assertEqual(row_2[f'caracteristica_{campo_disco.id}'], '-')
+        self.assertEqual(row_2[f'caracteristica_{campo_fecha.id}'], '-')
+        self.assertEqual(row_2[f'caracteristica_{campo_garantia.id}'], 'No')
+        self.assertEqual(row_2[f'caracteristica_{campo_tipo_pc.id}'], '-')
+
+    def test_activo_busqueda_global_caracteristicas(self):
+        campo_ram = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="RAM",
+            tipo_campo="text",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_garantia = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Garantia",
+            tipo_campo="boolean",
+            orden=2,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_fecha = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Fecha",
+            tipo_campo="date",
+            orden=3,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_ram,
+            valor="32 GB DDR5",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_garantia,
+            valor="True",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_fecha,
+            valor="2026-05-20",
+            establecimiento=self.establecimiento
+        )
+
+        ActivoCaracteristica.objects.create(
+            activo=self.activo2,
+            campo=campo_ram,
+            valor="8 GB DDR4",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo2,
+            campo=campo_garantia,
+            valor="False",
+            establecimiento=self.establecimiento
+        )
+
+        url = reverse('gestion_tic:activo_list')
+
+        # Búsqueda por texto en característica
+        resp = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'search[value]': 'DDR5'
+        })
+        data = resp.json()
+        self.assertEqual(data['recordsFiltered'], 1)
+        self.assertEqual(data['data'][0]['id'], self.activo1.id)
+
+        # Búsqueda por boolean Sí
+        resp = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'search[value]': 'Sí'
+        })
+        data = resp.json()
+        self.assertEqual(data['recordsFiltered'], 1)
+        self.assertEqual(data['data'][0]['id'], self.activo1.id)
+
+        # Búsqueda por fecha con formato dd/mm/yyyy
+        resp = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'search[value]': '20/05/2026'
+        })
+        data = resp.json()
+        self.assertEqual(data['recordsFiltered'], 1)
+        self.assertEqual(data['data'][0]['id'], self.activo1.id)
+
+    def test_activo_ordenamiento_dinamico_numerico(self):
+        campo_num = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Potencia",
+            tipo_campo="number",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        activo3 = Activo.objects.create(
+            codigo_barra="ACT-NUM-99",
+            tipo=self.tipo_activo1,
+            marca=self.marca1,
+            modelo=self.modelo1,
+            serie="SN003",
+            contrato=self.contrato1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+
+        ActivoCaracteristica.objects.create(activo=self.activo1, campo=campo_num, valor="100",
+                                            establecimiento=self.establecimiento)
+        ActivoCaracteristica.objects.create(activo=self.activo2, campo=campo_num, valor="25",
+                                            establecimiento=self.establecimiento)
+        ActivoCaracteristica.objects.create(activo=activo3, campo=campo_num, valor="5",
+                                            establecimiento=self.establecimiento)
+
+        url = reverse('gestion_tic:activo_list')
+
+        # Ordenar ASC por columna dinámica (5 < 25 < 100)
+        resp_asc = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'order[0][column]': 5,
+            'order[0][dir]': 'asc',
+            'columns[5][data]': f'caracteristica_{campo_num.id}'
+        })
+        data_asc = resp_asc.json()
+        ids_asc = [row['id'] for row in data_asc['data']]
+        self.assertEqual(ids_asc, [activo3.id, self.activo2.id, self.activo1.id])
+
+        # Ordenar DESC por columna dinámica (100 > 25 > 5)
+        resp_desc = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'order[0][column]': 5,
+            'order[0][dir]': 'desc',
+            'columns[5][data]': f'caracteristica_{campo_num.id}'
+        })
+        data_desc = resp_desc.json()
+        ids_desc = [row['id'] for row in data_desc['data']]
+        self.assertEqual(ids_desc, [self.activo1.id, self.activo2.id, activo3.id])
+
+    def test_activo_restriccion_establecimiento(self):
+        otro_est = Establecimiento.objects.create(
+            nombre="Otro Hospital",
+            alias="OH",
+            is_active=True
+        )
+        tipo_otro = TipoActivo.objects.create(
+            nombre="Servidor Remoto",
+            establecimiento=otro_est,
+            is_active=True
+        )
+        campo_otro = CampoTipoActivo.objects.create(
+            tipo_activo=tipo_otro,
+            nombre="Cores",
+            tipo_campo="number",
+            establecimiento=otro_est,
+            is_active=True
+        )
+        activo_otro = Activo.objects.create(
+            codigo_barra="ACT-OTRO",
+            tipo=tipo_otro,
+            marca=self.marca1,
+            modelo=self.modelo1,
+            establecimiento=otro_est,
+            is_active=True
+        )
+
+        url = reverse('gestion_tic:activo_list')
+
+        # Intentar consultar columnas de otro establecimiento -> 404
+        resp_cols = self.client.post(url, {
+            'action': 'get_columns',
+            'tipo': tipo_otro.pk
+        })
+        self.assertEqual(resp_cols.status_code, 404)
+
+        # Intentar listar activos de otro tipo/establecimiento -> 404
+        resp_search = self.client.post(url, {
+            'action': 'search',
+            'tipo': tipo_otro.pk
+        })
+        self.assertEqual(resp_search.status_code, 404)
+
+    def test_activo_cambio_entre_tipos_diferentes(self):
+        tipo_impresora = TipoActivo.objects.create(
+            nombre="Impresora",
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_imp1 = CampoTipoActivo.objects.create(
+            tipo_activo=tipo_impresora,
+            nombre="Tecnología Impresión",
+            tipo_campo="select",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        campo_imp2 = CampoTipoActivo.objects.create(
+            tipo_activo=tipo_impresora,
+            nombre="PPM",
+            tipo_campo="number",
+            orden=2,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        activo_imp = Activo.objects.create(
+            codigo_barra="IMP-001",
+            tipo=tipo_impresora,
+            marca=self.marca1,
+            modelo=self.modelo1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        ActivoCaracteristica.objects.create(
+            activo=activo_imp,
+            campo=campo_imp1,
+            valor="Láser",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=activo_imp,
+            campo=campo_imp2,
+            valor="40",
+            establecimiento=self.establecimiento
+        )
+
+        url = reverse('gestion_tic:activo_list')
+
+        # 1. Petición para tipo Impresora
+        resp_imp = self.client.post(url, {
+            'action': 'search',
+            'tipo': tipo_impresora.pk
+        })
+        data_imp = resp_imp.json()
+        self.assertEqual(len(data_imp['columns']), 2)
+        self.assertEqual(data_imp['columns'][0]['nombre'], 'Tecnología Impresión')
+        self.assertEqual(data_imp['recordsFiltered'], 1)
+        self.assertEqual(data_imp['data'][0][f'caracteristica_{campo_imp1.id}'], 'Láser')
+        self.assertEqual(data_imp['data'][0][f'caracteristica_{campo_imp2.id}'], '40')
+
+        # 2. Petición para tipo Computador (tipo_activo1)
+        resp_pc = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk
+        })
+        data_pc = resp_pc.json()
+        self.assertEqual(data_pc['recordsFiltered'], 2)
+        codigos = [item['codigo_barra'] for item in data_pc['data']]
+        self.assertIn('ACT-001', codigos)
+        self.assertNotIn('IMP-001', codigos)
+
+    def test_activo_ordenamiento_dinamico_fechas(self):
+        campo_fecha = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="Fecha Instalación",
+            tipo_campo="date",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_fecha,
+            valor="2026-12-01",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo2,
+            campo=campo_fecha,
+            valor="2026-01-15",
+            establecimiento=self.establecimiento
+        )
+
+        url = reverse('gestion_tic:activo_list')
+
+        # ASC: 2026-01-15 (activo2) < 2026-12-01 (activo1)
+        resp_asc = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'order[0][column]': 5,
+            'order[0][dir]': 'asc',
+            'columns[5][data]': f'caracteristica_{campo_fecha.id}'
+        })
+        data_asc = resp_asc.json()
+        self.assertEqual(data_asc['data'][0]['id'], self.activo2.id)
+        self.assertEqual(data_asc['data'][1]['id'], self.activo1.id)
+
+        # DESC: 2026-12-01 (activo1) > 2026-01-15 (activo2)
+        resp_desc = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'order[0][column]': 5,
+            'order[0][dir]': 'desc',
+            'columns[5][data]': f'caracteristica_{campo_fecha.id}'
+        })
+        data_desc = resp_desc.json()
+        self.assertEqual(data_desc['data'][0]['id'], self.activo1.id)
+        self.assertEqual(data_desc['data'][1]['id'], self.activo2.id)
+
+    def test_activo_paginacion_con_columnas_dinamicas(self):
+        campo_ram = CampoTipoActivo.objects.create(
+            tipo_activo=self.tipo_activo1,
+            nombre="RAM",
+            tipo_campo="text",
+            orden=1,
+            establecimiento=self.establecimiento,
+            is_active=True
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo1,
+            campo=campo_ram,
+            valor="16 GB",
+            establecimiento=self.establecimiento
+        )
+        ActivoCaracteristica.objects.create(
+            activo=self.activo2,
+            campo=campo_ram,
+            valor="8 GB",
+            establecimiento=self.establecimiento
+        )
+
+        url = reverse('gestion_tic:activo_list')
+
+        # Página 1 (length=1, start=0)
+        resp_p1 = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'start': 0,
+            'length': 1
+        })
+        data_p1 = resp_p1.json()
+        self.assertEqual(data_p1['recordsTotal'], 2)
+        self.assertEqual(len(data_p1['data']), 1)
+
+        # Página 2 (length=1, start=1)
+        resp_p2 = self.client.post(url, {
+            'action': 'search',
+            'tipo': self.tipo_activo1.pk,
+            'start': 1,
+            'length': 1
+        })
+        data_p2 = resp_p2.json()
+        self.assertEqual(len(data_p2['data']), 1)
+        self.assertNotEqual(data_p1['data'][0]['id'], data_p2['data'][0]['id'])
 
     def test_activo_datatable_filter_marca_and_codigo(self):
         url = reverse('gestion_tic:activo_list')
@@ -323,10 +839,41 @@ class CatalogoViewsTestCase(TestCase):
             'observacion': 'Nuevo equipo creado en test'
         })
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"{url}?tipo={self.tipo_activo1.pk}")
         nuevo_activo = Activo.objects.get(codigo_barra='ACT-004')
         self.assertTrue(nuevo_activo.is_active)
         self.assertEqual(nuevo_activo.establecimiento, self.establecimiento)
         self.assertEqual(nuevo_activo.serie, 'SNNEW999')
+
+    def test_activo_create_get_scenarios_and_404(self):
+        url = reverse('gestion_tic:activo_create')
+
+        # 1. GET sin tipo -> 200, list_url es la lista base
+        resp_no_tipo = self.client.get(url)
+        self.assertEqual(resp_no_tipo.status_code, 200)
+        self.assertEqual(resp_no_tipo.context['list_url'], reverse('gestion_tic:activo_list'))
+        self.assertIsNone(resp_no_tipo.context['tipo_activo'])
+
+        # 2. GET con tipo válido -> 200, list_url incluye ?tipo=...
+        resp_valid_tipo = self.client.get(f"{url}?tipo={self.tipo_activo1.pk}")
+        self.assertEqual(resp_valid_tipo.status_code, 200)
+        self.assertEqual(resp_valid_tipo.context['list_url'],
+                         f"{reverse('gestion_tic:activo_list')}?tipo={self.tipo_activo1.pk}")
+        self.assertEqual(resp_valid_tipo.context['tipo_activo'], self.tipo_activo1)
+
+        # 3. GET con tipo inexistente -> 404
+        resp_not_found = self.client.get(f"{url}?tipo=999999")
+        self.assertEqual(resp_not_found.status_code, 404)
+
+        # 4. GET con tipo no numérico / inválido -> 404
+        resp_invalid = self.client.get(f"{url}?tipo=invalido")
+        self.assertEqual(resp_invalid.status_code, 404)
+
+        # 5. GET con tipo de otro establecimiento -> 404
+        otro_est = Establecimiento.objects.create(nombre="Otro Est", alias="OE", is_active=True)
+        tipo_otro = TipoActivo.objects.create(nombre="Servidor", establecimiento=otro_est, is_active=True)
+        resp_otro_est = self.client.get(f"{url}?tipo={tipo_otro.pk}")
+        self.assertEqual(resp_otro_est.status_code, 404)
 
     def test_activo_update(self):
         url = reverse('gestion_tic:activo_update', kwargs={'pk': self.activo1.pk})
@@ -340,9 +887,58 @@ class CatalogoViewsTestCase(TestCase):
             'observacion': 'Equipo modificado'
         })
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"{url}?tipo={self.tipo_activo1.pk}")
         self.activo1.refresh_from_db()
         self.assertEqual(self.activo1.codigo_barra, 'ACT-001-MOD')
         self.assertEqual(self.activo1.serie, 'SN123456-UPD')
+
+    def test_activo_update_get_scenarios_and_404(self):
+        url = reverse('gestion_tic:activo_update', kwargs={'pk': self.activo1.pk})
+
+        # 1. GET sin parámetro tipo -> 200, list_url incluye ?tipo=... según el tipo del activo
+        resp_get = self.client.get(url)
+        self.assertEqual(resp_get.status_code, 200)
+        self.assertEqual(resp_get.context['list_url'],
+                         f"{reverse('gestion_tic:activo_list')}?tipo={self.activo1.tipo_id}")
+
+        # 2. GET con tipo válido en URL -> 200
+        resp_valid = self.client.get(f"{url}?tipo={self.tipo_activo1.pk}")
+        self.assertEqual(resp_valid.status_code, 200)
+
+        # 3. GET con tipo inexistente -> 404
+        resp_not_found = self.client.get(f"{url}?tipo=999999")
+        self.assertEqual(resp_not_found.status_code, 404)
+
+        # 4. GET con tipo inválido -> 404
+        resp_invalid = self.client.get(f"{url}?tipo=texto_invalido")
+        self.assertEqual(resp_invalid.status_code, 404)
+
+        # 5. GET con tipo de otro establecimiento -> 404
+        otro_est = Establecimiento.objects.create(nombre="Otro Est 2", alias="OE2", is_active=True)
+        tipo_otro = TipoActivo.objects.create(nombre="Router", establecimiento=otro_est, is_active=True)
+        resp_otro_est = self.client.get(f"{url}?tipo={tipo_otro.pk}")
+        self.assertEqual(resp_otro_est.status_code, 404)
+
+    def test_activo_list_get_tipo_404(self):
+        url = reverse('gestion_tic:activo_list')
+
+        # 1. GET sin tipo -> 200
+        resp_no_tipo = self.client.get(url)
+        self.assertEqual(resp_no_tipo.status_code, 200)
+        self.assertEqual(resp_no_tipo.context['tipo_id'], '')
+
+        # 2. GET con tipo válido -> 200
+        resp_valid = self.client.get(f"{url}?tipo={self.tipo_activo1.pk}")
+        self.assertEqual(resp_valid.status_code, 200)
+        self.assertEqual(resp_valid.context['tipo_id'], str(self.tipo_activo1.pk))
+
+        # 3. GET con tipo inexistente -> 404
+        resp_not_found = self.client.get(f"{url}?tipo=999999")
+        self.assertEqual(resp_not_found.status_code, 404)
+
+        # 4. GET con tipo inválido -> 404
+        resp_invalid = self.client.get(f"{url}?tipo=no_numerico")
+        self.assertEqual(resp_invalid.status_code, 404)
 
     def test_activo_deactivate_ajax(self):
         url = reverse('gestion_tic:activo_deactivate', kwargs={'pk': self.activo1.pk})

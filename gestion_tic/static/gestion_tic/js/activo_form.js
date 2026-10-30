@@ -8,32 +8,23 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar TomSelect si está disponible
-    if (typeof TomSelect !== 'undefined') {
-        document.querySelectorAll('.tom-select').forEach((el) => {
-            if (!el.tomselect) {
-                new TomSelect(el, {
-                    render: {
-                        no_results: function () {
-                            return '<div class="no-results">No se encontraron resultados</div>';
-                        }
-                    }
-                });
+    /**
+     * ============================================================================
+     * Script de Formulario de Tickets de Soporte
+     * ============================================================================
+     * Inicializa los componentes interactivos del formulario, como TomSelect en los
+     * campos con clase .tom-select.
+     */
+    document.querySelectorAll('select.tom-select').forEach((el) => {
+        if (el.tomselect || typeof TomSelect === 'undefined') return;
+        new TomSelect(el, {
+            render: {
+                no_results: function () {
+                    return '<div class="no-results">No se encontraron resultados</div>';
+                }
             }
         });
-    }
-
-    // Inicializar Select2 si está disponible y TomSelect no está presente
-    if (typeof $ !== 'undefined' && $.fn && $.fn.select2) {
-        $('.select2').each(function () {
-            if (!this.tomselect) {
-                $(this).select2({
-                    theme: 'bootstrap-5',
-                    width: '100%'
-                });
-            }
-        });
-    }
+    });
 
     // Evitar que lectores de códigos de barras envíen el formulario al presionar Enter en inputs
     const formActivo = document.querySelector('#form-activo');

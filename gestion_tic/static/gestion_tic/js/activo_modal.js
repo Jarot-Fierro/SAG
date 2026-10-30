@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Delegación de eventos para el botón de desactivación (.btn-desactivar)
-    $('#myTable tbody').on('click', '.btn-desactivar', function (e) {
+    $(document).on('click', '#myTable .btn-desactivar', function (e) {
         e.preventDefault();
 
         const btn = $(this);

@@ -15,11 +15,12 @@ class ActivoForm(forms.ModelForm):
         ]
         widgets = {
             'codigo_barra': forms.TextInput(attrs={'class': 'form-control'}),
-            'tipo': forms.Select(attrs={'class': 'form-select', 'style': 'pointer-events:none;background:#e9ecef;'}),
-            'marca': forms.Select(attrs={'class': 'form-select tom-select select2'}),
-            'modelo': forms.Select(attrs={'class': 'form-select tom-select select2'}),
+            'tipo': forms.Select(attrs={'class': 'form-select',
+                                        'style': 'pointer-events:none;background-color:var(--bs-secondary-bg);'}),
+            'marca': forms.Select(attrs={'class': 'form-select tom-select'}),
+            'modelo': forms.Select(attrs={'class': 'form-select tom-select'}),
             'serie': forms.TextInput(attrs={'class': 'form-control'}),
-            'contrato': forms.Select(attrs={'class': 'form-select tom-select select2'}),
+            'contrato': forms.Select(attrs={'class': 'form-select tom-select'}),
             'observacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'de_baja': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -101,7 +102,7 @@ class ActivoForm(forms.ModelForm):
 
                     self.fields[field_name] = forms.ChoiceField(
                         choices=opciones,
-                        widget=forms.Select(attrs={'class': 'form-select tom-select select2'}),
+                        widget=forms.Select(attrs={'class': 'form-select'}),
                         **field_kwargs
                     )
 

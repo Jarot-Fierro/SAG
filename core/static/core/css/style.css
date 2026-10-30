@@ -236,6 +236,29 @@ td {
     font-size: 14px;
 }
 
+/* Tom Select: follow the active Bootstrap / AdminLTE color theme. */
+.ts-control,
+.ts-wrapper.single.input-active .ts-control,
+.ts-dropdown {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+.ts-control > input,
+.ts-control > .item {
+    color: var(--bs-body-color);
+}
+
+.ts-control > input::placeholder {
+    color: var(--bs-secondary-color);
+}
+
+.ts-dropdown .active {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+
 /* Responsive header navigation */
 #headerNavbar {
     min-width: 0;

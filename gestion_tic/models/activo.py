@@ -1,7 +1,7 @@
 from django.db import models
 
 from core.standard.models import StandardModelEstablishment
-from .catalogo import Marca, Modelo, Contrato
+from .catalogo import Marca, Modelo, Contrato, Propietario
 from .tipo_activo import TipoActivo
 
 
@@ -9,7 +9,7 @@ class Activo(StandardModelEstablishment):
     codigo_barra = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name="Código de Barras"
+        verbose_name="Código de Barras / N°Serie"
     )
 
     tipo = models.ForeignKey(
@@ -30,10 +30,17 @@ class Activo(StandardModelEstablishment):
         null=True,
         blank=True
     )
+    propietario = models.ForeignKey(
+        Propietario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     serie = models.CharField(
         max_length=150,
-        blank=True
+        blank=True,
+        verbose_name="OBSOLETO"
     )
     utiliza_ip = models.BooleanField(default=False, verbose_name="¿El activo usa IP?")
     contrato = models.ForeignKey(Contrato, on_delete=models.SET_NULL, null=True, blank=True)
