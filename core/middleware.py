@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 
 from core.models.modulos import Modulo
 
@@ -27,19 +27,18 @@ class MantenimientoMiddleware:
 
     def __call__(self, request):
         # Evitar bucles de redirección
-        path = request.path
+        path = request.path_info
         mantenimiento_url = reverse('intranet:mantenimiento')
 
-        if path == mantenimiento_url or path.startswith('/admin/') or path.startswith(
+        if request.path == mantenimiento_url or path.startswith('/admin/') or path.startswith(
                 '/usuarios/login/') or path.startswith('/usuarios/logout/'):
             return self.get_response(request)
 
         # Usar resolver para obtener el app_name (namespace)
-        from django.urls import resolve
         try:
             match = resolve(path)
             app_name = match.app_name
-        except:
+        except Resolver404:
             app_name = None
 
         if app_name:
