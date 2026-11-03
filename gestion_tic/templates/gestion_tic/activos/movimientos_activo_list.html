@@ -77,11 +77,6 @@
                                            disabled>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label fw-bold small text-muted">SERIE</label>
-                                    <input type="text" class="form-control bg-light"
-                                           value="{{ activo.serie|default:'-' }}" disabled>
-                                </div>
-                                <div class="col-6">
                                     <label class="form-label fw-bold small text-muted">MARCA</label>
                                     <input type="text" class="form-control bg-light"
                                            value="{{ activo.marca.nombre|default:'-' }}" disabled>
@@ -316,10 +311,6 @@
                                 {{ filter_form.codigo_barra }}
                             </div>
                             <div class="col-md-2">
-                                <label class="form-label small mb-1 fw-bold">Serie</label>
-                                {{ filter_form.serie }}
-                            </div>
-                            <div class="col-md-2">
                                 <label class="form-label small mb-1 fw-bold">Tipo de Activo</label>
                                 {{ filter_form.tipo }}
                             </div>
@@ -360,7 +351,6 @@
                     <th>Código</th>
                     <th>Tipo</th>
                     <th>Marca / Modelo</th>
-                    <th>Serie</th>
                     <th>Contrato</th>
                     <th class="text-center">Acciones</th>
                 </tr>

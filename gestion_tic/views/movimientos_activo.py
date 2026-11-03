@@ -224,10 +224,6 @@ def movimientos_activo_list(request):
         if contrato_id:
             queryset = queryset.filter(contrato_id=contrato_id)
 
-        serie = req_params.get('serie', '').strip()
-        if serie:
-            queryset = queryset.filter(serie__icontains=serie)
-
         codigo_barra = req_params.get('codigo_barra', '').strip()
         if codigo_barra:
             queryset = queryset.filter(codigo_barra__icontains=codigo_barra)
@@ -236,7 +232,6 @@ def movimientos_activo_list(request):
         if search:
             queryset = queryset.filter(
                 Q(codigo_barra__icontains=search) |
-                Q(serie__icontains=search) |
                 Q(tipo__nombre__icontains=search) |
                 Q(marca__nombre__icontains=search) |
                 Q(modelo__nombre__icontains=search) |
@@ -248,8 +243,7 @@ def movimientos_activo_list(request):
             1: 'codigo_barra',
             2: 'tipo__nombre',
             3: 'marca__nombre',
-            4: 'serie',
-            5: 'contrato__nombre',
+            4: 'contrato__nombre',
         }
 
         order_index = _as_int(req_params.get('order[0][column]'), 1)
@@ -271,7 +265,6 @@ def movimientos_activo_list(request):
                 'codigo_barra': a.codigo_barra,
                 'tipo': a.tipo.nombre if a.tipo else '-',
                 'marca_modelo': f"{a.marca.nombre if a.marca else '-'} / {a.modelo.nombre if a.modelo else '-'}",
-                'serie': a.serie or '-',
                 'contrato': a.contrato.nombre if a.contrato else '-',
                 'consultar_url': f"{reverse('gestion_tic:movimientos_activo_list')}?q={a.codigo_barra}",
                 'edit_url': reverse('gestion_tic:activo_update', kwargs={'pk': a.pk}),

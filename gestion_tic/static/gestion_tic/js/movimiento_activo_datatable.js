@@ -50,13 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         {
-            data: "serie",
-            title: "Serie",
-            render: function (data) {
-                return escapeHtml(data || '-');
-            }
-        },
-        {
             data: "contrato",
             title: "Contrato",
             render: function (data) {

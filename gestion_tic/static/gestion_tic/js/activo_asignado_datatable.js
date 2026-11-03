@@ -56,13 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         {
-            data: "serie",
-            title: "Serie",
-            render: function (data) {
-                return escapeHtml(data || '-');
-            }
-        },
-        {
             data: "ip",
             title: "IP",
             render: function (data) {

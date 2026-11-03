@@ -543,10 +543,6 @@ def activo_list_asignado(request):
         if contrato_id:
             queryset = queryset.filter(activo__contrato_id=contrato_id)
 
-        serie = req_params.get('serie', '').strip()
-        if serie:
-            queryset = queryset.filter(activo__serie__icontains=serie)
-
         codigo_barra = req_params.get('codigo_barra', '').strip()
         if codigo_barra:
             queryset = queryset.filter(activo__codigo_barra__icontains=codigo_barra)
@@ -555,7 +551,6 @@ def activo_list_asignado(request):
         if search:
             queryset = queryset.filter(
                 Q(activo__codigo_barra__icontains=search) |
-                Q(activo__serie__icontains=search) |
                 Q(activo__tipo__nombre__icontains=search) |
                 Q(activo__marca__nombre__icontains=search) |
                 Q(activo__modelo__nombre__icontains=search) |
@@ -574,7 +569,6 @@ def activo_list_asignado(request):
             1: 'activo__codigo_barra',
             2: 'activo__tipo__nombre',
             3: 'activo__marca__nombre',
-            4: 'activo__serie',
             5: 'ip__ip',
             6: 'funcionario__nombres',
             7: 'funcionario__unidad_organizacional__nombre',
@@ -631,7 +625,6 @@ def activo_list_asignado(request):
                 'codigo_barra': mov.activo.codigo_barra if mov.activo else '-',
                 'tipo': mov.activo.tipo.nombre if (mov.activo and mov.activo.tipo) else '-',
                 'marca_modelo': f"{mov.activo.marca.nombre if (mov.activo and mov.activo.marca) else '-'} / {mov.activo.modelo.nombre if (mov.activo and mov.activo.modelo) else '-'}",
-                'serie': mov.activo.serie if (mov.activo and mov.activo.serie) else '-',
                 'ip': mov.ip.ip if mov.ip else '-',
                 'funcionario': func_nombre,
                 'unidad_organizacional': unidad_nombre,
