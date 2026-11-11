@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    {% if puede_gestionar %}
+        <a class="btn btn-primary btn-sm" href="{% url 'gestion_tic:entrega_nueva' %}">
+            <i class="bi bi-plus-circle me-1"></i>Nueva entrega
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-2">
+        <div class="card table-responsive p-0 shadow-sm">
+            {% csrf_token %}
+            <table id="myTable" class="table display w-100"
+                   data-url-detalle="{% url 'gestion_tic:entrega_detalle' 0 %}">
+                <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Destinatario</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+                </thead>
+                <tbody class="p-0">
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlDetalleEntrega = "{% url 'gestion_tic:entrega_detalle' 0 %}";
+    </script>
+    <script src="{% static 'gestion_tic/js/entrega_datatable.js' %}"></script>
+{% endblock %}

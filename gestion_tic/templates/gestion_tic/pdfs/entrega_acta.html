@@ -1,0 +1,14 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Acta de entrega {{ acta.folio }}</title>
+<style>@page { size: A4; margin: 18mm; @bottom-center { content: "Página " counter(page) " de " counter(pages); } } body { font: 11px sans-serif; color: #222; } h1 { font-size: 20px; } h2 { font-size: 14px; } table { border-collapse: collapse; width: 100%; margin-bottom: 12px; } td, th { border: 1px solid #aaa; padding: 6px; text-align: left; } .equipo { break-inside: avoid; } .firmas { margin-top: 35px; } </style></head><body>
+<h1>Acta de entrega de activos #{{ acta.folio }}</h1><p>{{ acta.establecimiento }}</p>
+<p><strong>Destinatario:</strong> {{ acta.nombre_completo }}<br><strong>Departamento:</strong> {{ acta.departamento }}</p>
+<p><strong>Estado:</strong> {{ entrega.get_estado_display }}{% if acta.fecha_recepcion %}<br>Recepción conforme: {{ acta.fecha_recepcion }} · Cuenta: {{ acta.recepcionado_por }}{% else %}<br>Pendiente de recepción conforme.{% endif %}</p><p>{{ acta.observacion|linebreaksbr }}</p>
+{% for item in acta.activos %}<div class="equipo"><h2>{{ forloop.counter }}. {{ item.activo.tipo }} · {{ item.activo.codigo_barra }}</h2>
+<table><tr><th>Marca / modelo</th><th>Serie</th><th>IP</th></tr><tr><td>{{ item.activo.marca }} {{ item.activo.modelo }}</td><td>{{ item.activo.serie|default:'—' }}</td><td>{{ item.ip|default:'—' }}</td></tr></table>
+<p>Movimiento: {{ item.tipo_movimiento }} · Fecha: {{ item.fecha_movimiento }}</p>
+{% for car in item.activo.caracteristicas %}<div>{{ car.campo }}: {{ car.valor }}</div>{% endfor %}
+{% if item.activo.observacion %}<p>Observación del activo: {{ item.activo.observacion }}</p>{% endif %}
+{% if item.observacion %}<p>Observación de entrega: {{ item.observacion }}</p>{% endif %}
+{% if item.accesorios %}<table><tr><th>Accesorio</th><th>Cantidad</th><th>Observación</th></tr>{% for acc in item.accesorios %}<tr><td>{{ acc.nombre }}</td><td>{{ acc.cantidad }}</td><td>{{ acc.observacion }}</td></tr>{% endfor %}</table>{% endif %}</div>{% endfor %}
+<p>La recepción conforme comprende la totalidad de los activos y accesorios detallados en esta acta.</p>
+<div class="firmas"><p>Entrega: {{ acta.activos.0.jefe_firmante.nombre }} · {{ acta.activos.0.jefe_firmante.posicion }}</p><p>Recibe: {{ acta.nombre_completo }}</p></div></body></html>

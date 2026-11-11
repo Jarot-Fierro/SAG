@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block sidebar %}{% include 'gestion_tic/sidebar.html' %}{% endblock %}
+{% block content %}<div class="container py-3"><h1 class="h3">{{ title }}</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Crear carrito</button> <a href="{% url 'gestion_tic:entrega_list' %}">Volver</a></form></div>{% endblock %}

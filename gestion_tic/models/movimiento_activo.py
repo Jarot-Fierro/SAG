@@ -32,6 +32,8 @@ from .tipo_movimiento import TipoMovimiento
 
 
 class MovimientoActivo(StandardModelEstablishment):
+    entrega = models.ForeignKey('gestion_tic.EntregaActivos', on_delete=models.PROTECT,
+                                null=True, blank=True, related_name='movimientos')
     activo = models.ForeignKey(
         Activo,
         on_delete=models.PROTECT,
@@ -67,12 +69,12 @@ class MovimientoActivo(StandardModelEstablishment):
         verbose_name="Recepcionado Por"
     )
     nombre_completo = models.CharField(
-        max_length=100,
+        max_length=511,
         null=True,
         blank=True,
     )
     departamento = models.CharField(
-        max_length=100,
+        max_length=200,
         null=True,
         blank=True,
     )

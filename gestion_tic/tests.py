@@ -30,7 +30,7 @@ class CatalogoViewsTestCase(TestCase):
             password="testpassword",
             establecimiento=self.establecimiento
         )
-        self.client.login(username="testuser", password="testpassword")
+        self.client.force_login(self.user)
 
         # Unidad y Funcionario
         self.unidad = UnidadOrganizacional.objects.create(
@@ -1094,7 +1094,7 @@ class EntregaRecepcionConformeTestCase(TestCase):
             password="testpassword",
             establecimiento=self.establecimiento2
         )
-        self.client.login(username="techuser", password="testpassword")
+        self.client.force_login(self.user)
 
         # Departamentos
         self.depto1 = UnidadOrganizacional.objects.create(
@@ -1409,7 +1409,7 @@ class EntregaRecepcionConformeTestCase(TestCase):
             establecimiento=self.establecimiento,
             recepcionado=False
         )
-        self.client.login(username="otheruser", password="testpassword")
+        self.client.force_login(self.user_est2)
         url = reverse('gestion_tic:recepcion_conforme', kwargs={'pk': mov_est1.pk})
         res = self.client.get(url)
         self.assertEqual(res.status_code, 404)

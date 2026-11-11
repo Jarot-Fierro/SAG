@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -10,7 +11,7 @@ from django.utils import timezone
 from core.models.unidad_organizacional import UnidadOrganizacional
 from gestion_tic.filters.activo import ActivoFormFilter
 from gestion_tic.forms.movimientos import MovimientoActivoForm, RecepcionConformeForm
-from gestion_tic.models import Activo, MovimientoActivo, Accesorio, MovimientoActivoAccesorio
+from gestion_tic.models import Activo, MovimientoActivo, Accesorio, MovimientoActivoAccesorio, Ips
 
 
 def _as_int(value, default=0):
@@ -22,7 +23,10 @@ def _as_int(value, default=0):
 
 def _guardar_movimiento_con_accesorios(form_movimiento, activo, establecimiento, user, request_post,
                                        ultimo_movimiento=None):
+    from gestion_tic.entregas import validar_disponibilidad
     with transaction.atomic():
+        activo = Activo.objects.select_for_update().get(pk=activo.pk)
+        ultimo_movimiento = validar_disponibilidad(activo, bloquear=True)
         nuevo_mov = form_movimiento.save(commit=False)
         nuevo_mov.activo = activo
         if establecimiento:
@@ -43,17 +47,18 @@ def _guardar_movimiento_con_accesorios(form_movimiento, activo, establecimiento,
             if not nuevo_mov.departamento and nuevo_mov.unidad_organizacional:
                 nuevo_mov.departamento = nuevo_mov.unidad_organizacional.nombre
 
-        # Manejo consistente de IPs
-        old_ip = ultimo_movimiento.ip if ultimo_movimiento else None
-        if nuevo_mov.ip:
-            if old_ip and old_ip != nuevo_mov.ip:
-                old_ip.asignado = False
-                old_ip.save()
-            nuevo_mov.ip.asignado = True
-            nuevo_mov.ip.save()
-        elif old_ip:
-            old_ip.asignado = False
-            old_ip.save()
+        # Coordinar IPs con las entregas agrupadas, también en el flujo individual.
+        old_ip_id = ultimo_movimiento.ip_id if ultimo_movimiento else None
+        ip_ids = {i for i in (old_ip_id, nuevo_mov.ip_id) if i}
+        ips = {ip.pk: ip for ip in Ips.objects.select_for_update().filter(
+            pk__in=ip_ids).order_by('pk')}
+        if nuevo_mov.ip_id:
+            ip = ips[nuevo_mov.ip_id]
+            if ip.asignado and ip.pk != old_ip_id:
+                raise ValidationError('La IP seleccionada ya fue asignada a otro activo.')
+        for ip in ips.values():
+            ip.asignado = ip.pk == nuevo_mov.ip_id
+            ip.save()
 
         nuevo_mov.save()
 
@@ -157,16 +162,19 @@ def movimientos_activo(request):
         if request.method == 'POST' and 'tipo_movimiento' in request.POST:
             form_movimiento = MovimientoActivoForm(request.POST, establecimiento=establecimiento)
             if form_movimiento.is_valid():
-                _guardar_movimiento_con_accesorios(
-                    form_movimiento=form_movimiento,
-                    activo=activo,
-                    establecimiento=establecimiento,
-                    user=request.user,
-                    request_post=request.POST,
-                    ultimo_movimiento=ultimo_movimiento
-                )
-                messages.success(request, "Movimiento registrado correctamente.")
-                return redirect(f"{request.path}?q={query}")
+                try:
+                    _guardar_movimiento_con_accesorios(
+                        form_movimiento=form_movimiento,
+                        activo=activo,
+                        establecimiento=establecimiento,
+                        user=request.user,
+                        request_post=request.POST,
+                        ultimo_movimiento=ultimo_movimiento
+                    )
+                    messages.success(request, "Movimiento registrado correctamente.")
+                    return redirect(f"{request.path}?q={query}")
+                except ValidationError as exc:
+                    form_movimiento.add_error(None, exc)
         else:
             initial_data = {}
             if ultimo_movimiento:
@@ -311,16 +319,19 @@ def movimientos_activo_list(request):
                 if request.method == 'POST' and 'tipo_movimiento' in request.POST:
                     form_movimiento = MovimientoActivoForm(request.POST, establecimiento=establecimiento)
                     if form_movimiento.is_valid():
-                        _guardar_movimiento_con_accesorios(
-                            form_movimiento=form_movimiento,
-                            activo=activo,
-                            establecimiento=establecimiento,
-                            user=request.user,
-                            request_post=request.POST,
-                            ultimo_movimiento=ultimo_movimiento
-                        )
-                        messages.success(request, "Movimiento registrado correctamente.")
-                        return redirect(f"{request.path}?q={query}")
+                        try:
+                            _guardar_movimiento_con_accesorios(
+                                form_movimiento=form_movimiento,
+                                activo=activo,
+                                establecimiento=establecimiento,
+                                user=request.user,
+                                request_post=request.POST,
+                                ultimo_movimiento=ultimo_movimiento
+                            )
+                            messages.success(request, "Movimiento registrado correctamente.")
+                            return redirect(f"{request.path}?q={query}")
+                        except ValidationError as exc:
+                            form_movimiento.add_error(None, exc)
                 else:
                     initial_data = {}
                     if ultimo_movimiento:
@@ -363,6 +374,9 @@ def recepcion_conforme(request, pk):
         ).prefetch_related('accesorios'),
         **filter_kwargs
     )
+
+    if movimiento.entrega_id:
+        return redirect('gestion_tic:entrega_detalle', pk=movimiento.entrega_id)
 
     # 1. Validar que el tipo de movimiento requiera recepción conforme
     if not movimiento.tipo_movimiento.requiere_recepcion:

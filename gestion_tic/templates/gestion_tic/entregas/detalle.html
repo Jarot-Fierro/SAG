@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block sidebar %}{% include 'gestion_tic/sidebar.html' %}{% endblock %}
+{% block content %}<div class="container py-3"><h1 class="h3">{{ title }}</h1>
+<p><strong>{{ entrega.get_estado_display }}</strong></p>
+{% if puede_editar %}<form method="post" id="datos-entrega">{% csrf_token %}{{ form.as_p }}<button name="accion" value="guardar" class="btn btn-secondary">Guardar datos</button></form>
+<a class="btn btn-primary my-3" href="{% url 'gestion_tic:entrega_agregar' entrega.pk %}">Agregar activo al carrito</a>
+{% else %}<p>Destinatario: {{ entrega.snapshot_acta.nombre_completo }} · {{ entrega.snapshot_acta.departamento }}</p><p>{{ entrega.snapshot_acta.observacion }}</p>{% endif %}
+<div class="table-responsive"><table class="table"><thead><tr><th>Código</th><th>Tipo</th><th>IP</th><th>Accesorios</th><th>Observación</th><th></th></tr></thead><tbody>
+{% if puede_editar %}
+{% for item in detalles %}<tr><td>{{ item.activo.codigo_barra }}</td><td>{{ item.activo.tipo }}</td><td>{{ item.ip|default:'—' }}</td><td>{% for acc in item.accesorios %}{{ acc.nombre }} × {{ acc.cantidad }} {{ acc.observacion }}<br>{% endfor %}</td><td>{{ item.observacion }}</td><td><a href="{% url 'gestion_tic:entrega_item' entrega.pk item.pk %}">Editar</a><form method="post">{% csrf_token %}<input type="hidden" name="detalle" value="{{ item.pk }}"><button name="accion" value="quitar" class="btn btn-sm btn-outline-danger">Quitar</button></form></td></tr>
+{% empty %}<tr><td colspan="6">El carrito está vacío.</td></tr>{% endfor %}
+{% else %}
+{% for item in entrega.snapshot_acta.activos %}<tr><td>{{ item.activo.codigo_barra }}</td><td>{{ item.activo.tipo }} {{ item.activo.marca }} {{ item.activo.modelo }}</td><td>{{ item.ip|default:'—' }}</td><td>{% for acc in item.accesorios %}{{ acc.nombre }} × {{ acc.cantidad }} {{ acc.observacion }}<br>{% endfor %}</td><td>{{ item.observacion }}</td><td></td></tr>{% endfor %}
+{% endif %}</tbody></table></div>
+{% if puede_editar %}<p>Al confirmar se registrará un movimiento por activo. Revise el destinatario y todos los equipos antes de continuar.</p><button form="datos-entrega" class="btn btn-success" name="accion" value="confirmar">Confirmar entrega completa</button>{% endif %}
+{% if puede_recibir %}<form method="post">{% csrf_token %}<p><label><input type="checkbox" name="conforme" value="si" required> Declaro haber recibido conforme todos los activos y accesorios de esta entrega.</label></p><button class="btn btn-success" name="accion" value="recepcionar">Recepcionar toda la entrega</button></form>{% endif %}
+{% if entrega.estado != 'borrador' %}<a class="btn btn-outline-primary my-3" href="{% url 'gestion_tic:entrega_acta' entrega.pk %}" target="_blank" rel="noopener">Acta conjunta PDF</a>{% endif %}
+{% if entrega.fecha_recepcion %}<p>Recepcionada por {{ entrega.snapshot_acta.recepcionado_por }} el {{ entrega.snapshot_acta.fecha_recepcion }}.</p>{% endif %}
+<p><a href="{% url 'gestion_tic:entrega_list' %}">Volver a entregas</a></p></div>{% endblock %}

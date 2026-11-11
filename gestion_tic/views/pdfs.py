@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
@@ -24,6 +24,9 @@ def generar_acta_activo(request, pk):
         ).prefetch_related('accesorios'),
         **filter_kwargs
     )
+
+    if ultimo_movimiento.entrega_id:
+        return redirect('gestion_tic:entrega_acta', pk=ultimo_movimiento.entrega_id)
 
     activo = ultimo_movimiento.activo
 

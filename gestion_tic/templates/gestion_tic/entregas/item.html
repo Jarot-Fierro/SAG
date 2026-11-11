@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block sidebar %}{% include 'gestion_tic/sidebar.html' %}{% endblock %}
+{% block content %}<div class="container py-3"><h1 class="h3">{{ title }}</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+<h2 class="h5">Accesorios</h2>{{ accesorios.management_form }}{{ accesorios.non_form_errors }}
+<div id="accesorios">{% for fila in accesorios %}<fieldset class="border p-2 mb-2">{{ fila.as_p }}</fieldset>{% endfor %}</div>
+<template id="fila-vacia"><fieldset class="border p-2 mb-2">{{ accesorios.empty_form.as_p }}</fieldset></template>
+<button type="button" id="agregar-accesorio" class="btn btn-outline-secondary">Agregar accesorio</button>
+<button class="btn btn-primary">Guardar activo</button> <a href="{% url 'gestion_tic:entrega_detalle' entrega.pk %}">Volver al carrito</a></form></div>
+<script>
+document.getElementById('agregar-accesorio').addEventListener('click', function () {
+    const total = document.getElementById('id_form-TOTAL_FORMS');
+    if (Number(total.value) >= 100) return;
+    document.getElementById('accesorios').insertAdjacentHTML('beforeend', document.getElementById('fila-vacia').innerHTML.replace(/__prefix__/g, total.value));
+    total.value = Number(total.value) + 1;
+});
+</script>{% endblock %}

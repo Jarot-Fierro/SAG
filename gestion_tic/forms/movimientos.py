@@ -73,7 +73,7 @@ class MovimientoActivoForm(forms.ModelForm):
 
             self.fields['ip'].queryset = (
                 ip_queryset
-                .annotate(
+                .alias(
                     ip_sort=RawSQL(
                         """
                         (

@@ -3,9 +3,17 @@ from django.urls import path
 from .views import catalogo, tipo_activo, campos_tipo_activos, activos, movimientos_activo, pdfs, equipos_baja
 from .views import opciones_campo_tipo_activo, dashboard_gestion_tic
 
+from .views import entregas
+
 app_name = 'gestion_tic'
 
 urlpatterns = [
+    path('entregas/', entregas.listado, name='entrega_list'),
+    path('entregas/nueva/', entregas.nueva, name='entrega_nueva'),
+    path('entregas/<int:pk>/', entregas.detalle, name='entrega_detalle'),
+    path('entregas/<int:pk>/agregar/', entregas.item, name='entrega_agregar'),
+    path('entregas/<int:pk>/item/<int:item_id>/', entregas.item, name='entrega_item'),
+    path('entregas/<int:pk>/acta/', entregas.acta, name='entrega_acta'),
 
     path('', dashboard_gestion_tic.DashboardGestionTicView.as_view(), name='dashboard_gestion_tic'),
 
