@@ -1,5 +1,72 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
-{% block sidebar %}{% include 'gestion_tic/sidebar.html' %}{% endblock %}
-{% block content %}<div class="container py-3"><h1 class="h3">{{ title }}</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Crear carrito</button> <a href="{% url 'gestion_tic:entrega_list' %}">Volver</a></form></div>{% endblock %}
+
+{% block sidebar %}
+    {% include 'gestion_tic/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ title }}</h3>
+                    </div>
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="row g-3">
+                                {% for field in form %}
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold" for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.errors %}
+                                            {% for error in field.errors %}
+                                                <div class="invalid-feedback d-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <a href="{% url 'gestion_tic:entrega_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Crear carrito
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.querySelectorAll('.tom-select').forEach((el) => {
+            new TomSelect(el, {
+                render: {
+                    no_results: function () {
+                        return '<div class="no-results">No se encontraron resultados</div>';
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

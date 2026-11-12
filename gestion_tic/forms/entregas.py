@@ -1,27 +1,44 @@
 from django import forms
 from django.forms import formset_factory
+
 from core.models.funcionario import Funcionario
 from gestion_tic.models import EntregaActivos, DetalleEntrega, TipoMovimiento, JefeTic, Ips, Accesorio
 
 
-def estilizar(form):
-    for field in form.fields.values():
-        field.widget.attrs['class'] = ('form-select' if isinstance(field.widget, forms.Select)
-                                      else 'form-control')
-        if isinstance(field.widget, forms.Textarea):
-            field.widget.attrs['rows'] = 2
-
-
 class EntregaForm(forms.ModelForm):
+    funcionario = forms.ModelChoiceField(
+        label='Funcionario destinatario',
+        queryset=Funcionario.objects.none(),
+        empty_label='',
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select tom-select'})
+    )
+    tipo_movimiento = forms.ModelChoiceField(
+        label='Tipo de movimiento',
+        empty_label='',
+        queryset=TipoMovimiento.objects.none(),
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select tom-select'})
+    )
+    jefe_firmante = forms.ModelChoiceField(
+        label='Jefe firmante',
+        empty_label='',
+        queryset=JefeTic.objects.none(),
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select tom-select'})
+    )
+    observacion = forms.CharField(
+        label='Observaciones de la entrega',
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
+    )
+
     class Meta:
         model = EntregaActivos
         fields = ['funcionario', 'tipo_movimiento', 'jefe_firmante', 'observacion']
-        labels = {'funcionario': 'Funcionario destinatario', 'tipo_movimiento': 'Tipo de movimiento',
-                  'jefe_firmante': 'Jefe firmante', 'observacion': 'Observaciones de la entrega'}
 
     def __init__(self, *args, establecimiento, **kwargs):
         super().__init__(*args, **kwargs)
-        estilizar(self)
         self.fields['funcionario'].queryset = Funcionario.objects.filter(
             establecimiento=establecimiento, is_active=True)
         self.fields['tipo_movimiento'].queryset = TipoMovimiento.objects.filter(
@@ -31,37 +48,64 @@ class EntregaForm(forms.ModelForm):
 
 
 class DetalleForm(forms.ModelForm):
-    codigo = forms.CharField(label='Código de barras o serie', max_length=150)
+    codigo = forms.CharField(
+        label='Código de barras o serie',
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'autofocus': True})
+    )
+    ip = forms.ModelChoiceField(
+        label='IP (opcional)',
+        queryset=Ips.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select tom-select'})
+    )
+    observacion = forms.CharField(
+        label='Observaciones del activo',
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
+    )
 
     class Meta:
         model = DetalleEntrega
         fields = ['ip', 'observacion']
-        labels = {'observacion': 'Observaciones del activo'}
 
     def __init__(self, *args, establecimiento, **kwargs):
         super().__init__(*args, **kwargs)
-        estilizar(self)
         self.fields['ip'].queryset = Ips.objects.filter(
             establecimiento=establecimiento, is_active=True).order_by('ip')
-        self.fields['ip'].label = 'IP (opcional)'
         self.order_fields(['codigo', 'ip', 'observacion'])
-        self.fields['codigo'].widget.attrs['autofocus'] = True
         if self.instance.pk:
             self.fields['codigo'].initial = self.instance.activo.codigo_barra
             self.fields['codigo'].disabled = True
 
 
 class AccesorioForm(forms.Form):
-    accesorio = forms.ModelChoiceField(queryset=Accesorio.objects.none(), required=False)
-    cantidad = forms.IntegerField(min_value=1, initial=1)
-    observacion = forms.CharField(max_length=255, required=False)
+    accesorio = forms.ModelChoiceField(
+        label='Accesorio',
+        queryset=Accesorio.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select tom-select'})
+    )
+    cantidad = forms.IntegerField(
+        label='Cantidad',
+        min_value=1,
+        initial=1,
+        required=True,
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    observacion = forms.CharField(
+        label='Observación',
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
 
     def __init__(self, *args, establecimiento, **kwargs):
         super().__init__(*args, **kwargs)
-        estilizar(self)
         self.fields['accesorio'].queryset = Accesorio.objects.filter(
             establecimiento=establecimiento, is_active=True).order_by('nombre')
 
 
 AccesoriosFormSet = formset_factory(AccesorioForm, extra=1, can_delete=True, max_num=100,
-                                   validate_max=True)
+                                    validate_max=True)
