@@ -22,6 +22,7 @@ class StandardModel(models.Model):
 
     UPPERCASE_FIELDS = []
     LOWERCASE_FIELDS = []
+    TITLE_CASE_FIELDS = []
 
     def save(self, *args, **kwargs):
         # Campos a MAYÚSCULAS
@@ -35,6 +36,11 @@ class StandardModel(models.Model):
             value = getattr(self, field_name, None)
             if value:
                 setattr(self, field_name, value.lower())
+
+        for field_name in self.TITLE_CASE_FIELDS:
+            value = getattr(self, field_name)
+            if isinstance(value, str):
+                setattr(self, field_name, value.strip().title())
 
         super().save(*args, **kwargs)
 
@@ -65,6 +71,7 @@ class StandardModelEstablishment(models.Model):
 
     UPPERCASE_FIELDS = []
     LOWERCASE_FIELDS = []
+    TITLE_CASE_FIELDS = []
 
     def save(self, *args, **kwargs):
         # Campos a MAYÚSCULAS
@@ -78,6 +85,11 @@ class StandardModelEstablishment(models.Model):
             value = getattr(self, field_name, None)
             if value:
                 setattr(self, field_name, value.lower())
+
+        for field_name in self.TITLE_CASE_FIELDS:
+            value = getattr(self, field_name)
+            if isinstance(value, str):
+                setattr(self, field_name, value.strip().title())
 
         super().save(*args, **kwargs)
 

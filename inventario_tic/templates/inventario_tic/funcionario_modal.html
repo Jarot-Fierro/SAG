@@ -1,0 +1,23 @@
+<div class="modal fade" id="funcionarioModal" tabindex="-1" aria-labelledby="funcionarioModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="funcionarioModalForm" method="post" action="{% url 'inventario_tic:funcionario_create_modal' %}" novalidate>
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="funcionarioModalTitle">Crear funcionario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger d-none" id="funcionarioModalErrors" role="alert"></div>
+                    <label class="form-label fw-bold" for="{{ funcionario_form.nombre.id_for_label }}">{{ funcionario_form.nombre.label }} <span class="text-danger">*</span></label>
+                    {{ funcionario_form.nombre }}
+                    <small class="form-text">El funcionario quedar&aacute; disponible en el mantenedor al guardar.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar funcionario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

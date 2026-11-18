@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'inventario_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'inventario_tic:producto_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="productosTable" class="table display w-100"
+               data-url-edit="{{ edit_url_template }}"
+               data-url-delete="{{ delete_url_template }}">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo de Producto</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Stock Total</th>
+                <th>Stock Disponible</th>
+                <th>Stock Mínimo</th>
+                <th>Descripción</th>
+                <th>Observación</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlEditarProducto = "{{ edit_url_template }}";
+        const urlEliminarProducto = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'inventario_tic/js/productos_datatable.js' %}"></script>
+    <script src="{% static 'inventario_tic/js/productos_modal.js' %}"></script>
+{% endblock %}

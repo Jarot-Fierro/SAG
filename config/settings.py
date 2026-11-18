@@ -102,7 +102,9 @@ INSTALLED_APPS = [
     # SOLICITUD VPN
     'solicitud_vpn.apps.SolicitudVpnConfig',
     # SOLICITUD CODIGO
-    'solicitud_codigo.apps.SolicitudCodigoConfig'
+    'solicitud_codigo.apps.SolicitudCodigoConfig',
+    # INVENTARIO TIC
+    'inventario_tic.apps.InventarioTicConfig'
 ]
 
 X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'ALLOWALL')

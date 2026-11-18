@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Entrega de Impresora</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+                color: #555;
+                font-family: Arial, sans-serif;
+            }
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #212529;
+            line-height: 1.4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .badge-status {
+            text-align: center;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .badge-conforme {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 12px 0 6px 0;
+            font-size: 13px;
+            background-color: #f1f3f5;
+            padding: 4px 8px;
+            border-left: 4px solid #0d6efd;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            margin-bottom: 8px;
+        }
+
+        th, td {
+            padding: 5px 8px;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            width: 32%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-accesorios th {
+            width: auto;
+            text-align: center;
+        }
+
+        .table-accesorios td {
+            text-align: center;
+        }
+
+        .table-accesorios td.text-start {
+            text-align: left;
+        }
+
+        .note {
+            padding: 8px 12px;
+            margin-top: 15px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #6c757d;
+            font-size: 11px;
+            page-break-inside: avoid;
+        }
+
+        .signature-block {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            width: 90%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .signature-line-pending {
+            border-top: 1px dashed #dc3545;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .text-normal {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+<table style="margin: 0 0 12px;">
+    <tr>
+        <td style="border: none; padding: 0; vertical-align: middle;">
+            <img src="{% static 'core/media/logo_ssa.png' %}" alt="Logo Servicio de Salud Arauco"
+                 style="height: 90px; width: auto;">
+        </td>
+        <td style="border: none; padding: 0; text-align: right; vertical-align: middle;">
+            <strong>FECHA DE EMISI&Oacute;N:</strong> {{ fecha_emision|date:"d/m/Y H:i:s" }}
+        </td>
+    </tr>
+</table>
+<h1>Acta de entrega de impresora</h1>
+<div class="section-title">1.- Identificaci&oacute;n de la impresora</div>
+<table>
+    <tr>
+        <th>N&uacute;mero de serie</th>
+        <td><strong>{{ impresora.numero_serie }}</strong></td>
+    </tr>
+    <tr>
+        <th>HH</th>
+        <td>{{ impresora.hh|default:"-" }}</td>
+    </tr>
+    <tr>
+        <th>Marca</th>
+        <td>{{ impresora.marca.nombre|default:"-" }}</td>
+    </tr>
+    <tr>
+        <th>Modelo</th>
+        <td>{{ impresora.modelo.nombre|default:"-" }}</td>
+    </tr>
+    <tr>
+        <th>Imprime a color</th>
+        <td>{{ impresora.imprime_color|yesno:"Sí,No" }}</td>
+    </tr>
+    <tr>
+        <th>Ethernet</th>
+        <td>{{ impresora.tiene_ethernet|yesno:"Sí,No" }}</td>
+    </tr>
+    <tr>
+        <th>Wi-Fi</th>
+        <td>{{ impresora.tiene_wifi|yesno:"Sí,No" }}</td>
+    </tr>
+    <tr>
+        <th>Consumible</th>
+        <td>{{ impresora.toner|default:"-" }}</td>
+    </tr>
+    <tr>
+        <th>Observaci&oacute;n</th>
+        <td>{{ impresora.observacion|default:"-"|linebreaksbr }}</td>
+    </tr>
+</table>
+<div class="section-title">2.- Datos de entrega</div>
+<table>
+    <tr>
+        <th>Establecimiento</th>
+        <td>{{ impresora.establecimiento.nombre }}</td>
+    </tr>
+    <tr>
+        <th>Departamento responsable</th>
+        <td>{{ impresora.departamento.nombre }}</td>
+    </tr>
+</table>
+<div class="note">
+    <strong>NOTA:</strong><br>
+    EL DEPARTAMENTO QUE EST&Aacute; A CARGO DEL EQUIPO SER&Aacute; RESPONSABLE DE SU CUIDADO,
+    REPARACI&Oacute;N, EXTRAV&Iacute;O O MAL USO DE &Eacute;STE, Y DE SU DEVOLUCI&Oacute;N EN BUENAS CONDICIONES.
+</div>
+<div class="signature-block">
+    <table>
+        <tr>
+            <td style="width: 50%; border: none; vertical-align: top;">
+                <div class="signature-box">
+                    <strong>RECIB&Iacute; CONFORME</strong>
+                    <div class="signature-line">
+                        <strong>{{ impresora.departamento.nombre|upper }}</strong><br>
+                        {{ impresora.establecimiento.nombre }}
+                    </div>
+                </div>
+            </td>
+            <td style="width: 50%; border: none; vertical-align: top;">
+                <div class="signature-box">
+                    <strong>ENTREGADO POR TIC</strong>
+                    <div class="signature-line">
+                        <strong>DEPARTAMENTO DE TECNOLOGÍAS DE LA INFORMACIÓN Y COMUNICACIÓN</strong><br>
+                        {{ request.user.establecimiento.nombre }}
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

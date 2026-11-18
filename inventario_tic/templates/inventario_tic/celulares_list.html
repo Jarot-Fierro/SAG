@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'inventario_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'inventario_tic:celular_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Nuevo Celular
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="celularesTable" class="table display w-100"
+               data-url-devolucion="{{ devolucion_url_template }}"
+               data-url-recepcion="{{ recepcion_url_template }}"
+               data-url-acta="{{ acta_url_template }}"
+               data-url-edit="{{ edit_url_template }}"
+               data-url-delete="{{ delete_url_template }}">
+            <thead>
+            <tr>
+                <th>IMEI</th>
+                <th>Teléfono</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Propietario</th>
+                <th>Minsal</th>
+                <th>Establecimiento</th>
+                <th>Responsable</th>
+                <th>Número de chip</th>
+                <th>Minutos</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlEditarCelular = "{{ edit_url_template }}";
+        const urlEliminarCelular = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'inventario_tic/js/celulares_datatable.js' %}?v=20261117-devolucion-1"></script>
+    <script src="{% static 'inventario_tic/js/celulares_modal.js' %}?v=20261117-devolucion-1"></script>
+{% endblock %}
