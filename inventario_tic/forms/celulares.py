@@ -1,10 +1,11 @@
 from django import forms
+from .contratos import ContratoEquipoFormMixin
 
 from ..models.celulares import Celular
 from ..models.mantenedores import Marca, Modelo, Propietario, Establecimiento, JefeTic, FuncionarioInventario
 
 
-class FormCelular(forms.ModelForm):
+class FormCelular(ContratoEquipoFormMixin, forms.ModelForm):
     imei = forms.CharField(
         label='IMEI Principal',
         max_length=15,
@@ -129,7 +130,7 @@ class FormCelular(forms.ModelForm):
     class Meta:
         model = Celular
         fields = [
-            'imei', 'numero_telefono', 'marca', 'modelo', 'propietario',
+            'imei', 'contrato', 'numero_telefono', 'marca', 'modelo', 'propietario',
             'minsal', 'pin', 'puk', 'numero_chip', 'minutos', 'observacion',
 
         ]

@@ -1,0 +1,24 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block sidebar %}{% include 'inventario_tic/sidebar.html' %}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block buttons %}
+    <a href="{% url 'inventario_tic:estacion_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Asignar estación de trabajo
+    </a>
+{% endblock %}
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="estacionesTable" class="table display w-100" data-url="{% url 'inventario_tic:estacion_list' %}">
+            <thead><tr>
+                <th>Entrega</th><th>Fecha</th><th>Establecimiento</th><th>Responsable</th>
+                <th class="text-center">Acciones</th>
+            </tr></thead>
+            <tbody class="p-0"></tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'inventario_tic/js/estaciones_datatable.js' %}?v=20261123-1"></script>
+{% endblock %}

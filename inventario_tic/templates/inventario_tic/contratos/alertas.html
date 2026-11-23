@@ -1,0 +1,33 @@
+{% load static %}
+<div class="position-fixed bottom-0 end-0 m-3" style="z-index: 1040;">
+    <button type="button" class="btn btn-warning shadow" data-bs-toggle="modal" data-bs-target="#contratosVencimientoModal">
+        <i class="bi bi-exclamation-triangle me-1"></i>Contratos con aviso ({{ request.alertas_contratos|length }})
+    </button>
+</div>
+<div class="modal fade" id="contratosVencimientoModal" tabindex="-1" aria-labelledby="contratosVencimientoTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header bg-warning-subtle">
+            <h5 class="modal-title" id="contratosVencimientoTitulo">Vencimiento de contratos de equipamiento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+            <p>Se incluyen solo equipos activos, tanto asignados como disponibles.</p>
+            {% for alerta in request.alertas_contratos %}
+            <section class="border rounded p-3 mb-3">
+                <h6>{{ alerta.contrato.nombre }}</h6>
+                <p class="{% if alerta.dias < 0 %}text-danger{% else %}text-warning-emphasis{% endif %} fw-bold mb-1">{{ alerta.estado }}</p>
+                <p class="mb-1">Vencimiento: {{ alerta.contrato.fecha_vencimiento|date:'d/m/Y' }} · Aviso: {{ alerta.contrato.dias_aviso }} días antes.</p>
+                <p class="mb-1"><strong>{{ alerta.total }} equipo{{ alerta.total|pluralize:'s' }}</strong>:
+                    {% for tipo, cantidad in alerta.cantidades.items %}{{ tipo }}: {{ cantidad }}{% if not forloop.last %} · {% endif %}{% endfor %}
+                </p>
+                <details><summary>Ver equipos incluidos</summary>
+                    <ul class="mt-2 mb-0">{% for equipo in alerta.equipos %}<li>{{ equipo.tipo }}: {{ equipo.codigo }}{% if equipo.serie %} · Serie: {{ equipo.serie }}{% endif %}</li>{% endfor %}</ul>
+                </details>
+            </section>
+            {% endfor %}
+            <p class="small text-muted mb-0">Para dejar de recibir el aviso de un contrato, desactive «Notificar vencimiento» en su mantenedor.</p>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+    </div></div>
+</div>
+<script src="{% static 'inventario_tic/js/contratos_alertas.js' %}"></script>

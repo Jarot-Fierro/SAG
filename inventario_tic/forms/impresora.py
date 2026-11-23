@@ -1,11 +1,12 @@
 from django import forms
+from .contratos import ContratoEquipoFormMixin
 
 from core.models.unidad_organizacional import UnidadOrganizacional
 from ..models.impresoras import Impresora
 from ..models.mantenedores import Marca, Modelo
 
 
-class FormImpresora(forms.ModelForm):
+class FormImpresora(ContratoEquipoFormMixin, forms.ModelForm):
     numero_serie = forms.CharField(
         label='Número de Serie', max_length=150, required=True,
         widget=forms.TextInput(attrs={
@@ -69,7 +70,7 @@ class FormImpresora(forms.ModelForm):
     class Meta:
         model = Impresora
         fields = [
-            'numero_serie', 'hh', 'marca', 'modelo', 'imprime_color',
+            'numero_serie', 'contrato', 'hh', 'marca', 'modelo', 'imprime_color',
             'tiene_ethernet', 'tiene_wifi', 'toner', 'departamento', 'observacion',
         ]
 

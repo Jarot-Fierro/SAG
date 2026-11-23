@@ -5,6 +5,8 @@ from core.standard.models import StandardModelEstablishment
 
 
 class Celular(StandardModelEstablishment):
+    contrato = models.ForeignKey('inventario_tic.Contrato', on_delete=models.PROTECT,
+                                 null=True, blank=True, related_name='celulares', verbose_name='Contrato')
     imei = models.CharField(
         max_length=15,
         unique=True,

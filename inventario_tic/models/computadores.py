@@ -5,12 +5,14 @@ from core.standard.models import StandardModelEstablishment
 
 
 class Computador(StandardModelEstablishment):
+    contrato = models.ForeignKey('inventario_tic.Contrato', on_delete=models.PROTECT,
+                                 null=True, blank=True, related_name='computadores', verbose_name='Contrato')
     class Formato(models.TextChoices):
         ESCRITORIO = 'ESCRITORIO', 'Escritorio'
         NOTEBOOK = 'NOTEBOOK', 'Notebook'
         ALL_IN_ONE = 'ALL_IN_ONE', 'All in One'
         MINI_PC = 'MINI_PC', 'Mini PC'
-        OTRO = 'OTRO', 'OTRO'
+        OTRO = 'OTRO', 'Otro'
 
     codigo_inventario = models.CharField(
         max_length=100,
@@ -84,7 +86,10 @@ class Computador(StandardModelEstablishment):
     asignado = models.BooleanField(default=False, verbose_name='Asignado')
 
     UPPERCASE_FIELDS = [
-        'codigo_inventario', 'numero_serie', 'procesador',
+        'codigo_inventario'
+    ]
+    TITLE_CASE_FIELDS = [
+        'procesador',
         'almacenamiento', 'tarjeta_grafica',
     ]
 

@@ -5,6 +5,8 @@ from core.standard.models import StandardModelEstablishment
 
 
 class Monitor(StandardModelEstablishment):
+    contrato = models.ForeignKey('inventario_tic.Contrato', on_delete=models.PROTECT,
+                                 null=True, blank=True, related_name='monitores', verbose_name='Contrato')
     codigo_inventario = models.CharField(
         max_length=100, unique=True, null=True, blank=True, editable=False,
         verbose_name='Código de Inventario',
@@ -52,8 +54,6 @@ class Monitor(StandardModelEstablishment):
         related_name='monitores', verbose_name='Responsable', blank=True, null=True,
     )
     asignado = models.BooleanField(default=False, verbose_name='Asignado')
-
-    UPPERCASE_FIELDS = ['numero_serie']
 
     class Meta:
         verbose_name = 'Monitor'

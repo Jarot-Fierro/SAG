@@ -6,3 +6,4 @@ from .monitores import Monitor
 from .productos import Producto
 
 from .mantenedores import FuncionarioInventario
+from .estaciones import AsignacionEstacion, ProductoAsignadoEstacion

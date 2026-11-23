@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block sidebar %}{% include 'inventario_tic/sidebar.html' %}{% endblock %}
+{% block title %}{{ title }} #{{ entrega.pk }}{% endblock %}
+{% block content %}
+<div class="card card-body">
+<p>Entrega registrada el {{ entrega.created_at|date:'d/m/Y H:i' }}.</p>
+<p>Establecimiento: <strong>{{ entrega.contenido.destino }}</strong><br>Responsable: <strong>{{ entrega.contenido.responsable }}</strong><br>Jefe TIC firmante: <strong>{{ entrega.contenido.jefe }}</strong></p>
+<table class="table"><thead><tr><th>Tipo</th><th>Equipo / producto</th><th>Serie</th><th>Cantidad</th><th>Acta individual</th></tr></thead><tbody>
+{% for item in entrega.contenido.items %}<tr><td>{{ item.tipo }}</td><td>{{ item.descripcion }}</td><td>{{ item.serie }}</td><td>{{ item.cantidad }}</td><td>
+{% if item.tipo == 'computador' %}<a href="{% url 'inventario_tic:generar_acta_computadores' item.id %}">Acta del computador</a>{% elif item.tipo == 'monitores' %}<a href="{% url 'inventario_tic:generar_acta_monitores' item.id %}">Acta del monitor</a>{% endif %}
+</td></tr>{% endfor %}</tbody></table>
+<div><a class="btn btn-primary" href="{% url 'inventario_tic:estacion_acta' entrega.pk %}">Acta conjunta PDF</a> <a class="btn btn-secondary" href="{% url 'inventario_tic:estacion_list' %}">Volver a entregas</a></div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from .contratos import ContratoEquipoViewMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -90,7 +91,7 @@ class ComputadorListView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ComputadorCreateView(StandardCreateView):
+class ComputadorCreateView(ContratoEquipoViewMixin, StandardCreateView):
     template_name = 'inventario_tic/computadores_form.html'
     model = Computador
     form_class = FormComputador
@@ -106,7 +107,7 @@ class ComputadorCreateView(StandardCreateView):
         return context
 
 
-class ComputadorUpdateView(StandardUpdateView):
+class ComputadorUpdateView(ContratoEquipoViewMixin, StandardUpdateView):
     template_name = 'inventario_tic/computadores_form.html'
     model = Computador
     form_class = FormComputador

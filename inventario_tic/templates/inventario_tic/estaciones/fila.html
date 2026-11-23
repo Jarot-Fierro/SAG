@@ -1,0 +1,25 @@
+<div class="estacion-fila border rounded p-3 mb-3" data-prefix="{{ fila.prefix }}">
+    {{ fila.non_field_errors }}
+    <div class="fila-errors text-danger" role="alert"></div>
+    {{ fila.nuevo }}
+    <div class="d-none">{{ fila.DELETE }}</div>
+    <label for="{{ fila.existente.id_for_label }}" class="form-label">{{ fila.existente.label }}</label>
+    {{ fila.existente }}{{ fila.existente.errors }}
+    <p class="nuevo-resumen mt-2 text-success"></p>
+    {% if fila.cantidad %}<label class="form-label mt-2" for="{{ fila.cantidad.id_for_label }}">Cantidad a entregar</label>{{ fila.cantidad }}{{ fila.cantidad.errors }}{% endif %}
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-outline-primary abrir-registro">Registrar nuevo / editar datos nuevos</button>
+        <button type="button" class="btn btn-outline-secondary usar-existente">Usar existente</button>
+        <button type="button" class="btn btn-outline-danger quitar-fila">Quitar</button>
+    </div>
+    <div class="modal fade registro-modal" tabindex="-1" aria-label="Registrar equipamiento" aria-hidden="true">
+        <div class="modal-dialog modal-lg"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Registrar equipamiento nuevo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body">
+                <p>Se guardará al confirmar la entrega completa. El código de inventario se genera automáticamente.</p>
+                {{ fila.registro.as_p }}
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button><button type="button" class="btn btn-primary preparar-registro">Cargar al formulario</button></div>
+        </div></div>
+    </div>
+</div>

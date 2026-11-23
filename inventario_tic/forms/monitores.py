@@ -1,10 +1,11 @@
 from django import forms
+from .contratos import ContratoEquipoFormMixin
 
 from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic, FuncionarioInventario
 from ..models.monitores import Monitor
 
 
-class FormMonitor(forms.ModelForm):
+class FormMonitor(ContratoEquipoFormMixin, forms.ModelForm):
     numero_serie = forms.CharField(
         label='Número de Serie',
         max_length=150,
@@ -119,7 +120,7 @@ class FormMonitor(forms.ModelForm):
     class Meta:
         model = Monitor
         fields = [
-            'numero_serie', 'marca', 'modelo', 'pulgadas', 'resolucion', 'frecuencia_hz',
+            'numero_serie', 'contrato', 'marca', 'modelo', 'pulgadas', 'resolucion', 'frecuencia_hz',
             'tiene_hdmi', 'tiene_displayport', 'tiene_vga', 'tiene_dvi', 'tiene_usb_c', 'observacion',
         ]
 

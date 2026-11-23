@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block sidebar %}{% include 'inventario_tic/sidebar.html' %}{% endblock %}
+{% block content %}
+<div class="mx-2" id="inventario-dashboard" data-url="{% url 'inventario_tic:dashboard_datos' %}">
+    <form id="dashboard-filtros" class="card card-body mb-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4"><label for="dashboard-destino" class="form-label">Establecimiento destino</label>
+                <select id="dashboard-destino" name="destino" class="form-select"><option value="">Todos los destinos</option>
+                    {% for destino in destinos %}<option value="{{ destino.pk }}">{{ destino.nombre }}</option>{% endfor %}
+                </select></div>
+            <div class="col-md-2"><label for="dashboard-desde" class="form-label">Desde</label><input id="dashboard-desde" name="desde" type="date" class="form-control" value="{{ desde }}" required></div>
+            <div class="col-md-2"><label for="dashboard-hasta" class="form-label">Hasta</label><input id="dashboard-hasta" name="hasta" type="date" class="form-control" value="{{ hasta }}" required></div>
+            <div class="col-md-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-arrow-clockwise me-1"></i>Actualizar datos</button><button type="reset" class="btn btn-outline-secondary">Limpiar</button></div>
+        </div>
+        <p class="small text-muted mt-3 mb-0">Disponibilidad y stock: inventario actual del establecimiento de acceso, sin filtro de destino ni período. Asignaciones y funcionarios: estado actual por destino. Período: gráficos y tabla de entregas. «Entregas del mes» corresponde siempre al mes actual.</p>
+        <p class="small text-muted mb-0">Las entregas y productos entregados corresponden al flujo de estaciones de trabajo. Los productos se acumulan hasta implementar sus devoluciones.</p>
+        <div id="dashboard-error" class="text-danger mt-2" role="alert"></div>
+        <div id="dashboard-actualizado" class="small text-muted mt-2" aria-live="polite"></div>
+    </form>
+    <div class="row g-3 mb-3">
+        {% for clave, etiqueta, icono in widgets %}
+        <div class="col-6 col-lg-3"><div class="card h-100 mb-0"><div class="card-body">
+            <i class="bi {{ icono }} text-primary fs-4 float-end" aria-hidden="true"></i>
+            <div class="text-muted small">{{ etiqueta }}</div><div class="fs-2 fw-bold" data-widget="{{ clave }}" aria-live="polite">—</div>
+            {% if clave == 'asignados' %}<div id="dashboard-porcentaje" class="small text-muted"></div>{% endif %}
+        </div></div></div>
+        {% endfor %}
+    </div>
+    <div class="row g-3">
+        {% for clave, etiqueta, bloque in graficos %}
+        <div class="{% if clave == 'productos' %}col-12{% else %}col-lg-6{% endif %}">
+            <section class="card h-100 mb-0" data-bloque="{{ bloque }}">
+                <div class="card-header"><h2 class="card-title">{{ etiqueta }}</h2></div>
+                <div class="card-body"><div class="dashboard-estado small mb-2" role="status"></div><div id="grafico-{{ clave }}" style="min-height: 300px;"></div></div>
+            </section>
+        </div>
+        {% endfor %}
+        <div class="col-lg-5"><section class="card h-100" data-bloque="stock">
+            <div class="card-header"><h2 class="card-title">Alertas de stock · 10 productos más críticos</h2></div>
+            <div class="card-body"><div class="dashboard-estado small mb-2" role="status"></div>
+                <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Producto</th><th>Disponible</th><th>Mínimo</th></tr></thead><tbody id="dashboard-alertas"></tbody></table></div>
+            </div>
+        </section></div>
+        <div class="col-lg-7"><section class="card h-100" data-bloque="actividad">
+            <div class="card-header"><h2 class="card-title">Últimas 10 entregas del período</h2></div>
+            <div class="card-body"><div class="dashboard-estado small mb-2" role="status"></div>
+                <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Folio</th><th>Fecha</th><th>Responsable</th><th>Destino</th><th>Unidades</th></tr></thead><tbody id="dashboard-ultimas"></tbody></table></div>
+            </div>
+        </section></div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+<script src="{% static 'inventario_tic/js/dashboard.js' %}?v=20261123-1"></script>
+{% endblock %}

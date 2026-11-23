@@ -1,6 +1,9 @@
 from django.urls import path
 
 from .views import mantenedores
+from .views import dashboard
+from .views import asignados
+from .views import estaciones
 from .views.celulares import (
     CelularListView,
     CelularCreateView,
@@ -25,6 +28,14 @@ from .views.computadores import (
 app_name = 'inventario_tic'
 
 urlpatterns = [
+    path('dashboard/', dashboard.dashboard, name='dashboard'),
+    path('dashboard/datos/', dashboard.datos, name='dashboard_datos'),
+    path('asignados/', asignados.listado, name='asignados_list'),
+    path('estaciones/', estaciones.listado, name='estacion_list'),
+    path('estaciones/asignar/', estaciones.nueva, name='estacion_create'),
+    path('estaciones/buscar/', estaciones.buscar, name='estacion_buscar'),
+    path('estaciones/<int:pk>/', estaciones.detalle, name='estacion_detalle'),
+    path('estaciones/<int:pk>/acta/', estaciones.acta, name='estacion_acta'),
     # Computadores
     path('computadores/<int:pk>/acta/', generar_acta_computadores, name='generar_acta_computadores'),
     path('computadores/<int:pk>/recepcion/', ComputadorRecepcionUpdateView.as_view(), name='computador_recepcion_update'),

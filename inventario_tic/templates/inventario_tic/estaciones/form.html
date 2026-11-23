@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block sidebar %}{% include 'inventario_tic/sidebar.html' %}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card"><div class="card-body">
+    <p>Prepare el equipamiento y confirme toda la entrega en una sola operación. Puede entregar solo productos o un único equipo.</p>
+    {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+    <form method="post" id="estacion-form" novalidate data-buscar="{% url 'inventario_tic:estacion_buscar' %}" data-activa="{{ activa }}">
+        {% csrf_token %}
+        <ul class="nav nav-tabs" role="tablist">
+            {% for tipo, label, fs, incluido in secciones %}
+            <li class="nav-item" role="presentation"><button type="button" class="nav-link {% if activa == tipo %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-{{ tipo }}" role="tab">{{ label }}</button></li>
+            {% endfor %}
+            <li class="nav-item" role="presentation"><button type="button" class="nav-link {% if activa == 'destino' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-destino" role="tab">Responsable y envío</button></li>
+        </ul>
+        <div class="tab-content pt-3">
+        {% for tipo, label, fs, incluido in secciones %}
+            <div id="tab-{{ tipo }}" class="tab-pane fade {% if activa == tipo %}show active{% endif %}" role="tabpanel">
+                <label class="form-check mb-3"><input type="checkbox" class="form-check-input incluir-seccion" name="incluir_{{ tipo }}" {% if incluido %}checked{% endif %}> Incluir {{ label|lower }}</label>
+                <fieldset class="seccion" data-tipo="{{ tipo }}" data-max="{{ fs.max_num }}" {% if not incluido %}disabled{% endif %}>
+                    {{ fs.management_form }}{{ fs.non_form_errors }}
+                    <p class="text-muted">{% if tipo == 'computador' %}Máximo 1 computador.{% elif tipo == 'monitores' %}Máximo 2 monitores.{% else %}Seleccione un producto por fila e indique su cantidad.{% endif %}</p>
+                    <div class="filas">{% for fila in fs %}{% include 'inventario_tic/estaciones/fila.html' %}{% endfor %}</div>
+                    <button type="button" class="btn btn-outline-primary agregar-fila">Agregar {{ label|lower }}</button>
+                    <template class="fila-vacia">{% include 'inventario_tic/estaciones/fila.html' with fila=fs.empty_form %}</template>
+                </fieldset>
+            </div>
+        {% endfor %}
+            <div id="tab-destino" class="tab-pane fade {% if activa == 'destino' %}show active{% endif %}" role="tabpanel">
+                {{ destino.as_p }}
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#funcionarioModal">Crear funcionario responsable</button>
+                <p class="form-text">El funcionario se guarda al confirmar su modal. El jefe TIC se selecciona como firmante.</p>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2"><a class="btn btn-secondary" href="{% url 'inventario_tic:estacion_list' %}">Cancelar</a><button type="button" id="revisar-entrega" class="btn btn-primary">Revisar entrega</button></div>
+        <div class="modal fade" id="revisionModal" tabindex="-1" aria-label="Revisar entrega" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
+            <div class="modal-header"><h5>Confirmar entrega</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body" id="revision-contenido"></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button><button type="submit" class="btn btn-success">Confirmar y asignar</button></div>
+        </div></div></div>
+    </form>
+</div></div>
+{% include 'inventario_tic/funcionario_modal.html' %}
+{{ modelos|json_script:'estacion-modelos' }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'inventario_tic/js/estaciones.js' %}"></script>{% endblock %}

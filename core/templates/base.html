@@ -105,6 +105,9 @@
         new bootstrap.Tooltip(el);
     });
 </script>
+{% if request.alertas_contratos %}
+    {% include 'inventario_tic/contratos/alertas.html' %}
+{% endif %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

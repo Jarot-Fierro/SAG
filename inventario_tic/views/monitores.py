@@ -1,3 +1,4 @@
+from .contratos import ContratoEquipoViewMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -91,7 +92,7 @@ class MonitorListView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class MonitorCreateView(StandardCreateView):
+class MonitorCreateView(ContratoEquipoViewMixin, StandardCreateView):
     template_name = 'inventario_tic/monitores_form.html'
     model = Monitor
     form_class = FormMonitor
@@ -107,7 +108,7 @@ class MonitorCreateView(StandardCreateView):
         return context
 
 
-class MonitorUpdateView(StandardUpdateView):
+class MonitorUpdateView(ContratoEquipoViewMixin, StandardUpdateView):
     template_name = 'inventario_tic/monitores_form.html'
     model = Monitor
     form_class = FormMonitor

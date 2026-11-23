@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Entrega de Estación de Trabajo</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm 20mm 15mm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 10px;
+                color: #555;
+                font-family: Arial, sans-serif;
+            }
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #212529;
+            line-height: 1.4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .badge-status {
+            text-align: center;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .badge-conforme {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 12px 0 6px 0;
+            font-size: 13px;
+            background-color: #f1f3f5;
+            padding: 4px 8px;
+            border-left: 4px solid #0d6efd;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            margin-bottom: 8px;
+        }
+
+        th, td {
+            padding: 5px 8px;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            width: 32%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-accesorios th {
+            width: auto;
+            text-align: center;
+        }
+
+        .table-accesorios td {
+            text-align: center;
+        }
+
+        .table-accesorios td.text-start {
+            text-align: left;
+        }
+
+        .note {
+            padding: 8px 12px;
+            margin-top: 15px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #6c757d;
+            font-size: 11px;
+            page-break-inside: avoid;
+        }
+
+        .signature-block {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            width: 90%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .signature-line-pending {
+            border-top: 1px dashed #dc3545;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .text-normal {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
+        }
+
+        .table-accesorios {
+            table-layout: fixed;
+        }
+
+        .table-accesorios th:nth-child(1) {
+            width: 10%;
+        }
+
+        .table-accesorios th:nth-child(2) {
+            width: 30%;
+        }
+
+        .table-accesorios th:nth-child(3) {
+            width: 26%;
+        }
+
+        .table-accesorios th:nth-child(4) {
+            width: 5%;
+        }
+
+        .table-accesorios td {
+            overflow-wrap: anywhere;
+        }
+
+        .section-title {
+            page-break-after: avoid;
+        }
+    </style>
+</head>
+<body>
+<table style="margin: 0 0 12px;">
+    <tr>
+        <td style="border: none; padding: 0; vertical-align: middle;">
+            <img src="
+
+
+
+
+
+                    {% if logo_servicio %}{{ logo_servicio }}{% else %}{% static 'core/media/logo_ssa.png' %}{% endif %}"
+                 alt="Logo Servicio de Salud Arauco"
+                 style="height: 90px; width: auto;">
+        </td>
+        <td style="border: none; padding: 0; text-align: right; vertical-align: middle;">
+            <strong>FECHA DE EMISI&Oacute;N:</strong> {{ fecha_emision|date:"d/m/Y H:i:s" }}
+        </td>
+    </tr>
+</table>
+<h1>Acta de entrega de estación de trabajo</h1>
+<p class="text-normal"><strong>FOLIO:</strong> {{ entrega.pk }}</p>
+<div class="section-title">1.- Equipamiento entregado</div>
+<table class="table-accesorios">
+    <thead>
+    <tr>
+        <th>Tipo</th>
+        <th>Equipo</th>
+        <th>Número de serie</th>
+        <th>Cantidad</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in entrega.contenido.items %}
+        <tr>
+            <td>{% if item.tipo == 'computador' %}Computador{% elif item.tipo == 'monitores' %}Monitor{% else %}
+                Producto{% endif %}</td>
+            <td class="text-start">{{ item.descripcion }}</td>
+            <td>{{ item.serie|default:"-" }}</td>
+            <td>{{ item.cantidad }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="section-title">2.- Datos de entrega</div>
+<table>
+    <tr>
+        <th>Fecha de entrega</th>
+        <td>{{ entrega.created_at|date:"d/m/Y H:i" }}</td>
+    </tr>
+    <tr>
+        <th>Establecimiento</th>
+        <td>{{ entrega.contenido.destino }}</td>
+    </tr>
+    <tr>
+        <th>Responsable</th>
+        <td>{{ entrega.contenido.responsable }}</td>
+    </tr>
+    <tr>
+        <th>Jefe de entrega</th>
+        <td>{{ entrega.contenido.jefe }}</td>
+    </tr>
+</table>
+<div class="note">
+    <strong>NOTA:</strong><br>
+    EL USUARIO QUE EST&Aacute; A CARGO DEL EQUIPAMIENTO SER&Aacute; RESPONSABLE DE SU CUIDADO,
+    REPARACI&Oacute;N, EXTRAV&Iacute;O O MAL USO DE &Eacute;STE, Y DE SU DEVOLUCI&Oacute;N EN BUENAS CONDICIONES.
+</div>
+<div class="signature-block">
+    <table>
+        <tr>
+            <td style="width: 50%; border: none; vertical-align: top;">
+                <div class="signature-box">
+                    <strong>RECIB&Iacute; CONFORME</strong>
+                    <div class="signature-line">
+                        <strong>{{ entrega.contenido.responsable|upper }}</strong><br>
+                        {{ entrega.contenido.destino }}<br>
+                        <small>FIRMA RECEPTOR</small>
+                    </div>
+                </div>
+            </td>
+            <td style="width: 50%; border: none; vertical-align: top;">
+                <div class="signature-box">
+                    <strong>ENTREGADO POR TIC</strong>
+                    <div class="signature-line">
+                        <strong>{{ entrega.contenido.jefe|default:"____________________"|upper }}</strong><br>
+                        {{ entrega.contenido.jefe_posicion|default:"-" }}<br>
+                        <small>FIRMA Y TIMBRE</small>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

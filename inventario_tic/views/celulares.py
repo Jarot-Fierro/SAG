@@ -1,3 +1,4 @@
+from .contratos import ContratoEquipoViewMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -90,7 +91,7 @@ class CelularListView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class CelularCreateView(StandardCreateView):
+class CelularCreateView(ContratoEquipoViewMixin, StandardCreateView):
     template_name = 'inventario_tic/celulares_form.html'
     model = Celular
     form_class = FormCelular
@@ -106,7 +107,7 @@ class CelularCreateView(StandardCreateView):
         return context
 
 
-class CelularUpdateView(StandardUpdateView):
+class CelularUpdateView(ContratoEquipoViewMixin, StandardUpdateView):
     template_name = 'inventario_tic/celulares_form.html'
     model = Celular
     form_class = FormCelular

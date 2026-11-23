@@ -49,7 +49,7 @@ class Producto(StandardModelEstablishment):
         help_text='Ejemplo: conexión USB, capacidad de 64 GB o disco SSD de 1 TB.',
     )
 
-    UPPERCASE_FIELDS = ['nombre']
+    TITLE_CASE_FIELDS = ['nombre']
 
     class Meta:
         verbose_name = 'Producto'

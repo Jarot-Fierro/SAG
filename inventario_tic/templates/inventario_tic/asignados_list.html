@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block sidebar %}{% include 'inventario_tic/sidebar.html' %}{% endblock %}
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="asignadosTable" class="table display w-100" data-url="{% url 'inventario_tic:asignados_list' %}">
+            <thead>
+            <tr>
+                <th>Funcionario</th>
+                <th>Establecimiento destino</th>
+                <th>Tipo</th>
+                <th>Equipo / producto</th>
+                <th>Inventario</th>
+                <th>Serie / IMEI</th>
+                <th>Cantidad</th>
+            </tr>
+            </thead>
+            <tbody class="p-0"></tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="{% static 'inventario_tic/js/asignados_datatable.js' %}?v=20261123-1"></script>
+{% endblock %}

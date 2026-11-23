@@ -1,10 +1,11 @@
 from django import forms
+from .contratos import ContratoEquipoFormMixin
 
 from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic, FuncionarioInventario
 from ..models.computadores import Computador
 
 
-class FormComputador(forms.ModelForm):
+class FormComputador(ContratoEquipoFormMixin, forms.ModelForm):
     numero_serie = forms.CharField(
         label='Número de Serie',
         max_length=150,
@@ -85,7 +86,7 @@ class FormComputador(forms.ModelForm):
     class Meta:
         model = Computador
         fields = [
-            'numero_serie', 'marca', 'modelo', 'formato', 'procesador',
+            'numero_serie', 'contrato', 'marca', 'modelo', 'formato', 'procesador',
             'memoria_ram_gb', 'almacenamiento', 'tarjeta_grafica', 'observacion',
         ]
 

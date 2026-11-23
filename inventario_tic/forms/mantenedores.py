@@ -90,6 +90,7 @@ class FormContrato(forms.ModelForm):
         required=False
     )
     dias_aviso = forms.IntegerField(
+        min_value=0,
         label='Días de aviso',
         widget=forms.NumberInput(
             attrs={'class': 'form-control', 'min': 0, 'step': 1},
@@ -110,6 +111,10 @@ class FormContrato(forms.ModelForm):
             'nombre', 'file', 'fecha_inicio', 'fecha_vencimiento',
             'dias_aviso', 'notificar_vencimiento',
         ]
+
+    def clean_dias_aviso(self):
+        valor = self.cleaned_data.get('dias_aviso')
+        return Contrato._meta.get_field('dias_aviso').default if valor is None else valor
 
     def clean(self):
         cleaned_data = super().clean()

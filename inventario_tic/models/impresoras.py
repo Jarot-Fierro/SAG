@@ -4,6 +4,8 @@ from core.standard.models import StandardModelEstablishment
 
 
 class Impresora(StandardModelEstablishment):
+    contrato = models.ForeignKey('inventario_tic.Contrato', on_delete=models.PROTECT,
+                                 null=True, blank=True, related_name='impresoras', verbose_name='Contrato')
     numero_serie = models.CharField(
         max_length=150,
         unique=True,
@@ -54,7 +56,7 @@ class Impresora(StandardModelEstablishment):
         verbose_name='Observación'
     )
 
-    UPPERCASE_FIELDS = ['numero_serie', 'consumible']
+    TITLE_CASE_FIELDS = ['toner']
 
     class Meta:
         verbose_name = 'Impresora'

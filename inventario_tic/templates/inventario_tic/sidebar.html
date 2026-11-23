@@ -28,6 +28,11 @@
     }
 </style>
 
+<li class="nav-item">
+    <a href="{% url 'inventario_tic:dashboard' %}" class="nav-link">
+        <i class="nav-icon bi bi-speedometer2"></i><p>Dashboard de inventario</p>
+    </a>
+</li>
 <li class="nav-item" data-menu-id="mantenedores">
     <a href="#" class="nav-link">
         <i class="nav-icon bi bi-gear-fill"></i>
@@ -125,7 +130,19 @@
         <p>Productos</p>
     </a>
 </li>
-
+<div class="border-top border-white my-3" role="separator"></div>
+<li class="nav-item">
+    <a href="{% url 'inventario_tic:estacion_list' %}" class="nav-link">
+        <i class="nav-icon bi bi-pc-display-horizontal"></i>
+        <p>Estaciones de trabajo</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'inventario_tic:asignados_list' %}" class="nav-link">
+        <i class="nav-icon bi bi-person-lines-fill"></i>
+        <p>Equipamiento por funcionario</p>
+    </a>
+</li>
 <script>
     (function () {
         const STORAGE_KEY = 'inventario_tic_last_open_menu';
