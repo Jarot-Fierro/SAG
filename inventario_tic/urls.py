@@ -9,7 +9,7 @@ from .views.celulares import (
 )
 from .views.impresoras import ImpresoraListView, ImpresoraCreateView, ImpresoraUpdateView, impresora_eliminar
 from .views.monitores import MonitorListView, MonitorCreateView, MonitorUpdateView, monitor_eliminar, MonitorRecepcionUpdateView, monitor_devolucion
-from .views.pdfs import generar_acta_celulares, generar_acta_impresoras, generar_acta_monitores
+from .views.pdfs import generar_acta_celulares, generar_acta_impresoras, generar_acta_monitores, generar_acta_computadores
 from .views.productos import ProductoListView, ProductoCreateView, ProductoUpdateView, producto_eliminar
 
 from .views.funcionarios import (
@@ -17,9 +17,22 @@ from .views.funcionarios import (
     FuncionarioInventarioUpdateView, funcionario_desactivar, funcionario_crear_modal,
 )
 
+from .views.computadores import (
+    ComputadorListView, ComputadorCreateView, ComputadorUpdateView, computador_eliminar,
+    ComputadorRecepcionUpdateView, computador_devolucion,
+)
+
 app_name = 'inventario_tic'
 
 urlpatterns = [
+    # Computadores
+    path('computadores/<int:pk>/acta/', generar_acta_computadores, name='generar_acta_computadores'),
+    path('computadores/<int:pk>/recepcion/', ComputadorRecepcionUpdateView.as_view(), name='computador_recepcion_update'),
+    path('computadores/<int:pk>/devolucion/', computador_devolucion, name='computador_devolucion'),
+    path('computadores/', ComputadorListView.as_view(), name='computador_list'),
+    path('computadores/crear/', ComputadorCreateView.as_view(), name='computador_create'),
+    path('computadores/<int:pk>/editar/', ComputadorUpdateView.as_view(), name='computador_update'),
+    path('computadores/<int:pk>/desactivar/', computador_eliminar, name='computador_eliminar'),
     path('mantenedores/funcionarios/', FuncionarioInventarioListView.as_view(), name='funcionario_list'),
     path('mantenedores/funcionarios/crear/', FuncionarioInventarioCreateView.as_view(), name='funcionario_create'),
     path('mantenedores/funcionarios/crear-modal/', funcionario_crear_modal, name='funcionario_create_modal'),

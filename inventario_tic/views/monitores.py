@@ -10,6 +10,7 @@ from django.views.generic import TemplateView
 from core.standard.views import StandardCreateView, StandardUpdateView
 from ..forms.monitores import FormMonitor, FormRecepcionMonitor
 from ..models.monitores import Monitor
+from ..forms.mantenedores import FormFuncionarioInventario
 
 
 def _as_int(value, default=0):
@@ -28,7 +29,7 @@ class MonitorListView(LoginRequiredMixin, TemplateView):
     columns = (
         'codigo_inventario', 'numero_serie', 'marca__nombre', 'modelo__nombre',
         'pulgadas', 'resolucion', 'frecuencia_hz', 'tiene_hdmi', 'tiene_vga',
-        'establecimiento_mantenedor__nombre', 'responsable',
+        'establecimiento_mantenedor__nombre', 'responsable__nombre',
     )
 
     def post(self, request, *args, **kwargs):
@@ -68,6 +69,7 @@ class MonitorListView(LoginRequiredMixin, TemplateView):
             queryset = queryset[start:start + length]
         data = list(queryset.values('id', 'asignado', *self.columns))
         for row in data:
+            row['responsable'] = row.pop('responsable__nombre')
             row['puede_generar_acta'] = puede_generar_acta_monitor(
                 row['responsable'], row['establecimiento_mantenedor__nombre'],
             )
@@ -134,6 +136,11 @@ class MonitorRecepcionUpdateView(StandardUpdateView):
     form_class = FormRecepcionMonitor
     success_url = reverse_lazy('inventario_tic:monitor_list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
         form.instance.asignado = True
         return super().form_valid(form)
@@ -153,6 +160,7 @@ class MonitorRecepcionUpdateView(StandardUpdateView):
         context['form_heading'] = 'Datos de recepción'
         context['submit_label'] = 'Guardar recepción'
         context['title'] = f'Recepción de Monitor: {self.object}'
+        context['funcionario_form'] = FormFuncionarioInventario()
         context['last_form'] = True
         return context
 

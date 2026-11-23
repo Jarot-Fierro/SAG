@@ -15,6 +15,9 @@ class Computador(StandardModelEstablishment):
     codigo_inventario = models.CharField(
         max_length=100,
         unique=True,
+        null=True,
+        blank=True,
+        editable=False,
         verbose_name='Código de Inventario',
     )
     numero_serie = models.CharField(
@@ -66,6 +69,20 @@ class Computador(StandardModelEstablishment):
         verbose_name='Observación'
     )
 
+    establecimiento_mantenedor = models.ForeignKey(
+        'inventario_tic.Establecimiento', on_delete=models.PROTECT,
+        related_name='computadores', verbose_name='Establecimiento Destino', blank=True, null=True,
+    )
+    jefe_entrega = models.ForeignKey(
+        'inventario_tic.JefeTic', on_delete=models.PROTECT,
+        related_name='computadores', verbose_name='Jefe de Entrega', blank=True, null=True,
+    )
+    responsable = models.ForeignKey(
+        'inventario_tic.FuncionarioInventario', on_delete=models.PROTECT,
+        related_name='computadores', verbose_name='Responsable', blank=True, null=True,
+    )
+    asignado = models.BooleanField(default=False, verbose_name='Asignado')
+
     UPPERCASE_FIELDS = [
         'codigo_inventario', 'numero_serie', 'procesador',
         'almacenamiento', 'tarjeta_grafica',
@@ -90,7 +107,7 @@ class Computador(StandardModelEstablishment):
                 self.codigo_inventario = f'SSA-PC-{self.pk}'
                 super().save(using=using, update_fields=['codigo_inventario'])
             else:
-                self.codigo_inventario = f'SSA-CEL-{self.pk}'
+                self.codigo_inventario = f'SSA-PC-{self.pk}'
                 if kwargs.get('update_fields') is not None:
                     kwargs['update_fields'] = set(kwargs['update_fields']) | {'codigo_inventario'}
                 super().save(*args, **kwargs)

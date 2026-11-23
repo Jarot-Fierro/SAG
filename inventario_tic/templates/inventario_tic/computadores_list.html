@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block sidebar %}
+    {% include 'inventario_tic/sidebar.html' %}
+{% endblock %}
+
+{% block buttons %}
+    <a href="{% url 'inventario_tic:computador_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Nuevo Computador
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="card table-responsive m-2 p-0">
+        {% csrf_token %}
+        <table id="computadoresTable" class="table display w-100"
+               data-url-acta="{{ acta_url_template }}"
+               data-url-recepcion="{{ recepcion_url_template }}"
+               data-url-devolucion="{{ devolucion_url_template }}"
+               data-url-edit="{{ edit_url_template }}"
+               data-url-delete="{{ delete_url_template }}">
+            <thead>
+            <tr>
+                <th>Código de inventario</th>
+                <th>Número de serie</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Formato</th>
+                <th>Procesador</th>
+                <th>RAM (GB)</th>
+                <th>Almacenamiento</th>
+                <th>Tarjeta gráfica</th>
+                <th>Observación</th>
+                <th>Establecimiento destino</th>
+                <th>Responsable</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody class="p-0">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const urlEditarComputador = "{{ edit_url_template }}";
+        const urlEliminarComputador = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'inventario_tic/js/computadores_datatable.js' %}?v=20261123-recepcion-2"></script>
+    <script src="{% static 'inventario_tic/js/computadores_modal.js' %}?v=20261123-recepcion-2"></script>
+{% endblock %}

@@ -177,7 +177,7 @@
     </tr>
     <tr>
         <th>Responsable</th>
-        <td>{{ monitor.responsable }}</td>
+        <td>{{ monitor.responsable.nombre }}</td>
     </tr>
     <tr>
         <th>Jefe de entrega</th>
@@ -196,7 +196,7 @@
                 <div class="signature-box">
                     <strong>RECIB&Iacute; CONFORME</strong>
                     <div class="signature-line">
-                        <strong>{{ monitor.responsable|upper }}</strong><br>
+                        <strong>{{ monitor.responsable.nombre|upper }}</strong><br>
                         {{ monitor.establecimiento_mantenedor.nombre }}<br>
                         <small>FIRMA RECEPTOR</small>
                     </div>

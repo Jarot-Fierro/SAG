@@ -1,6 +1,6 @@
 from django import forms
 
-from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic
+from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic, FuncionarioInventario
 from ..models.monitores import Monitor
 
 
@@ -164,15 +164,11 @@ class FormRecepcionMonitor(forms.ModelForm):
         ),
         required=True,
     )
-    responsable = forms.CharField(
+    responsable = forms.ModelChoiceField(
         label='Responsable',
-        max_length=255,
-        widget=forms.TextInput(
-            attrs={
-                'id': 'responsable_monitor', 'class': 'form-control',
-                'placeholder': 'Nombre de la persona a quien se le asigna el equipo', 'maxlength': '255',
-            }
-        ),
+        queryset=FuncionarioInventario.objects.none(),
+        empty_label='Seleccione un funcionario',
+        widget=forms.Select(attrs={'id': 'responsable_monitor', 'class': 'form-select tom-select'}),
         required=True,
     )
 
@@ -182,3 +178,13 @@ class FormRecepcionMonitor(forms.ModelForm):
             'establecimiento_mantenedor', 'responsable',
             'jefe_entrega',
         ]
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if request is not None:
+            queryset = FuncionarioInventario.objects.filter(is_active=True)
+            if not request.user.is_superuser:
+                establecimiento_id = getattr(request.user, 'establecimiento_id', None)
+                queryset = queryset.filter(establecimiento_id=establecimiento_id) if establecimiento_id else queryset.none()
+            self.fields['responsable'].queryset = queryset.order_by('nombre', 'pk')

@@ -1,1 +1,1 @@
-from . import mantenedores, celulares, productos
+from . import mantenedores, celulares, productos, computadores, monitores, impresoras

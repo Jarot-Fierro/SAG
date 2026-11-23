@@ -43,10 +43,13 @@ class Monitor(StandardModelEstablishment):
         'inventario_tic.Establecimiento', on_delete=models.PROTECT,
         related_name='monitores', verbose_name='Establecimiento Destino', blank=True, null=True,
     )
-    responsable = models.CharField(max_length=255, verbose_name='Responsable', blank=True, null=True)
     jefe_entrega = models.ForeignKey(
         'inventario_tic.JefeTic', on_delete=models.PROTECT,
         related_name='monitores', verbose_name='Jefe de Entrega', blank=True, null=True,
+    )
+    responsable = models.ForeignKey(
+        'inventario_tic.FuncionarioInventario', on_delete=models.PROTECT,
+        related_name='monitores', verbose_name='Responsable', blank=True, null=True,
     )
     asignado = models.BooleanField(default=False, verbose_name='Asignado')
 

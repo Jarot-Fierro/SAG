@@ -58,7 +58,17 @@
                                             {{ field.label }}{% if field.field.required %}
                                                 <span class="text-danger">*</span>{% endif %}
                                         </label>
-                                        {{ field }}
+                                        {% if field.name == 'responsable' and funcionario_form %}
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <div class="flex-grow-1" style="min-width: 0;">{{ field }}</div>
+                                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                                        data-bs-target="#funcionarioModal" title="Crear funcionario" aria-label="Crear funcionario">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
                                     {% endif %}
                                     {% for error in field.errors %}
                                         <div class="text-danger small mt-1" role="alert">{{ error }}</div>
@@ -83,9 +93,15 @@
             </div>
         </div>
     </div>
+    {% if funcionario_form %}
+        {% include 'inventario_tic/funcionario_modal.html' %}
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}
-    {{ form.modelos_por_marca|json_script:'monitores-modelos' }}
+    {% if form.modelos_por_marca %}{{ form.modelos_por_marca|json_script:'monitores-modelos' }}{% endif %}
     <script src="{% static 'inventario_tic/js/monitores_form.js' %}"></script>
+    {% if funcionario_form %}
+        <script src="{% static 'inventario_tic/js/monitores_funcionario_modal.js' %}"></script>
+    {% endif %}
 {% endblock %}
