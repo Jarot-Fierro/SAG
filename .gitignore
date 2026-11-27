@@ -14,6 +14,8 @@ db.sqlite3
 *.env
 *.env.*
 !.env.example   # puedes crear uno de ejemplo si quieres
+.agents
+.junie
 
 # Archivos compilados Python
 __pycache__/
@@ -30,6 +32,7 @@ build/
 # Media / archivos subidos
 uploads/
 media/
+private_media/
 
 # Staticfiles colectivos (se generan)
 staticfiles/
