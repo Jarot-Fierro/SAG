@@ -1,11 +1,10 @@
 from django import forms
-from .contratos import ContratoEquipoFormMixin
 
-from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic, FuncionarioInventario
+from ..models.mantenedores import Marca, Modelo, Establecimiento, JefeTic, FuncionarioInventario, Contrato
 from ..models.monitores import Monitor
 
 
-class FormMonitor(ContratoEquipoFormMixin, forms.ModelForm):
+class FormMonitor(forms.ModelForm):
     numero_serie = forms.CharField(
         label='Número de Serie',
         max_length=150,
@@ -25,6 +24,12 @@ class FormMonitor(ContratoEquipoFormMixin, forms.ModelForm):
             attrs={'id': 'marca_monitor', 'class': 'form-select tom-select'}
         ),
         required=True,
+    )
+    contrato = forms.ModelChoiceField(
+        label='Contrato', required=True,
+        queryset=Contrato.objects.filter(is_active=True).order_by('nombre'),
+        empty_label='Seleccione un contrato',
+        widget=forms.Select(attrs={'id': 'contrato_impresora', 'class': 'form-select tom-select'}),
     )
     modelo = forms.ModelChoiceField(
         label='Modelo',
@@ -187,5 +192,6 @@ class FormRecepcionMonitor(forms.ModelForm):
             queryset = FuncionarioInventario.objects.filter(is_active=True)
             if not request.user.is_superuser:
                 establecimiento_id = getattr(request.user, 'establecimiento_id', None)
-                queryset = queryset.filter(establecimiento_id=establecimiento_id) if establecimiento_id else queryset.none()
+                queryset = queryset.filter(
+                    establecimiento_id=establecimiento_id) if establecimiento_id else queryset.none()
             self.fields['responsable'].queryset = queryset.order_by('nombre', 'pk')

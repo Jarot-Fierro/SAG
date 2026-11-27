@@ -16,7 +16,8 @@ db.sqlite3
 !.env.example   # puedes crear uno de ejemplo si quieres
 .agents
 .junie
-
+.agents/
+.junie/
 # Archivos compilados Python
 __pycache__/
 *.pyc

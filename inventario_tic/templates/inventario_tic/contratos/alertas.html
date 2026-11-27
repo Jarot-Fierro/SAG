@@ -4,7 +4,8 @@
         <i class="bi bi-exclamation-triangle me-1"></i>Contratos con aviso ({{ request.alertas_contratos|length }})
     </button>
 </div>
-<div class="modal fade" id="contratosVencimientoModal" tabindex="-1" aria-labelledby="contratosVencimientoTitulo" aria-hidden="true">
+<div class="modal fade" id="contratosVencimientoModal" tabindex="-1" aria-labelledby="contratosVencimientoTitulo" aria-hidden="true"
+     data-autoabrir="{{ request.abrir_alertas_contratos|yesno:'true,false' }}">
     <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
         <div class="modal-header bg-warning-subtle">
             <h5 class="modal-title" id="contratosVencimientoTitulo">Vencimiento de contratos de equipamiento</h5>
@@ -30,4 +31,4 @@
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
     </div></div>
 </div>
-<script src="{% static 'inventario_tic/js/contratos_alertas.js' %}"></script>
+<script src="{% static 'inventario_tic/js/contratos_alertas.js' %}?v=20261127-sesion"></script>

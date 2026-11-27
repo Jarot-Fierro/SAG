@@ -1,32 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}
-    Agenda Telefónica {% if establecimiento %} - {{ establecimiento.nombre }}{% endif %}
-{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block sidebar %}
-    {% include 'anexos/components/../agenda_telefonica/templates/anexos/menu_sidebar.html' %}
+    {% include 'inventario_tic/sidebar.html' %}
 {% endblock %}
 
 {% block buttons %}
-    {#    <a href="{% url 'agenda:anexos' %}" class="btn btn-primary btn-sm">Ingreso</a>#}
+    <a href="{% url 'inventario_tic:impresora_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Nueva Impresora
+    </a>
 {% endblock %}
 
 {% block content %}
     <div class="card table-responsive m-2 p-0">
         {% csrf_token %}
-        <table id="myTable" class="table display ">
+        <table id="impresorasTable" class="table display w-100"
+               data-url-acta="{{ acta_url_template }}"
+               data-url-edit="{{ edit_url_template }}"
+               data-url-delete="{{ delete_url_template }}">
             <thead>
             <tr>
-                <th>Anexo</th>
-                <th>Público</th>
-                <th>Teléfono</th>
-                <th>Nombres</th>
-                <th>Correo</th>
-                <th>Depto</th>
-                <th>Dirección</th>
-                <th>Cargo</th>
+                <th>Número de Serie</th>
+                <th>HH</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Color</th>
+                <th>Ethernet</th>
+                <th>Wi-Fi</th>
+                <th>Consumible</th>
+                <th>Departamento</th>
+                <th>Observación</th>
+                <th class="text-center">Acciones</th>
             </tr>
             </thead>
             <tbody class="p-0">
@@ -34,6 +40,12 @@
         </table>
     </div>
 {% endblock %}
+
 {% block scripts %}
-    <script src="{% static 'agenda_telefonica/js/index.js' %}"></script>
+    <script>
+        const urlEditarImpresora = "{{ edit_url_template }}";
+        const urlEliminarImpresora = "{{ delete_url_template }}";
+    </script>
+    <script src="{% static 'inventario_tic/js/impresoras_datatable.js' %}?v=20261117-acta-1"></script>
+    <script src="{% static 'inventario_tic/js/impresoras_modal.js' %}"></script>
 {% endblock %}

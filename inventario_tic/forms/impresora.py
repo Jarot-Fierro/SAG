@@ -1,12 +1,11 @@
 from django import forms
-from .contratos import ContratoEquipoFormMixin
 
 from core.models.unidad_organizacional import UnidadOrganizacional
 from ..models.impresoras import Impresora
-from ..models.mantenedores import Marca, Modelo
+from ..models.mantenedores import Marca, Modelo, Contrato
 
 
-class FormImpresora(ContratoEquipoFormMixin, forms.ModelForm):
+class FormImpresora(forms.ModelForm):
     numero_serie = forms.CharField(
         label='Número de Serie', max_length=150, required=True,
         widget=forms.TextInput(attrs={
@@ -26,6 +25,12 @@ class FormImpresora(ContratoEquipoFormMixin, forms.ModelForm):
         queryset=Marca.objects.filter(is_active=True).order_by('nombre'),
         empty_label='Seleccione una marca',
         widget=forms.Select(attrs={'id': 'marca_impresora', 'class': 'form-select tom-select'}),
+    )
+    contrato = forms.ModelChoiceField(
+        label='Contrato', required=True,
+        queryset=Contrato.objects.filter(is_active=True).order_by('nombre'),
+        empty_label='Seleccione un contrato',
+        widget=forms.Select(attrs={'id': 'contrato_impresora', 'class': 'form-select tom-select'}),
     )
     modelo = forms.ModelChoiceField(
         label='Modelo', required=True,

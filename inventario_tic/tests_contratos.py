@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.test import RequestFactory, TestCase
 from django.urls import resolve, reverse
@@ -11,7 +12,7 @@ from .forms.computadores import FormComputador
 from .forms.monitores import FormMonitor
 from .forms.celulares import FormCelular
 from .forms.impresora import FormImpresora
-from .middleware import AlertasContratosMiddleware, alertas_contratos
+from .middleware import AlertasContratosMiddleware, CONTRATOS_AVISO_SESION, alertas_contratos
 from .models import Celular, Computador, Impresora, Monitor
 from .models.mantenedores import Contrato
 
@@ -90,6 +91,7 @@ class ContratosTests(TestCase):
                 middleware.process_view(request, None, (), {})
             self.assertFalse(hasattr(request, 'alertas_contratos'))
         request = factory.get(url)
+        request.session = {}
         request.user = self.user
         request.resolver_match = resolve(url)
         with self.assertNumQueries(0):
@@ -101,6 +103,56 @@ class ContratosTests(TestCase):
         request2.resolver_match = None
         middleware.process_view(request2, None, (), {})
         self.assertFalse(hasattr(request2, 'alertas_contratos'))
+
+    def test_modal_una_vez_por_login_y_boton_disponible_al_navegar(self):
+        url = reverse('inventario_tic:monitor_list')
+        self.assertNotIn(CONTRATOS_AVISO_SESION, self.client.session)
+        self.assertContains(self.client.get(url), 'data-autoabrir="true"')
+        self.assertTrue(self.client.session[CONTRATOS_AVISO_SESION])
+        siguiente = self.client.get(reverse('inventario_tic:computador_list'))
+        self.assertContains(siguiente, 'data-autoabrir="false"')
+        self.assertContains(siguiente, 'Contratos con aviso')
+        session = self.client.session
+        session.set_expiry(48 * 60 * 60)
+        session.save()
+        with patch('inventario_tic.middleware.timezone.now', return_value=timezone.now() + timedelta(hours=20)):
+            self.assertContains(self.client.get(url), 'data-autoabrir="false"')
+        # También se reinicia al autenticar otra vez al mismo usuario sin vaciar antes la sesión.
+        self.client.force_login(self.user)
+        self.assertNotIn(CONTRATOS_AVISO_SESION, self.client.session)
+        self.assertContains(self.client.get(url), 'data-autoabrir="true"')
+        self.client.logout()
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(url), 'data-autoabrir="true"')
+
+    def test_ajax_json_pdf_y_otro_modulo_no_consumen_aviso(self):
+        url = reverse('inventario_tic:monitor_list')
+        self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertNotIn(CONTRATOS_AVISO_SESION, self.client.session)
+        self.client.get(reverse('inventario_tic:dashboard_datos'), {'bloque': 'stock'})
+        self.assertNotIn(CONTRATOS_AVISO_SESION, self.client.session)
+        with patch('inventario_tic.views.pdfs.HTML'):
+            self.client.get(reverse('inventario_tic:generar_acta_monitores', args=[self.monitor.pk]))
+        self.assertNotIn(CONTRATOS_AVISO_SESION, self.client.session)
+        request = RequestFactory().get('/')
+        request.user = self.user
+        request.session = self.client.session
+        request.resolver_match = None
+        AlertasContratosMiddleware(lambda r: None).process_view(request, None, (), {})
+        self.assertNotIn(CONTRATOS_AVISO_SESION, request.session)
+        self.assertContains(self.client.get(url), 'data-autoabrir="true"')
+
+    def test_primera_entrada_sin_avisos_no_interrumpe_despues(self):
+        url = reverse('inventario_tic:monitor_list')
+        self.contrato.notificar_vencimiento = False
+        self.contrato.save()
+        self.assertNotContains(self.client.get(url), 'contratosVencimientoModal')
+        self.assertTrue(self.client.session[CONTRATOS_AVISO_SESION])
+        self.contrato.notificar_vencimiento = True
+        self.contrato.save()
+        self.assertContains(self.client.get(url), 'data-autoabrir="false"')
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(url), 'data-autoabrir="true"')
 
     def test_formularios_opcionales_y_separacion_por_establecimiento(self):
         otra = Organizacion.objects.create(nombre='Otra')

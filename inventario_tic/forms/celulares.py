@@ -1,11 +1,10 @@
 from django import forms
-from .contratos import ContratoEquipoFormMixin
 
 from ..models.celulares import Celular
-from ..models.mantenedores import Marca, Modelo, Propietario, Establecimiento, JefeTic, FuncionarioInventario
+from ..models.mantenedores import Marca, Modelo, Propietario, Establecimiento, JefeTic, FuncionarioInventario, Contrato
 
 
-class FormCelular(ContratoEquipoFormMixin, forms.ModelForm):
+class FormCelular(forms.ModelForm):
     imei = forms.CharField(
         label='IMEI Principal',
         max_length=15,
@@ -36,6 +35,12 @@ class FormCelular(ContratoEquipoFormMixin, forms.ModelForm):
             }
         ),
         required=False,
+    )
+    contrato = forms.ModelChoiceField(
+        label='Contrato', required=True,
+        queryset=Contrato.objects.filter(is_active=True).order_by('nombre'),
+        empty_label='Seleccione un contrato',
+        widget=forms.Select(attrs={'id': 'contrato_impresora', 'class': 'form-select tom-select'}),
     )
     marca = forms.ModelChoiceField(
         label='Marca',
@@ -207,5 +212,6 @@ class FormRecepcionCelular(forms.ModelForm):
             queryset = FuncionarioInventario.objects.filter(is_active=True)
             if not request.user.is_superuser:
                 establecimiento_id = getattr(request.user, 'establecimiento_id', None)
-                queryset = queryset.filter(establecimiento_id=establecimiento_id) if establecimiento_id else queryset.none()
+                queryset = queryset.filter(
+                    establecimiento_id=establecimiento_id) if establecimiento_id else queryset.none()
             self.fields['responsable'].queryset = queryset.order_by('nombre', 'pk')

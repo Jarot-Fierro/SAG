@@ -7,6 +7,9 @@ from .models import Celular, Computador, Impresora, Monitor
 from .models.mantenedores import Contrato
 
 
+CONTRATOS_AVISO_SESION = 'inventario_tic_contratos_aviso_mostrado'
+
+
 def alertas_contratos(user):
     hoy = timezone.localdate() if settings.USE_TZ else timezone.now().date()
     contratos = Contrato.objects.filter(is_active=True, notificar_vencimiento=True,
@@ -48,4 +51,11 @@ class AlertasContratosMiddleware(MiddlewareMixin):
                 and request.headers.get('HX-Request') != 'true'
                 and 'application/json' not in request.headers.get('Accept', '')):
             # La consulta solo se ejecuta si una página HTML renderiza el aviso.
-            request.alertas_contratos = SimpleLazyObject(lambda: alertas_contratos(request.user))
+            def cargar_alertas():
+                alertas = alertas_contratos(request.user)
+                request.abrir_alertas_contratos = not request.session.get(CONTRATOS_AVISO_SESION, False)
+                if request.abrir_alertas_contratos:
+                    request.session[CONTRATOS_AVISO_SESION] = True
+                return alertas
+
+            request.alertas_contratos = SimpleLazyObject(cargar_alertas)

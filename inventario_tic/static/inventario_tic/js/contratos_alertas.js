@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('contratosVencimientoModal');
-    if (!modal) return;
+    if (!modal || modal.dataset.autoabrir !== 'true') return;
     // Esperar si la página ya abrió otro modal, por ejemplo para corregir un formulario.
     function mostrar() {
-        if (!document.querySelector('.modal.show')) bootstrap.Modal.getOrCreateInstance(modal).show();
+        const abierto = document.querySelector('.modal.show');
+        if (abierto) {
+            abierto.addEventListener('hidden.bs.modal', mostrar, {once: true});
+            return;
+        }
+        bootstrap.Modal.getOrCreateInstance(modal).show();
     }
     setTimeout(mostrar, 0);
 });

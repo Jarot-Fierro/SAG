@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block sidebar %}
-    {% include 'anexos/components/../agenda_telefonica/templates/anexos/menu_sidebar.html' %}
+    {% include 'inventario_tic/sidebar.html' %}
 {% endblock %}
 
 {% block buttons %}
-    <a href="{% url 'agenda:list_anexos_edit' %}" class="btn btn-sm btn-secondary">
-        <i class="bi bi-arrow-left-circle me-1"></i>
-        Volver
+    <a href="{{ list_url }}" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left-circle me-1"></i>Volver
     </a>
 {% endblock %}
 
@@ -20,98 +20,46 @@
                 <div class="card-body">
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-
                         {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}<br>
-                                {% endfor %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ form.non_field_errors }}
                             </div>
                         {% endif %}
 
-                        <h6 class="mb-3">Datos del anexo</h6>
-
+                        <h6 class="mb-3">Información de la impresora</h6>
                         <div class="row">
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.anexo.id_for_label }}"
-                                       class="form-label">{{ form.anexo.label }}</label>
-                                {{ form.anexo }}
-                                {% for error in form.anexo.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.anexo_publico.id_for_label }}"
-                                       class="form-label">{{ form.anexo_publico.label }}</label>
-                                {{ form.anexo_publico }}
-                                {% for error in form.anexo_publico.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.numero_telefonico.id_for_label }}"
-                                       class="form-label">{{ form.numero_telefonico.label }}</label>
-                                {{ form.numero_telefonico }}
-                                {% for error in form.numero_telefonico.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.nombre_anexo.id_for_label }}"
-                                       class="form-label">{{ form.nombre_anexo.label }}</label>
-                                {{ form.nombre_anexo }}
-                                {% for error in form.nombre_anexo.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.unidad_organizacional.id_for_label }}"
-                                       class="form-label">{{ form.unidad_organizacional.label }}</label>
-                                {{ form.unidad_organizacional }}
-                                {% for error in form.unidad_organizacional.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.encargado_de.id_for_label }}"
-                                       class="form-label">{{ form.encargado_de.label }}</label>
-                                {{ form.encargado_de }}
-                                {% for error in form.encargado_de.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.email.id_for_label }}"
-                                       class="form-label">{{ form.email.label }}</label>
-                                {{ form.email }}
-                                {% for error in form.email.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="mb-3 col-12 col-md-6 col-lg-3">
-                                <label for="{{ form.rol_organizacional.id_for_label }}"
-                                       class="form-label">{{ form.rol_organizacional.label }}</label>
-                                {{ form.rol_organizacional }}
-                                {% for error in form.rol_organizacional.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-
+                            {% for field in form %}
+                                <div class="mb-3 {% if field.name == 'observacion' or field.name == 'descripcion' %}col-12{% else %}col-12 col-md-6 col-lg-4{% endif %}">
+                                    {% if field.field.widget.input_type == 'checkbox' %}
+                                        <div class="form-check form-switch mt-4">
+                                            {{ field }}
+                                            <label for="{{ field.id_for_label }}" class="form-check-label fw-bold">
+                                                {{ field.label }}
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                            {{ field.label }}{% if field.field.required %}
+                                                <span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        {{ field }}
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1" role="alert">{{ error }}</div>
+                                    {% endfor %}
+                                    {% if field.help_text %}
+                                        <div class="form-text">{{ field.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
 
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a href="{% url 'agenda:list_anexos_edit' %}" class="btn btn-secondary">
+                        <div class="d-flex gap-2 justify-content-end mt-3">
+                            <a href="{{ list_url }}" class="btn btn-secondary">
                                 <i class="bi bi-x-circle me-1"></i>Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check2-circle me-1"></i>{{ submit_label }}
+                                <i class="bi bi-check2-circle me-1"></i>{{ submit_label|default:'Guardar' }}
                             </button>
                         </div>
                     </form>
@@ -122,5 +70,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{% static 'agenda_telefonica/js/form_anexos.js' %}"></script>
+    {{ form.modelos_por_marca|json_script:'impresoras-modelos' }}
+    <script src="{% static 'inventario_tic/js/impresoras_form.js' %}"></script>
 {% endblock %}
